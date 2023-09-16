@@ -721,3 +721,13 @@ backend/node_modules/yallist/LICENSE
 backend/node_modules/yallist/package.json
 backend/node_modules/yallist/README.md
 backend/node_modules/yallist/yallist.js
+backend/node_modules/cors/CONTRIBUTING.md
+backend/node_modules/cors/HISTORY.md
+backend/node_modules/cors/LICENSE
+backend/node_modules/cors/package.json
+backend/node_modules/cors/README.md
+backend/node_modules/cors/lib/index.js
+backend/node_modules/object-assign/index.js
+backend/node_modules/object-assign/license
+backend/node_modules/object-assign/package.json
+backend/node_modules/object-assign/readme.md

@@ -1,8 +1,14 @@
 const express = require("express");
+const cors = require('cors');
+
 const app = express();
+
 const port = 3000;
 
 app.use(express.json());
+//allow cors for local frontend and backend testing
+app.use(cors({ origin: 'http://localhost' }));
+
 //If there are too many links, use router to refactor them!
 
 //Get request for '/' endpoint
