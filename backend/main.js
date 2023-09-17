@@ -1,5 +1,10 @@
+// import { require } from "module";
+// const require = createRequire(import.meta.url);
+// import * as express from "express";
 const express = require("express");
-const cors = require('cors');
+const cors = require("cors");
+// import cors from "cors";
+// import mockDataRoute from "mockDataRoute.js";
 
 const app = express();
 
@@ -7,7 +12,7 @@ const port = 3000;
 
 app.use(express.json());
 //allow cors for local frontend and backend testing
-app.use(cors({ origin: 'http://localhost' }));
+app.use(cors({ origin: "http://localhost" }));
 
 //If there are too many links, use router to refactor them!
 
@@ -25,6 +30,10 @@ app.post("/", (req, res) => {
   console.log("Received data:", requestData);
   res.status(200).send("Data has been received." + JSON.stringify(requestData));
 });
+
+// import router from "./routes/mockDataRoute.js";
+const mockDataRoute = require("./routes/mockDataRoute.js"); //from "mockDataRoute.js";
+app.use("/mockdata", mockDataRoute);
 
 //run the server
 app.listen(port, () => {
