@@ -14,12 +14,14 @@ app.use(express.json());
 //allow cors for local frontend and backend testing
 app.use(cors({ origin: "http://localhost" }));
 
-//If there are too many links, use router to refactor them!
+globallst = [];
 
 //Get request for '/' endpoint
 app.get("/", (req, res) => {
   console.log("gotten request");
-  res.status(200).send("Hello, World!");
+  // res.status(200).send("Hello, World!");
+  console.log(globallst);
+  res.status(200).send(JSON.stringify(globallst));
 });
 
 app.post("/", (req, res) => {
@@ -28,6 +30,7 @@ app.post("/", (req, res) => {
   const requestData = req.body;
   // Do something with the data (e.g., print it)
   console.log("Received data:", requestData);
+  globallst.push(requestData);
   res.status(200).send("Data has been received." + JSON.stringify(requestData));
 });
 
