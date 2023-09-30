@@ -3,6 +3,7 @@
 // import * as express from "express";
 const express = require("express");
 const cors = require("cors");
+const db = require("./database.js")
 // import cors from "cors";
 // import mockDataRoute from "mockDataRoute.js";
 
@@ -16,12 +17,22 @@ app.use(cors({ origin: "http://localhost" }));
 
 globallst = [];
 
-//Get request for '/' endpoint
-app.get("/", (req, res) => {
-  console.log("gotten request");
-  // res.status(200).send("Hello, World!");
+
+app.get("/", async (req, res) => {
+
+    const result = await db.promise().query('SELECT * FROM BASESENSOR;');
+    console.log("Database Result:", result.rows);
+    console.log(result);
+    console.log("gotten request");
+    
+
+    // Assuming globallst contains the data you want to send as JSON
+    const jsonString = JSON.stringify(globallst);
+    console.log("JSON String:", jsonString);
+
+    res.status(200).json(globallst);
+ 
   console.log(globallst);
-  res.status(200).send(JSON.stringify(globallst));
 });
 
 app.post("/", (req, res) => {
@@ -31,12 +42,23 @@ app.post("/", (req, res) => {
   // Do something with the data (e.g., print it)
   console.log("Received data:", requestData);
   globallst.push(requestData);
-  res.status(200).send("Data has been received." + JSON.stringify(requestData));
+  try{
+    db.promise().query(`INSERT INTO BASESENSOR VALUES('${requestData.temperature}','${requestData.humidity}')`);
+
+  }catch(e){
+    console.log(e);
+  }
+  // res.status(200).send("Data has been received." + JSON.stringify(requestData));
+  res.status(200).send("Data has been received." );
 });
 
 // import router from "./routes/mockDataRoute.js";
 const mockDataRoute = require("./routes/mockDataRoute.js"); //from "mockDataRoute.js";
 app.use("/mockdata", mockDataRoute);
+
+
+
+
 
 //run the server
 app.listen(port, () => {
