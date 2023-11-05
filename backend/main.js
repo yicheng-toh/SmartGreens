@@ -13,7 +13,7 @@ app.use(cors({ origin: "http://localhost" }));
 
 //Instantiate Variables
 mode = "sqlite3"
-mode = ""
+// mode = ""
 globallst = [];
 
 

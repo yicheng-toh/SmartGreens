@@ -9,9 +9,13 @@ router.use(json());
 //sample code from chatgpt
   // Endpoint to insert data (POST request)
   router.post('/insertData/:microcontrollerId', (req, res) => {
-    const { dateTime, temperature, humidity, brightness } = req.body;
+    const currentDateTime = new Date();
+    const formattedDateTime = currentDateTime.toISOString().slice(0, 19).replace('T', ' ');
+    const dateTime = formattedDateTime.toString();
+    console.log('dateTime is' + dateTime);
+    const { temperature, humidity, brightness } = req.body;
     const { microcontrollerId } = req.params;
-    //plant batch is to be queried from the table...maybe need datetime, plantbatch microcontroller.
+
     let plantBatch = 0;
   
     db.run('INSERT INTO SensorDetail (DateTime, MicroControllerID,PlantBatch,Temperature,Humidity,brightness) VALUES (?,?, ?,?, ?,?)', 
@@ -20,7 +24,7 @@ router.use(json());
         console.error('Error inserting data:', err);
         res.status(500).send('Internal Server Error');
       } else {
-        res.status(201).send('Data inserted successfully');
+        res.status(201).send('Data inserted successfully' + dateTime);
       }
     });
   });
@@ -32,7 +36,8 @@ router.use(json());
     const {plantBatch} = req.params;
     //get the sql entries when sql is that 
 
-    db.all('SELECT * FROM SensorDetail WHERE plantBatch = ?', (plantBatch), (err, rows) => {
+    // db.all('SELECT * FROM SensorDetail WHERE plantBatch = ?', (plantBatch), (err, rows) => {
+    db.all('SELECT * FROM SensorDetail WHERE microcontrollerId = ?', (plantBatch), (err, rows) => {
       if (err) {
         console.error('Error retrieving data:', err);
         res.status(500).send('Internal Server Error');
