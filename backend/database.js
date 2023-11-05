@@ -20,37 +20,49 @@ async function createTableIfNotExists() {
     //   `;
     // Create the Sensor Detail table
     const createSensorDetailTable = `
-        CREATE TABLE SensorDetail (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS SensorDetail (
         dateTime DATETIME,
         microcontrollerId INT,
-        batchNo INT,
-        brightness INT,
+        plantBatch INT,
         temperature FLOAT,
-        humidity INT
+        humidity INT,
+        brightness INT
         )
         `;
 
-    // Create the Microcontroller Location table
-    const createMicrocontrollerLocationTable = `
-        CREATE TABLE MicrocontrollerLocation (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        microcontrollerId INT,
-        position INT
-        )
-        `;
+
+    // // Create the Microcontroller Location table
+    // const createMicrocontrollerLocationTable = `
+    //     CREATE TABLE MicrocontrollerLocation (
+    //     id INT AUTO_INCREMENT PRIMARY KEY,
+    //     microcontrollerId INT,
+    //     position INT
+    //     )
+    //     `;
+    // Create the Microcontroller to plantBatch table
+    // const createMicroControllertoPlantBatchTable = `
+    //     CREATE TABLE IF NOT EXISTS PlantInfo(
+    //     id INT AUTO_INCREMENT PRIMARY KEY,
+    //     plantBatch INT,
+    //     plantSpecies VARCHAR(255),
+    //     positionLocation INT,
+    //     positionLayer INT
+    //     )
+    //     `;
 
     // Create the Plant Batch table
     const createPlantBatchTable = `
-        CREATE TABLE PlantBatch (
+        CREATE TABLE IF NOT EXISTS PlantBatch (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        batchNo INT,
+        plantBatch INT,
         plantSpecies VARCHAR(255),
-        position INT
+        positionLocation INT,
+        positionLayer INT
         )
         `;
+
     await dbConnection.execute(createSensorDetailTable);
-    await dbConnection.execute(createMicrocontrollerLocationTable);
+    // await dbConnection.execute(createMicrocontrollerLocationTable);
     await dbConnection.execute(createPlantBatchTable);
     console.log("Tables created or already exists.");
   } catch (error) {

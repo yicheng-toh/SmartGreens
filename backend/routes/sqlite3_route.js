@@ -1,19 +1,9 @@
 const { json } = require("express");
 const express = require("express");
 const sqlite3 = require('sqlite3')
-const db = require("./../main");
-
 const router = express.Router();
 
 router.use(json());
-
-router.get("/getAllData", (req, res) => {
-  console.log("sending mockBarData");
-  // // console.log(mockBarData);
-  // console.log("eh>");
-//   res.status(200).send(JSON.stringify(mockBarData));
-  res.status(200);
-});
 
 
 //sample code from chatgpt
@@ -36,8 +26,13 @@ router.get("/getAllData", (req, res) => {
   });
   
   // Endpoint to retrieve data (POST request)
-  router.get('/retrieveData', (req, res) => {
-    db.all('SELECT * FROM SensorDetail', (err, rows) => {
+  router.get('/retrieveData/:plantBatch', (req, res) => {
+
+    //get the plant batch from the params
+    const {plantBatch} = req.params;
+    //get the sql entries when sql is that 
+
+    db.all('SELECT * FROM SensorDetail WHERE plantBatch = ?', (plantBatch), (err, rows) => {
       if (err) {
         console.error('Error retrieving data:', err);
         res.status(500).send('Internal Server Error');
@@ -47,26 +42,39 @@ router.get("/getAllData", (req, res) => {
     });
   });
 
+    // Endpoint to retrieve data (POST request)
+    router.get('/retrieveData', (req, res) => {
+        db.all('SELECT * FROM SensorDetail', (err, rows) => {
+          if (err) {
+            console.error('Error retrieving data:', err);
+            res.status(500).send('Internal Server Error');
+          } else {
+            res.json(rows);
+          }
+        });
+      });
+
 function intialiseSqlite3(){
-    dbName = "mydatabase.db";
      // Initialize the SQLite database connection
-  const db = new sqlite3.Database(dbName, (err) => {
-    if (err) {
-      console.error('Error connecting to the SQLite database:', err);
-    } else {
-      console.log('Connected to the SQLite database');
-    }
-  });
-
-
-  
-
-  // You can perform additional setup or operations on the database here if needed.
-
-  // Return the database connection
-//   return db;
-// conn = sqlite3.connect('mydatabase.db')
-// return conn;
+     const db = new sqlite3.Database('mydatabase.db', sqlite3.OPEN_READWRITE,(err) => {
+        if (err) {
+          console.error('Error connecting to the SQLite database:', err);
+        } else {
+          console.log('Connected to the SQLite database');
+        }
+      });
+    console.log("Initialising table");
+    db.run(`
+        CREATE TABLE IF NOT EXISTS SensorDetail (
+        dateTime DATETIME,
+        microcontrollerId INT,
+        plantBatch INT,
+        temperature FLOAT,
+        humidity INT,
+        brightness INT
+        )
+        `);
+    return db;
 }
 
 
