@@ -11,13 +11,7 @@ const dbConnection = mysql.createConnection({
 // Function to create the BASESENSOR table if it doesn't exist
 async function createTableIfNotExists() {
   try {
-    //   const createTableQuery = `
-    //     CREATE TABLE IF NOT EXISTS BASESENSOR (
-    //       id INT AUTO_INCREMENT PRIMARY KEY,
-    //       temperature FLOAT,
-    //       humidity FLOAT
-    //     )
-    //   `;
+   
     // Create the Sensor Detail table
     const createSensorDetailTable = `
         CREATE TABLE IF NOT EXISTS SensorDetail (
@@ -29,33 +23,21 @@ async function createTableIfNotExists() {
         brightness INT
         )
         `;
-
-
-    // // Create the Microcontroller Location table
-    // const createMicrocontrollerLocationTable = `
-    //     CREATE TABLE MicrocontrollerLocation (
-    //     id INT AUTO_INCREMENT PRIMARY KEY,
-    //     microcontrollerId INT,
-    //     position INT
-    //     )
-    //     `;
-    // Create the Microcontroller to plantBatch table
-    // const createMicroControllertoPlantBatchTable = `
-    //     CREATE TABLE IF NOT EXISTS PlantInfo(
-    //     id INT AUTO_INCREMENT PRIMARY KEY,
-    //     plantBatch INT,
-    //     plantSpecies VARCHAR(255),
-    //     positionLocation INT,
-    //     positionLayer INT
-    //     )
-    //     `;
+    
+    // Create Microcontroller Plant Pair Table
+    const createMicrocontrollerPlantPairTable = `
+        CREATE TABLE IF NOT EXISTS MicrocontrollerPlantbatchPair (
+        microcontrollerId INT,
+        plantBatch INT,
+        )
+        `;
 
     // Create the Plant Batch table
     const createPlantBatchTable = `
-        CREATE TABLE IF NOT EXISTS PlantBatch (
+        CREATE TABLE IF NOT EXISTS PlantDetail (
         id INT AUTO_INCREMENT PRIMARY KEY,
         plantBatch INT,
-        plantSpecies VARCHAR(255),
+        plantSpecies VARCHAR(100),
         positionLocation INT,
         positionLayer INT
         )
@@ -70,8 +52,7 @@ async function createTableIfNotExists() {
   }
 }
 
-// Call the function to create the table before running the server
-//   createTableIfNotExists();
+// Reassign more meaningful function name
 initialiseMySQL = createTableIfNotExists;
 
 module.exports = {
