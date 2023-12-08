@@ -7,8 +7,8 @@ const SQLITE = "SQLite";
 const MYSQL = "MySQL";
 
 const DEPLOYMENT = true; //False deployment refers to testing.
-// const DATABASE = SQLITE; //Either SQLITE or MYSQL
-const DATABASE = MYSQL; //Either SQLITE or MYSQL
+const DATABASE = SQLITE; //Either SQLITE or MYSQL
+// const DATABASE = MYSQL; //Either SQLITE or MYSQL
 
 let SQLITE_ROUTER_ROUTE;
 let MYSQL_ROUTER_ROUTE;

@@ -77,6 +77,22 @@ function intialiseSqlite3(){
         brightness INT
         )
         `);
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS MicrocontrollerPlantbatchPair (
+        microcontrollerId INT,
+        plantBatch INT
+        )
+        `);
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS PlantDetail (
+        plantBatch INT,
+        plantSpecies VARCHAR(100),
+        positionLocation INT,
+        positionLayer INT
+        )
+        `);
     return db;
 }
 
