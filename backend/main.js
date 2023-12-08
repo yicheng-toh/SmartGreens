@@ -1,24 +1,57 @@
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require('sqlite3').verbose();
-const {dbConnection, createTableIfNotExists} = require("./database.js")
+const {dbConnection, initialiseMySQL } = require("./database.js");
+
+const SQLITE = "SQLite";
+const MYSQL = "MySQL";
+
+const DEPLOYMENT = true; //False deployment refers to testing.
+// const DATABASE = SQLITE; //Either SQLITE or MYSQL
+const DATABASE = MYSQL; //Either SQLITE or MYSQL
+
+let SQLITE_ROUTER_ROUTE;
+let MYSQL_ROUTER_ROUTE;
+
+if (!DEPLOYMENT){
+  SQLITE_ROUTER_ROUTE = "/sqlite3";
+  MYSQL_ROUTER_ROUTE = "/mysql";
+  
+}else{
+  if (DATABASE == SQLITE){
+
+    SQLITE_ROUTER_ROUTE = "";
+    MYSQL_ROUTER_ROUTE = "/mysql";
+
+  }else if (DATABASE == MYSQL){
+
+    SQLITE_ROUTER_ROUTE = "/sqlite3";
+    MYSQL_ROUTER_ROUTE = "";
+
+  }else{
+    console.log("Database not defined properly")
+  }
+}
+
+
+const ROOT_ROUTE = "http://localhost"
+const MOCKDATA_ROUTER_ROUTE = "/mockdata"
 
 const app = express();
-
 const port = 3000;
 
 app.use(express.json());
 //allow cors for local frontend and backend testing
-app.use(cors({ origin: "http://localhost" }));
+app.use(cors({ origin: ROOT_ROUTE }));
 
 //Instantiate Variables
-mode = "sqlite3"
-// mode = ""
+mode = DATABASE
+
 globallst = [];
 
 
 app.get("/", async (req, res) => {
-
+    //TODO is dbconnection is not required here, then delete the query and shift the import statement.
     const result = await dbConnection.promise().query(`SELECT * FROM BASESENSOR;`);
     console.log("/");
     console.log(result);    
@@ -30,6 +63,8 @@ app.get("/", async (req, res) => {
 
 });
 
+//Commented out due to clashing command in mysql routes.
+/*
 app.post("/", (req, res) => {
   console.log("Hello World");
   // Retrieve the data sent in the POST request
@@ -46,38 +81,40 @@ app.post("/", (req, res) => {
   // res.status(200).send("Data has been received." + JSON.stringify(requestData));
   res.status(200).send("Data has been received." );
 });
+*/
 
+//This is a testing route. To be deleted after finalisation.
 app.get("/allData", (req,res) => {
-  
   res.status(200).send("All data has been sent." );
 })
 
-// import router from "./routes/mockDataRoute.js";
-const mockDataRoute = require("./routes/mockDataRoute.js"); //from "mockDataRoute.js";
-app.use("/mockdata", mockDataRoute);
+
+//Routes from other routers
+//Mock Data routes
+const mockDataRoute = require("./routes/mockDataRoute.js");
+app.use(MOCKDATA_ROUTER_ROUTE, mockDataRoute);
+
+//SQLite routes
 const [SQlite3Route, intialiseSqlite3] = require("./routes/sqlite3_route.js");
-app.use("/sqlite3", SQlite3Route);
+app.use(SQLITE_ROUTER_ROUTE, SQlite3Route);
+
+//MySQL routes
 const MySQLRoute = require("./routes/mysql_route.js");
-app.use("/mysql", MySQLRoute);
-// const {dbConnection, createTableIfNotExists} = require("./routes/mysql_route.js");
+app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
 
 
-console.log(mode);
-if(mode == "sqlite3"){
-  // intialiseSqlite3();
+//Initialises Database
+console.log("Mode is " + mode);
+if(mode == SQLITE){
   db = intialiseSqlite3();
-}else {
-  //Initialising Mysql
-  // dbConnection = dbConnection;
-  createTableIfNotExists() 
-  // initialiseMySQL();
-  module.exports = dbConnection;
-  console.log("connected to sql server");
+}else if (mode == MYSQL) {
+  initialiseMySQL() 
+}else{
+  console.log("Mode is unavailable. Please check your mode again.")
 }
 
 
-
-//run the server
+//Run Server
 app.listen(port, () => {
   console.log(`Server is listening at http://localhost:${port}`);
 });

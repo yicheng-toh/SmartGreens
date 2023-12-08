@@ -64,7 +64,7 @@ async function createTableIfNotExists() {
     await dbConnection.execute(createSensorDetailTable);
     // await dbConnection.execute(createMicrocontrollerLocationTable);
     await dbConnection.execute(createPlantBatchTable);
-    console.log("Tables created or already exists.");
+    // console.log("Tables created or already exists.");
   } catch (error) {
     console.error("Error creating table:", error);
   }
@@ -72,8 +72,9 @@ async function createTableIfNotExists() {
 
 // Call the function to create the table before running the server
 //   createTableIfNotExists();
+initialiseMySQL = createTableIfNotExists;
 
 module.exports = {
   dbConnection,
-  createTableIfNotExists,
+  initialiseMySQL,
 };
