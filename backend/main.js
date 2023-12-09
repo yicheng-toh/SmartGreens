@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const sqlite3 = require('sqlite3').verbose();
 const {dbConnection, initialiseMySQL } = require("./database.js");
+const {sendBadRequestResponse, sendInternalServerError} = require("./routes/request_error_messages.js")
 
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
@@ -51,6 +52,7 @@ globallst = [];
 
 
 app.get("/", async (req, res) => {
+  try{
     //TODO is dbconnection is not required here, then delete the query and shift the import statement.
     const result = await dbConnection.promise().query(`SELECT * FROM BASESENSOR;`);
     console.log("/");
@@ -60,6 +62,9 @@ app.get("/", async (req, res) => {
     const jsonString = JSON.stringify(globallst);
     console.log("JSON String:", jsonString);
     res.status(200).json(result[0]);
+  } catch (error) {
+    sendInternalServerError(res);
+  }
 
 });
 
@@ -74,9 +79,9 @@ app.post("/", (req, res) => {
   try{
     dbConnection.promise().query(`INSERT INTO BASESENSOR VALUES('${requestData.temperature}','${requestData.humidity}')`);
 
-  }catch(e){
+  }catch(error){
     console.log("post / error");
-    console.log(e);
+    console.log(error);
   }
   // res.status(200).send("Data has been received." + JSON.stringify(requestData));
   res.status(200).send("Data has been received." );

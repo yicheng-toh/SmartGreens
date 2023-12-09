@@ -3,6 +3,7 @@ const express = require("express");
 const {dbConnection} = require("../database.js");
 const mysql = require('mysql2/promise');
 const router = express.Router();
+const {sendBadRequestResponse, sendInternalServerError} = require("./request_error_messages.js")
 
 router.use(json());
 
@@ -12,24 +13,27 @@ const PLANTBATCH = 1
 // This is determined by the microcontroller id
 // Users are to provide temperature, humidty, brightness from the microcontroller.
 router.post('/insertData/:microcontrollerId', async (req, res) => {
-  // console.log(req);
+  try{
   const currentDateTime = new Date();
   const formattedDateTime = currentDateTime.toISOString().slice(0, 19).replace('T', ' ');
   const dateTime = formattedDateTime.toString();
 
   const { temperature, humidity, brightness } = req.body;
   const { microcontrollerId } = req.params;
+  } catch (error) {
+    sendBadRequestResponse(res);
+  }
   //TODO: Query the plant batch from the table.
   //plant batch is to be queried from the table...maybe need datetime, plantbatch microcontroller.
   let plantBatch = PLANTBATCH;
-  console.log(dateTime, temperature, humidity, brightness, microcontrollerId, plantBatch);
+  
   try {
     await dbConnection.execute('INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)',
       [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]);
     res.status(201).send('Data inserted successfully');
   } catch (error) {
     console.error('Error inserting data:', error);
-    res.status(500).send('Internal Server Error');
+    sendInternalServerError(res);
   }
   });
 
@@ -48,7 +52,7 @@ router.get('/retrieveData', async(req, res) => {
     res.json(rows);
   } catch (error) {
     console.error('Error retrieving data:', error);
-    res.status(500).send('Internal Server Error');
+    sendInternalServerError(res);
   }
   });
 
@@ -67,7 +71,7 @@ router.get('/retrieveData/:plantBatch', async(req, res) => {
     res.json(rows);
   } catch (error) {
     console.error('Error retrieving data:', error);
-    res.status(500).send('Internal Server Error');
+    sendInternalServerError(res);
   }
   });
 
@@ -101,6 +105,7 @@ const DEMO_MICROCONTROLLER_ID = 91124
 const PLANT_BATCH_DEMO = 1
 
 router.post('/', async (req, res) => {
+  try{
   const currentDateTime = new Date();
   const formattedDateTime = currentDateTime.toISOString().slice(0, 19).replace('T', ' ');
   const dateTime = formattedDateTime.toString();
@@ -109,7 +114,9 @@ router.post('/', async (req, res) => {
 
   const { temperature, humidity, brightness } = req.body;
   const microcontrollerId = DEMO_MICROCONTROLLER_ID
-  
+  } catch (error) {
+    sendBadRequestResponse(res);
+  }
   //TODO query plantbatch from the sql table.
   let plantBatch = PLANTBATCH;
   try {
@@ -118,7 +125,7 @@ router.post('/', async (req, res) => {
     res.status(201).send('Data inserted successfully');
   } catch (error) {
     console.error('Error inserting data:', error);
-    res.status(500).send('Internal Server Error');
+    sendInternalServerError(res);
   }
   });
 
@@ -132,7 +139,7 @@ router.get('/retrieveData/:plantBatch', async(req, res) => {
     res.json(rows);
   } catch (error) {
     console.error('Error retrieving data:', error);
-    res.status(500).send('Internal Server Error');
+    sendInternalServerError(res);
   }
   });
 
