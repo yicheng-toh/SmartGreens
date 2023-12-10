@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require('sqlite3').verbose();
-const {dbConnection, initialiseMySQL } = require("./database.js");
+const {dbConnection, initialiseMySQL } = require("./database_logic/mysql.js");
 const {sendBadRequestResponse, sendInternalServerError} = require("./routes/request_error_messages.js")
 
 const SQLITE = "SQLite";
@@ -100,24 +100,19 @@ const mockDataRoute = require("./routes/mockDataRoute.js");
 app.use(MOCKDATA_ROUTER_ROUTE, mockDataRoute);
 
 //SQLite routes
-const [SQlite3Route, intialiseSqlite3] = require("./routes/sqlite3_route.js");
-app.use(SQLITE_ROUTER_ROUTE, SQlite3Route);
-
-//MySQL routes
-const MySQLRoute = require("./routes/mysql_route.js");
-app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
-
-
-//Initialises Database
-console.log("Mode is " + mode);
 if(mode == SQLITE){
-  db = intialiseSqlite3();
-}else if (mode == MYSQL) {
-  initialiseMySQL() 
-}else{
-  console.log("Mode is unavailable. Please check your mode again.")
+  const {SQlite3Route, db, initialiseSqlite3} = require("./routes/sqlite3_route.js");
+  // const {} = require("./database_logic/sqlite.js");
+  app.use(SQLITE_ROUTER_ROUTE, SQlite3Route);
+  initialiseSqlite3(db);
 }
 
+//MySQL routes
+if (mode == MYSQL){
+  const MySQLRoute = require("./routes/mysql_route.js");
+  app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
+  initialiseMySQL() 
+}
 
 //Run Server
 app.listen(port, () => {

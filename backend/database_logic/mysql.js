@@ -1,5 +1,5 @@
 const mysql = require("mysql2");
-const dbDetails = require("./yc_data");
+const dbDetails = require("../yc_data");
 
 const dbConnection = mysql.createConnection({
   host: dbDetails.host,

@@ -1,6 +1,6 @@
 const { json } = require("express");
 const express = require("express");
-const {dbConnection} = require("../database.js");
+const {dbConnection} = require("../database_logic/mysql.js");
 const mysql = require('mysql2/promise');
 const router = express.Router();
 const {sendBadRequestResponse, sendInternalServerError} = require("./request_error_messages.js")
