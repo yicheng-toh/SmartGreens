@@ -1,8 +1,9 @@
 const { json } = require("express");
 const express = require("express");
-const {dbConnection} = require("../database.js");
+const mysqlLogic = require("../database_logic/mysql.js")
 const mysql = require('mysql2/promise');
 const router = express.Router();
+const {sendBadRequestResponse, sendInternalServerError} = require("./request_error_messages.js")
 
 router.use(json());
 
@@ -12,7 +13,7 @@ const PLANTBATCH = 1
 // This is determined by the microcontroller id
 // Users are to provide temperature, humidty, brightness from the microcontroller.
 router.post('/insertData/:microcontrollerId', async (req, res) => {
-  // console.log(req);
+  try{
   const currentDateTime = new Date();
   const formattedDateTime = currentDateTime.toISOString().slice(0, 19).replace('T', ' ');
   const dateTime = formattedDateTime.toString();
@@ -21,16 +22,19 @@ router.post('/insertData/:microcontrollerId', async (req, res) => {
   const { microcontrollerId } = req.params;
   //TODO: Query the plant batch from the table.
   //plant batch is to be queried from the table...maybe need datetime, plantbatch microcontroller.
-  let plantBatch = PLANTBATCH;
-  console.log(dateTime, temperature, humidity, brightness, microcontrollerId, plantBatch);
-  try {
-    await dbConnection.execute('INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)',
-      [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]);
-    res.status(201).send('Data inserted successfully');
+    let plantBatch = PLANTBATCH;
+    
+    try {
+      await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
+      res.status(201).send('Data inserted successfully');
+    } catch (error) {
+      console.error('Error inserting data:', error);
+      sendInternalServerError(res);
+    }
   } catch (error) {
-    console.error('Error inserting data:', error);
-    res.status(500).send('Internal Server Error');
+    sendBadRequestResponse(res);
   }
+  
   });
 
 
@@ -38,36 +42,24 @@ router.post('/insertData/:microcontrollerId', async (req, res) => {
 router.get('/retrieveData', async(req, res) => {
   // console.log(dbConnection);
   try {
-    // const [rows] = await dbConnection.execute('SELECT * FROM SensorDetail');
-    
-    // const [rows, fields] = await dbConnection.execute('SELECT * FROM SensorDetail');
     const [rows] = await dbConnection.promise().query('SELECT * FROM SensorDetail');
-    // console.log(rows);
-    // const rows = await dbConnection.execute('SELECT * FROM SensorDetail');
     
     res.json(rows);
   } catch (error) {
     console.error('Error retrieving data:', error);
-    res.status(500).send('Internal Server Error');
+    sendInternalServerError(res);
   }
   });
 
 
-router.get('/retrieveData/:plantBatch', async(req, res) => {
-  // console.log(dbConnection);
+router.get('/retrieveData/:microcontrollerId', async(req, res) => {
   try {
-    // const [rows] = await dbConnection.execute('SELECT * FROM SensorDetail');
-    const {plantBatch} = req.params;
-    // const [rows, fields] = await dbConnection.execute('SELECT * FROM SensorDetail');
-    // const [rows] = await dbConnection.promise().query('SELECT * FROM SensorDetail WHERE plantBatch = ?', (plantBatch));
-    const [rows] = await dbConnection.promise().query('SELECT * FROM SensorDetail WHERE microcontrollerId = ?', (plantBatch));
-    // console.log(rows);
-    // const rows = await dbConnection.execute('SELECT * FROM SensorDetail');
-    
-    res.json(rows);
+    const {microcontrollerId} = req.params;
+    const [rows] = await mysqlLogic.getSensorDataByMicrocontrollerId(microcontrollerId);    
+    res.status(200).json(rows);
   } catch (error) {
     console.error('Error retrieving data:', error);
-    res.status(500).send('Internal Server Error');
+    sendInternalServerError(res);
   }
   });
 
@@ -101,6 +93,7 @@ const DEMO_MICROCONTROLLER_ID = 91124
 const PLANT_BATCH_DEMO = 1
 
 router.post('/', async (req, res) => {
+  try{
   const currentDateTime = new Date();
   const formattedDateTime = currentDateTime.toISOString().slice(0, 19).replace('T', ' ');
   const dateTime = formattedDateTime.toString();
@@ -109,30 +102,32 @@ router.post('/', async (req, res) => {
 
   const { temperature, humidity, brightness } = req.body;
   const microcontrollerId = DEMO_MICROCONTROLLER_ID
-  
   //TODO query plantbatch from the sql table.
-  let plantBatch = PLANTBATCH;
-  try {
-    await dbConnection.execute('INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)',
-      [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]);
-    res.status(201).send('Data inserted successfully');
+  //TODO to make this look better.!!!
+    let plantBatch = PLANTBATCH;
+    try {
+      await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
+      res.status(201).send('Data inserted successfully');
+    } catch (error) {
+      console.error('Error inserting data:', error);
+      sendInternalServerError(res);
+    }
   } catch (error) {
-    console.error('Error inserting data:', error);
-    res.status(500).send('Internal Server Error');
+    sendBadRequestResponse(res);
   }
+  
   });
 
 
 
-router.get('/retrieveData/:plantBatch', async(req, res) => {
+router.get('/retrieveData/:microcontrollerId', async(req, res) => {
   try {
-    const {plantBatch} = req.params;
-    const [rows] = await dbConnection.promise().query('SELECT * FROM SensorDetail WHERE microcontrollerId = ?', (plantBatch));
-    
-    res.json(rows);
+    const {microcontrollerId} = req.params;
+    const [rows] = await mysqlLogic.getSensorDataByMicrocontrollerId(microcontrollerId);
+    res.status(200).json(rows);
   } catch (error) {
     console.error('Error retrieving data:', error);
-    res.status(500).send('Internal Server Error');
+    sendInternalServerError(res);
   }
   });
 

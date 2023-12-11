@@ -1,101 +1,68 @@
 const { json } = require("express");
 const express = require("express");
-const sqlite3 = require('sqlite3')
+const {sendBadRequestResponse, sendInternalServerError} = require("./request_error_messages")
 const router = express.Router();
+const sqlite = require("../database_logic/sqlite")
 
 router.use(json());
 
-
+const db = sqlite.initialiseSqlite3();
 // Inserts data into sqlite database.
 // This is determined by the microcontroller id
 // Users are to provide temperature, humidty, brightness from the microcontroller.
 router.post('/insertData/:microcontrollerId', (req, res) => {
+  try{
   const currentDateTime = new Date();
   const formattedDateTime = currentDateTime.toISOString().slice(0, 19).replace('T', ' ');
   const dateTime = formattedDateTime.toString();
   console.log('dateTime is' + dateTime);
   const { temperature, humidity, brightness } = req.body;
   const { microcontrollerId } = req.params;
+  } catch (error){
+    sendBadRequestResponse(res);
+  }
 
   let plantBatch = 0;
-
-  db.run('INSERT INTO SensorDetail (DateTime, MicroControllerID,PlantBatch,Temperature,Humidity,brightness) VALUES (?,?, ?,?, ?,?)', 
-              [dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness], (err) => {
-    if (err) {
-      console.error('Error inserting data:', err);
-      res.status(500).send('Internal Server Error');
-    } else {
-      res.status(201).send('Data inserted successfully' + dateTime);
-    }
-  });
+  try{
+    sqlite.insertSensorValues(dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness, db);
+    res.status(201).send('Data inserted successfully' + dateTime);
+  } catch (error) {
+    sendInternalServerError(res);
+  }
 });
 
 // Retrieves data from the database based on microcontroller
-router.get('/retrieveData/:microcontroller', (req, res) => {
+router.get('/retrieveData/:microcontroller',async (req, res) => {
+  try{
 
-  const {microcontroller} = req.params;
+    const {microcontroller} = req.params;
+    const sensorData = await sqlite.getSensorDataByMicrocontrollerId(microcontroller, db);
+    res.status(200).json(sensorData);  
 
-  db.all('SELECT * FROM SensorDetail WHERE microcontrollerId = ?', (microcontroller), (err, rows) => {
-    if (err) {
-      console.error('Error retrieving data:', err);
-      res.status(500).send('Internal Server Error');
-    } else {
-      res.json(rows);
-    }
-  });
+  } catch (error) {
+    console.log(error);
+    sendInternalServerError(res);
+  }
 });
 
-// Retrieves all the data from the sqlite database
-router.get('/retrieveData', (req, res) => {
-    db.all('SELECT * FROM SensorDetail', (err, rows) => {
-      if (err) {
-        console.error('Error retrieving data:', err);
-        res.status(500).send('Internal Server Error');
-      } else {
-        res.json(rows);
-      }
-    });
-  });
+router.get('/retrieveData',async (req, res) => {
+  try{
 
-function intialiseSqlite3(){
-     // Initialize the SQLite database connection
-     const db = new sqlite3.Database('mydatabase.db', sqlite3.OPEN_READWRITE,(err) => {
-        if (err) {
-          console.error('Error connecting to the SQLite database:', err);
-        } else {
-          console.log('Connected to the SQLite database');
-        }
-      });
-    console.log("Initialising table");
-    db.run(`
-        CREATE TABLE IF NOT EXISTS SensorDetail (
-        dateTime DATETIME,
-        microcontrollerId INT,
-        plantBatch INT,
-        temperature FLOAT,
-        humidity INT,
-        brightness INT
-        )
-        `);
+    const {microcontroller} = req.params;
+    const sensorData = await sqlite.getAllSensorData(db);
+    res.status(200).json(sensorData);  
 
-    db.run(`
-        CREATE TABLE IF NOT EXISTS MicrocontrollerPlantbatchPair (
-        microcontrollerId INT,
-        plantBatch INT
-        )
-        `);
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS PlantDetail (
-        plantBatch INT,
-        plantSpecies VARCHAR(100),
-        positionLocation INT,
-        positionLayer INT
-        )
-        `);
-    return db;
-}
+  } catch (error) {
+    console.log(error);
+    sendInternalServerError(res);
+  }
+});
 
 
-module.exports = [router,intialiseSqlite3];
+
+module.exports = {
+  SQlite3Route: router, 
+  db, 
+  initialiseSqlite3: sqlite.createTableIfNotExists,
+};
 
