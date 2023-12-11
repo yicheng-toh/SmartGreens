@@ -68,6 +68,3 @@ module.exports = {
     getSensorDataByMicrocontrollerId,
 
 };
-
-
-

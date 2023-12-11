@@ -6,10 +6,12 @@ const {sendBadRequestResponse, sendInternalServerError} = require("./routes/requ
 
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
+const SQLITE_MYSQL = "both";
 
 const DEPLOYMENT = true; //False deployment refers to testing.
 const DATABASE = SQLITE; //Either SQLITE or MYSQL
 // const DATABASE = MYSQL; //Either SQLITE or MYSQL
+// const DATABASE = SQLITE_MYSQL;
 
 let SQLITE_ROUTER_ROUTE;
 let MYSQL_ROUTER_ROUTE;
@@ -28,6 +30,11 @@ if (!DEPLOYMENT){
 
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "";
+
+  }else if (DATABASE == SQLITE_MYSQL){
+
+    SQLITE_ROUTER_ROUTE = "/sqlite3";
+    MYSQL_ROUTER_ROUTE = "/mysql";
 
   }else{
     console.log("Database not defined properly")
@@ -90,7 +97,11 @@ app.post("/", (req, res) => {
 
 //This is a testing route. To be deleted after finalisation.
 app.get("/allData", (req,res) => {
-  res.status(200).send("All data has been sent." );
+  try{
+    res.status(200).send("All data has been sent." );
+  }catch (error){
+    sendInternalServerError(res);
+  }
 })
 
 
@@ -100,21 +111,36 @@ const mockDataRoute = require("./routes/mockDataRoute.js");
 app.use(MOCKDATA_ROUTER_ROUTE, mockDataRoute);
 
 //SQLite routes
-if(mode == SQLITE){
+if(mode == SQLITE || mode == SQLITE_MYSQL){
+  try{
   const {SQlite3Route, db, initialiseSqlite3} = require("./routes/sqlite3_route.js");
   // const {} = require("./database_logic/sqlite.js");
   app.use(SQLITE_ROUTER_ROUTE, SQlite3Route);
   initialiseSqlite3(db);
+  }catch (error){
+    console.log("currently initialising sqlite database");
+    console.log(error);
+  }
 }
 
 //MySQL routes
-if (mode == MYSQL){
+if (mode == MYSQL || mode == SQLITE_MYSQL){
+  try{
   const MySQLRoute = require("./routes/mysql_route.js");
   app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
   initialiseMySQL() 
+  } catch (error){
+    console.log("Currently initalising MYSQL databaes");
+    console.log(error);
+  }
 }
 
 //Run Server
-app.listen(port, () => {
-  console.log(`Server is listening at http://localhost:${port}`);
-});
+try{
+  app.listen(port, () => {
+    console.log(`Server is listening at http://localhost:${port}`);
+  });
+} catch (error){
+  console.log("Unable to start up the app");
+  console.log(error);
+}
