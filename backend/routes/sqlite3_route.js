@@ -24,15 +24,8 @@ router.post('/insertData/:microcontrollerId', (req, res) => {
 
   let plantBatch = 0;
   try{
-    db.run('INSERT INTO SensorDetail (DateTime, MicroControllerID,PlantBatch,Temperature,Humidity,brightness) VALUES (?,?, ?,?, ?,?)', 
-                [dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness], (err) => {
-      if (err) {
-        console.error('Error inserting data:', err);
-        sendInternalServerError(res);
-      } else {
-        res.status(201).send('Data inserted successfully' + dateTime);
-      }
-    });
+    sqlite.insertSensorValues(dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness, db);
+    res.status(201).send('Data inserted successfully' + dateTime);
   } catch (error) {
     sendInternalServerError(res);
   }
@@ -52,7 +45,20 @@ router.get('/retrieveData/:microcontroller',async (req, res) => {
   }
 });
 
-// intialiseSqlite3 = sqlite.createTableIfNotExists;
+router.get('/retrieveData',async (req, res) => {
+  try{
+
+    const {microcontroller} = req.params;
+    const sensorData = await sqlite.getAllSensorData(db);
+    res.status(200).json(sensorData);  
+
+  } catch (error) {
+    console.log(error);
+    sendInternalServerError(res);
+  }
+});
+
+
 
 module.exports = {
   SQlite3Route: router, 

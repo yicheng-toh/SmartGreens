@@ -1,5 +1,7 @@
 const mysql = require("mysql2");
 const dbDetails = require("../yc_data");
+// const { dbConnection } = require("../database_logic/mysql.js");
+// const { router, PLANTBATCH } = require("../routes/mysql_route");
 
 const dbConnection = mysql.createConnection({
   host: dbDetails.host,
@@ -52,10 +54,31 @@ async function createTableIfNotExists() {
   }
 }
 
+async function insertSensorValues(dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness){
+  await dbConnection.execute('INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)',
+      [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]);
+}
+
+async function getSensorDataByMicrocontrollerId(microcontrollerId){
+  queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail WHERE microcontrollerId = ?', (microcontrollerId));
+  return queryResult;
+}
+
+async function getAllSensorData(){
+  queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail');
+  // console.log("hahahahha");
+  // console.log(queryResult);
+  return queryResult;
+}
 // Reassign more meaningful function name
 initialiseMySQL = createTableIfNotExists;
 
 module.exports = {
   dbConnection,
+  insertSensorValues,
+  getSensorDataByMicrocontrollerId,
+  getAllSensorData,
   initialiseMySQL,
 };
+
+

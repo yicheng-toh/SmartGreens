@@ -62,9 +62,30 @@ const getSensorDataByMicrocontrollerId = (microcontrollerId, db) => {
     });
   };
 
+const getAllSensorData = (db) => {
+    return new Promise((resolve, reject) => {
+      db.all('SELECT * FROM SensorDetail', (err, rows) => {
+        if (err) {
+          console.error('Error retrieving data:', err);
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  };
+
+
+const insertSensorValues = (dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness, db) => {
+    db.run('INSERT INTO SensorDetail (DateTime, MicroControllerID,PlantBatch,Temperature,Humidity,brightness) VALUES (?,?, ?,?, ?,?)', 
+                [dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness]);
+}
+
 module.exports = {
     initialiseSqlite3,
     createTableIfNotExists,
     getSensorDataByMicrocontrollerId,
+    getAllSensorData,
+    insertSensorValues,
 
 };
