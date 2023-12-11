@@ -1,6 +1,6 @@
 const { json } = require("express");
 const express = require("express");
-const {dbConnection} = require("../database_logic/mysql.js");
+const mysqlLogic = require("../database_logic/mysql.js")
 const mysql = require('mysql2/promise');
 const router = express.Router();
 const {sendBadRequestResponse, sendInternalServerError} = require("./request_error_messages.js")
@@ -20,21 +20,21 @@ router.post('/insertData/:microcontrollerId', async (req, res) => {
 
   const { temperature, humidity, brightness } = req.body;
   const { microcontrollerId } = req.params;
+  //TODO: Query the plant batch from the table.
+  //plant batch is to be queried from the table...maybe need datetime, plantbatch microcontroller.
+    let plantBatch = PLANTBATCH;
+    
+    try {
+      await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
+      res.status(201).send('Data inserted successfully');
+    } catch (error) {
+      console.error('Error inserting data:', error);
+      sendInternalServerError(res);
+    }
   } catch (error) {
     sendBadRequestResponse(res);
   }
-  //TODO: Query the plant batch from the table.
-  //plant batch is to be queried from the table...maybe need datetime, plantbatch microcontroller.
-  let plantBatch = PLANTBATCH;
   
-  try {
-    await dbConnection.execute('INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)',
-      [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]);
-    res.status(201).send('Data inserted successfully');
-  } catch (error) {
-    console.error('Error inserting data:', error);
-    sendInternalServerError(res);
-  }
   });
 
 
@@ -42,12 +42,7 @@ router.post('/insertData/:microcontrollerId', async (req, res) => {
 router.get('/retrieveData', async(req, res) => {
   // console.log(dbConnection);
   try {
-    // const [rows] = await dbConnection.execute('SELECT * FROM SensorDetail');
-    
-    // const [rows, fields] = await dbConnection.execute('SELECT * FROM SensorDetail');
     const [rows] = await dbConnection.promise().query('SELECT * FROM SensorDetail');
-    // console.log(rows);
-    // const rows = await dbConnection.execute('SELECT * FROM SensorDetail');
     
     res.json(rows);
   } catch (error) {
