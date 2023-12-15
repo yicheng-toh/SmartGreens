@@ -132,4 +132,3 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
   });
 
 module.exports = router;
-
