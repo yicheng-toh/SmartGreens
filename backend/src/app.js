@@ -2,17 +2,20 @@ const express = require("express");
 const cors = require("cors");
 const sqlite3 = require('sqlite3').verbose();
 const {dbConnection, initialiseMySQL } = require("./database_logic/mysql.js");
-const {sendBadRequestResponse, sendInternalServerError} = require("./routes/request_error_messages.js")
+const {sendBadRequestResponse, sendInternalServerError, sendPageNotFound} = require("./routes/request_error_messages.js");
+const {DEPLOYMENT, DATABASE} = require("./env.js");
 
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
 const SQLITE_MYSQL = "both";
 
+
+
 // const DEPLOYMENT = true; //False deployment refers to testing.
-const DEPLOYMENT = false; //False deployment refers to testing.
+// const DEPLOYMENT = false; //False deployment refers to testing.
 // const DATABASE = SQLITE; //Either SQLITE or MYSQL
 // const DATABASE = MYSQL; //Either SQLITE or MYSQL
-const DATABASE = SQLITE_MYSQL;
+// const DATABASE = SQLITE_MYSQL;
 
 let SQLITE_ROUTER_ROUTE;
 let MYSQL_ROUTER_ROUTE;
@@ -139,6 +142,10 @@ if (mode == MYSQL || mode == SQLITE_MYSQL){
     console.log(error);
   }
 }
+
+app.use((req, res) => {
+  sendPageNotFound(res);
+});
 
 
 module.exports = {app};

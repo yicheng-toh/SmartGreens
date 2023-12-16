@@ -59,12 +59,12 @@ router.get("/mockGeographyData", (req, res) => {
   res.status(200).send(JSON.stringify(mockGeographyData));
 });
 
-router.get("/mockLineData", (req, res) => {
-  console.log("sending mockLineData");
-  // console.log(mockLineData);
-  // console.log("eh?");
-  res.status(200).send(JSON.stringify(mockLineData));
-});
+// router.get("/mockLineData", (req, res) => {
+//   console.log("sending mockLineData");
+//   console.log(mockLineData);
+//   // console.log("eh?");
+//   res.status(200).send(JSON.stringify(mockLineData));
+// });
 
 router.get("/mockPieData", (req, res) => {
   console.log("sending mockPieData");

@@ -40,10 +40,8 @@ router.post('/insertData/:microcontrollerId', async (req, res) => {
 
 // Retrieves data from the database based on microcontroller
 router.get('/retrieveData', async(req, res) => {
-  // console.log(dbConnection);
   try {
-    const [rows] = await dbConnection.promise().query('SELECT * FROM SensorDetail');
-    
+    const [rows] = await mysqlLogic.getAllSensorData();
     res.json(rows);
   } catch (error) {
     console.error('Error retrieving data:', error);
