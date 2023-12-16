@@ -1,5 +1,5 @@
 const mysql = require("mysql2");
-const dbDetails = require("../../yc_data");
+const dbDetails = require("../../yc_data.js");
 // const { dbConnection } = require("../database_logic/mysql.js");
 // const { router, PLANTBATCH } = require("../routes/mysql_route");
 

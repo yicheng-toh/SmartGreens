@@ -5,7 +5,7 @@ const sqlite3 = require("sqlite3");
 function initialiseSqlite3() {
     // Initialize the SQLite database connection
     // TODO : to ensure that all the errors are caught.
-    const db = new sqlite3.Database('../mydatabase.db', sqlite3.OPEN_READWRITE, (err) => {
+    const db = new sqlite3.Database('mydatabase.db', sqlite3.OPEN_READWRITE, (err) => {
       if (err) {
         console.error('Error connecting to the SQLite database:', err);
       } else {
