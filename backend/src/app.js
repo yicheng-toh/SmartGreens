@@ -83,6 +83,15 @@ app.get("/", async (req, res) => {
 
 });
 
+app.get("/docker", async (req, res) => {
+  try{
+    res.status(200).json({message: "Docker success"});
+  } catch (error) {
+    sendInternalServerError(res);
+  }
+
+});
+
 //Commented out due to clashing command in mysql routes.
 /*
 app.post("/", (req, res) => {

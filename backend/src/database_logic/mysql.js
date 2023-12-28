@@ -1,21 +1,24 @@
 const mysql = require("mysql2");
-const {DEPLOYMENT} = require("../env.js");
+const {DEPLOYMENT, MYSQL} = require("../env.js");
 
 let dbDetails;
 
-if (DEPLOYMENT){
-  dbDetails = require("../../yc_data.js");
-}else {
-  dbDetails = require("../../yc_data_test.js");
-}
+// if (DEPLOYMENT){
+//   dbDetails = require("../../yc_data.js");
+// }else {
+//   dbDetails = require("../../yc_data_test.js");
+// }
 
 
 let dbConnection;
 dbConnection = mysql.createConnection({
-  host: dbDetails.host,
-  user: dbDetails["user"],
-  password: dbDetails.password,
-  database: dbDetails.database,
+  host: MYSQL.HOST,
+  user: MYSQL.USER,
+  password: MYSQL.PASSWORD,
+  database: MYSQL.DATABASE,
+  waitForConnections: true,
+  connectionLimit: 10, // Adjust according to your needs
+  queueLimit: 0,
 });
 
 

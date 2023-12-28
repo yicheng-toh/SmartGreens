@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "cross-env DEPLOYMENT=true DATABASE=both node src/main.js",
     "startTest": "cross-env DEPLOYMENT=false DATABASE=both npx jest --detectOpenHandles --coverage",
-    "startyc": "cross-env DEPLOYMENT=false DATABASE=both node src/main.js"
+    "startyc": "cross-env DEPLOYMENT=false DATABASE=both node src/main.js",
+    "docker": "cross-env DEPLOYMENT=true DATABASE=MySQL node main.js"
 
   },
   "keywords": [],
