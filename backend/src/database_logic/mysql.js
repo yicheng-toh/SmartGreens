@@ -1,14 +1,59 @@
 const mysql = require("mysql2");
-const dbDetails = require("../yc_data");
-// const { dbConnection } = require("../database_logic/mysql.js");
-// const { router, PLANTBATCH } = require("../routes/mysql_route");
+const {DEPLOYMENT, MYSQL, DOCKER} = require("../env.js");
 
-const dbConnection = mysql.createConnection({
+let dbDetails;
+
+if (DEPLOYMENT && !DOCKER){
+  dbDetails = require("../../yc_data.js");
+}else if (!DEPLOYMENT){
+  dbDetails = require("../../yc_data_test.js");
+}
+
+
+let dbConnection;
+if (DOCKER){
+  dbConnection = mysql.createConnection({
+  host: MYSQL.HOST,
+  user: MYSQL.USER,
+  password: MYSQL.PASSWORD,
+  database: MYSQL.DATABASE,
+  waitForConnections: true,
+  connectionLimit: 10, // Adjust according to your needs
+  queueLimit: 0,
+  });
+} else {
+  dbConnection = mysql.createConnection({
   host: dbDetails.host,
   user: dbDetails["user"],
   password: dbDetails.password,
   database: dbDetails.database,
 });
+}
+
+
+// // Wrap the connection setup in a function to handle asynchronous operations
+// const connectToDatabase = async () => {
+//   dbConnection = mysql.createConnection({
+//     host: dbDetails.host,
+//     user: dbDetails["user"],
+//     password: dbDetails.password,
+//     database: dbDetails.database,
+//   });
+
+//   // Promisify the connection to allow the use of async/await
+//   return new Promise((resolve, reject) => {
+//     dbConnection.connect((err) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         resolve();
+//       }
+//     });
+//   });
+// };
+
+// Call the connectToDatabase function to establish the connection
+// await connectToDatabase();
 
 // Function to create the BASESENSOR table if it doesn't exist
 async function createTableIfNotExists() {

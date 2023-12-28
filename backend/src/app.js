@@ -2,20 +2,27 @@ const express = require("express");
 const cors = require("cors");
 const sqlite3 = require('sqlite3').verbose();
 const {dbConnection, initialiseMySQL } = require("./database_logic/mysql.js");
-const {sendBadRequestResponse, sendInternalServerError} = require("./routes/request_error_messages.js")
+const {sendBadRequestResponse, sendInternalServerError, sendPageNotFound} = require("./routes/request_error_messages.js");
+const {DEPLOYMENT, DATABASE} = require("./env.js");
 
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
 const SQLITE_MYSQL = "both";
 
+
+
 // const DEPLOYMENT = true; //False deployment refers to testing.
-const DEPLOYMENT = false; //False deployment refers to testing.
+// const DEPLOYMENT = false; //False deployment refers to testing.
 // const DATABASE = SQLITE; //Either SQLITE or MYSQL
 // const DATABASE = MYSQL; //Either SQLITE or MYSQL
-const DATABASE = SQLITE_MYSQL;
+// const DATABASE = SQLITE_MYSQL;
 
 let SQLITE_ROUTER_ROUTE;
 let MYSQL_ROUTER_ROUTE;
+
+console.log("Deployment: ", DEPLOYMENT);
+console.log("Database: ", DATABASE);
+
 
 if (!DEPLOYMENT){
   SQLITE_ROUTER_ROUTE = "/sqlite3";
@@ -47,7 +54,7 @@ const ROOT_ROUTE = "http://localhost"
 const MOCKDATA_ROUTER_ROUTE = "/mockdata"
 
 const app = express();
-const port = 3000;
+
 
 app.use(express.json());
 //allow cors for local frontend and backend testing
@@ -70,6 +77,15 @@ app.get("/", async (req, res) => {
     const jsonString = JSON.stringify(globallst);
     console.log("JSON String:", jsonString);
     res.status(200).json(result[0]);
+  } catch (error) {
+    sendInternalServerError(res);
+  }
+
+});
+
+app.get("/docker", async (req, res) => {
+  try{
+    res.status(200).json({message: "Docker success"});
   } catch (error) {
     sendInternalServerError(res);
   }
@@ -136,12 +152,18 @@ if (mode == MYSQL || mode == SQLITE_MYSQL){
   }
 }
 
+app.use((req, res) => {
+  sendPageNotFound(res);
+});
+
+
+module.exports = {app};
 //Run Server
-try{
-  app.listen(port, () => {
-    console.log(`Server is listening at http://localhost:${port}`);
-  });
-} catch (error){
-  console.log("Unable to start up the app");
-  console.log(error);
-}
+// try{
+//   app.listen(port, () => {
+//     console.log(`Server is listening at http://localhost:${port}`);
+//   });
+// } catch (error){
+//   console.log("Unable to start up the app");
+//   console.log(error);
+// }

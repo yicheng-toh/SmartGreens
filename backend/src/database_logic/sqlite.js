@@ -1,11 +1,22 @@
 const sqlite3 = require("sqlite3");
+const {DEPLOYMENT} = require("../env.js");
 // const { router } = require("../routes/sqlite3_route");
 // const { sendInternalServerError } = require("./request_error_messages");
+
+let sqliteFile;
+const DEPLOYMENT_DB = "mydatabase.db";
+const TEST_DB = "mydatabase_test.db";
+
+if (DEPLOYMENT) {
+  sqliteFile = DEPLOYMENT_DB;
+}else {
+  sqliteFile = TEST_DB;
+}
 
 function initialiseSqlite3() {
     // Initialize the SQLite database connection
     // TODO : to ensure that all the errors are caught.
-    const db = new sqlite3.Database('mydatabase.db', sqlite3.OPEN_READWRITE, (err) => {
+    const db = new sqlite3.Database(sqliteFile, sqlite3.OPEN_READWRITE, (err) => {
       if (err) {
         console.error('Error connecting to the SQLite database:', err);
       } else {
