@@ -66,7 +66,7 @@ mode = DATABASE
 globallst = [];
 
 
-app.get("/", async (req, res) => {
+app.get("/hello", async (req, res) => {
   try{
     //TODO is dbconnection is not required here, then delete the query and shift the import statement.
     const result = await dbConnection.promise().query(`SELECT * FROM BASESENSOR;`);
@@ -86,6 +86,15 @@ app.get("/", async (req, res) => {
 app.get("/docker", async (req, res) => {
   try{
     res.status(200).json({message: "Docker success"});
+  } catch (error) {
+    sendInternalServerError(res);
+  }
+
+});
+
+app.get("/", async (req, res) => {
+  try{
+    res.status(200).json({message: "homepage"});
   } catch (error) {
     sendInternalServerError(res);
   }
