@@ -33,6 +33,8 @@ router.post("/insertData/:microcontrollerId", (req, res) => {
     (err) => {
       if (err) {
         console.error("Error inserting data:", err);
+        console.log("Error inserting data:", err);
+        console.log(err);
         res.status(500).send("Internal Server Error");
       } else {
         res.status(201).send("Data inserted successfully at " + dateTime);
