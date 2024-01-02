@@ -1,0 +1,29 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: your-mysql-database
+      MYSQL_USER: your-mysql-user
+      MYSQL_PASSWORD: your-mysql-password
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  nodejs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: your-mysql-database
+      MYSQL_USER: your-mysql-user
+      MYSQL_PASSWORD: your-mysql-password
+      Docker: 'true'
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql-data:
