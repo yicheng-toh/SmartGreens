@@ -10,7 +10,6 @@
     "startyc": "cross-env DEPLOYMENT=false DATABASE=both node src/main.js",
     "sqlite": "cross-env DEPLOYMENT=false DATABASE=SQLite node src/main.js",
     "docker": "cross-env DEPLOYMENT=true DATABASE=MySQL node main.js"
-
   },
   "keywords": [],
   "author": "",
