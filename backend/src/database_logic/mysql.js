@@ -1,7 +1,7 @@
 const mysql = require("mysql2");
 const mssql = require("mssql");
 const {DEPLOYMENT, MYSQL, DOCKER} = require("../env.js");
-let MSSQL = false;
+// let MSSQL = false;
 let dbDetails;
 
 if (DEPLOYMENT && !DOCKER){
@@ -22,16 +22,17 @@ if (DOCKER){
   connectionLimit: 10, // Adjust according to your needs
   queueLimit: 0,
   });
-} else if (MSSQL) {
-    dbConnection = mssql.createConnection({
-    host: MYSQL.HOST,
-    user: MYSQL.USER,
-    password: MYSQL.PASSWORD,
-    database: MYSQL.DATABASE,
-    waitForConnections: true,
-    connectionLimit: 10, // Adjust according to your needs
-    queueLimit: 0,
-    });
+// } else if (MSSQL) {
+//     dbConnection = new mssql.ConnectionPool({
+//     host: MYSQL.HOST,
+//     user: MYSQL.USER,
+//     password: MYSQL.PASSWORD,
+//     database: MYSQL.DATABASE,
+//     waitForConnections: true,
+//     connectionLimit: 10, // Adjust according to your needs
+//     queueLimit: 0,
+//     });
+//     request = dbConnection.request();
 
 } else {
   dbConnection = mysql.createConnection({

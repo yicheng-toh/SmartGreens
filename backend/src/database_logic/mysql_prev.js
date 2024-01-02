@@ -23,7 +23,7 @@ if (DOCKER){
   queueLimit: 0,
   });
 } else if (MSSQL) {
-    dbConnection = mssql.createConnection({
+    dbConnection = new mssql.ConnectionPool({
     host: MYSQL.HOST,
     user: MYSQL.USER,
     password: MYSQL.PASSWORD,
@@ -32,6 +32,7 @@ if (DOCKER){
     connectionLimit: 10, // Adjust according to your needs
     queueLimit: 0,
     });
+    request = dbConnection.request();
 
 } else {
   dbConnection = mysql.createConnection({
