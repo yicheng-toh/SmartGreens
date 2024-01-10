@@ -1,25 +1,25 @@
 const mssql = require('mssql');
-const {MYSQL} = require("../env.js");
+const {MYSQL, config} = require("../../env.js");
 
 // import * as dotenv from 'dotenv';
 // dotenv.config({ path: `.env.${process.env.NODE_ENV}`, debug: true });
 
-const server = process.env.AZURE_SQL_SERVER;
-const database = process.env.AZURE_SQL_DATABASE;
-const port = parseInt(process.env.AZURE_SQL_PORT);
-const user = process.env.AZURE_SQL_USER;
-const password = process.env.AZURE_SQL_PASSWORD;
+// const server = process.env.AZURE_SQL_SERVER;
+// const database = process.env.AZURE_SQL_DATABASE;
+// const port = parseInt(process.env.AZURE_SQL_PORT);
+// const user = process.env.AZURE_SQL_USER;
+// const password = process.env.AZURE_SQL_PASSWORD;
 
-const config = {
-    server,
-    port,
-    database,
-    user,
-    password,
-    options: {
-        encrypt: true
-    }
-};
+// const config = {
+//     server,
+//     port,
+//     database,
+//     user,
+//     password,
+//     options: {
+//         encrypt: true
+//     }
+// };
 
 
 class Database {
@@ -33,10 +33,12 @@ class Database {
   }
 
   async connect() {
+    console.log("running connect code here");
     try {
       console.log(`Database connecting...${this.connected}`);
       if (this.connected === false) {
-        this.poolconnection = await mssql.connect(this.config);
+        console.log(`Database: config: ${JSON.stringify(this.config)}`);
+        this.poolconnection = await mssql.connect(this.config).catch(err => console.error('Error connecting to database:', err));;
         this.connected = true;
         console.log('Database connection successful');
       } else {
@@ -50,6 +52,7 @@ class Database {
   async disconnect() {
     try {
       this.poolconnection.close();
+      this.connected = false;
       console.log('Database connection closed');
     } catch (error) {
       console.error(`Error closing database connection: ${error}`);
@@ -89,8 +92,10 @@ class Database {
           positionLayer INT
           )
           `;
+      console.log("it is fine before the connect");
       await this.connect();
-      const request = this.poolconnection.request();
+      console.log("it is fine after the connect");
+      const request = await this.poolconnection.request();
       await request.query(createSensorDetailTable);
       await request.query(createPlantBatchTable);
       await request.query(createMicrocontrollerPlantPairTable);
@@ -149,8 +154,11 @@ class Database {
     return result;
   }
 }
-
+console.log(`config is ${config}`);
+// const dbConnection = new Database(config);
 const dbConnection = new Database(config);
+console.log("dbConnection initialised");
+console.log(dbConnection);
 module.exports = dbConnection;
 
   // // Reassign more meaningful function name
@@ -159,6 +167,6 @@ module.exports = dbConnection;
 
 
 
-module.exports = {
-    Database,
-}
+// module.exports = {
+//     Database,
+// }

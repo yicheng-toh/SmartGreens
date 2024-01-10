@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require('sqlite3').verbose();
-const {dbConnection, initialiseMySQL } = require("./database_logic/mysql.js");
+// const {dbConnection, initialiseMySQL } = require("./database_logic/mysql.js");
 const {sendBadRequestResponse, sendInternalServerError, sendPageNotFound} = require("./routes/request_error_messages.js");
-const {DEPLOYMENT, DATABASE} = require("./env.js");
+const {DEPLOYMENT, DATABASE, MSSQL} = require("./env.js");
 
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
@@ -23,7 +23,7 @@ let MYSQL_ROUTER_ROUTE;
 console.log("Deployment: ", DEPLOYMENT);
 console.log("Database: ", DATABASE);
 
-
+let initialiseMySQL, dbConnection;
 if (!DEPLOYMENT){
   SQLITE_ROUTER_ROUTE = "/sqlite3";
   MYSQL_ROUTER_ROUTE = "/mysql";
@@ -38,6 +38,13 @@ if (!DEPLOYMENT){
 
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "";
+
+    if(MSSQL){
+      dbConnection = require("./database_logic/sql/sql.js");
+      initialiseMySQL = dbConnection.initialiseMySQL;
+    }else{
+      ({dbConnection, initialiseMySQL } = require("./database_logic/sql/sql.js"));
+    }
 
   }else if (DATABASE == SQLITE_MYSQL){
 
@@ -152,9 +159,13 @@ if(mode == SQLITE || mode == SQLITE_MYSQL){
 //MySQL routes
 if (mode == MYSQL || mode == SQLITE_MYSQL){
   try{
-  const MySQLRoute = require("./routes/mysql_route.js");
+  const MySQLRoute = require("./routes/mysql/mysql_route.js");
   app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
-  initialiseMySQL() 
+  if(MSSQL){
+    dbConnection.initialiseMySQL()
+  }else{
+    initialiseMySQL(); 
+  }
   } catch (error){
     console.log("Currently initalising MYSQL databaes");
     console.log(error);

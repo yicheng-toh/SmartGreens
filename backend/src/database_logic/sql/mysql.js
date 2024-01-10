@@ -1,13 +1,17 @@
 const mysql = require("mysql2");
-const mssql = require("mssql");
-const {DEPLOYMENT, MYSQL, DOCKER} = require("../env.js");
+// const mssql = require("mssql");
+const {DEPLOYMENT, MYSQL, DOCKER} = require("../../env.js");
+// import modular sql function.
+
+const plantLogic = require("./mysql/plant.js");
+
 // let MSSQL = false;
 let dbDetails;
 
 if (DEPLOYMENT && !DOCKER){
-  dbDetails = require("../../yc_data.js");
+  dbDetails = require("../../../yc_data.js");
 }else if (!DEPLOYMENT){
-  dbDetails = require("../../yc_data_test.js");
+  dbDetails = require("../../../yc_data_test.js");
 }
 
 
@@ -137,6 +141,7 @@ module.exports = {
   getSensorDataByMicrocontrollerId,
   getAllSensorData,
   initialiseMySQL,
+  ...plantLogic,
 };
 
 

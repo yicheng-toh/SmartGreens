@@ -1,5 +1,5 @@
 const sqlite3 = require("sqlite3");
-const {DEPLOYMENT} = require("../env.js");
+const {DEPLOYMENT} = require("../../env.js");
 // const { router } = require("../routes/sqlite3_route");
 // const { sendInternalServerError } = require("./request_error_messages");
 
