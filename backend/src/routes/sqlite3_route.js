@@ -2,7 +2,7 @@ const { json } = require("express");
 const express = require("express");
 const {sendBadRequestResponse, sendInternalServerError} = require("./request_error_messages")
 const router = express.Router();
-const sqlite = require("../database_logic/sqlite")
+const sqlite = require("../database_logic/sqlite/sqlite")
 
 router.use(json());
 
