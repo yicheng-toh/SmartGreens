@@ -26,11 +26,11 @@ if(MSSQL){
 
 
 }else{
-    // ({dbConnection,
-    //     insertSensorValues,
-    //     getSensorDataByMicrocontrollerId,
-    //     getAllSensorData,
-    //     initialiseMySQL} = require("./mysql.js"));
+    ({dbConnection,
+        insertSensorValues,
+        getSensorDataByMicrocontrollerId,
+        getAllSensorData,
+        initialiseMySQL} = require("./mysql.js"));
     const a = 1;
     module.exports = {
       dbConnection,

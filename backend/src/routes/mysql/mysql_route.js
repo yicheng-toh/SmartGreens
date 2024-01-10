@@ -9,7 +9,7 @@ const {sendBadRequestResponse, sendInternalServerError} = require("../request_er
 router.use(json());
 
 const PLANTBATCH = 1
-console.log(`mysqllogic is ${JSON.stringify(mysqlLogic, null, 2)}`);
+// console.log(`mysqllogic is ${JSON.stringify(mysqlLogic, null, 2)}`);
 
 // Inserts data into sqlite database.
 // This is determined by the microcontroller id

@@ -40,9 +40,11 @@ if (!DEPLOYMENT){
     MYSQL_ROUTER_ROUTE = "";
 
     if(MSSQL){
+      console.log("Preparing for MSSQL...");
       dbConnection = require("./database_logic/sql/sql.js");
       initialiseMySQL = dbConnection.initialiseMySQL;
     }else{
+      console.log("Preparing for MYSQL...");
       ({dbConnection, initialiseMySQL } = require("./database_logic/sql/sql.js"));
     }
 
@@ -50,6 +52,14 @@ if (!DEPLOYMENT){
 
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "/mysql";
+    if(MSSQL){
+      console.log("Preparing for MSSQL...");
+      dbConnection = require("./database_logic/sql/sql.js");
+      initialiseMySQL = dbConnection.initialiseMySQL;
+    }else{
+      console.log("Preparing for MYSQL...");
+      ({dbConnection, initialiseMySQL } = require("./database_logic/sql/sql.js"));
+    }
 
   }else{
     console.log("Database not defined properly")
