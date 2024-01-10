@@ -3,7 +3,7 @@ const mysql = require("mysql2");
 const {DEPLOYMENT, MYSQL, DOCKER} = require("../../env.js");
 // import modular sql function.
 
-const plantLogic = require("./mysql/plant.js");
+const plantLogic = require("./mysql/plant_mysql.js");
 
 // let MSSQL = false;
 let dbDetails;
@@ -73,7 +73,7 @@ if (DOCKER){
 // await connectToDatabase();
 
 // Function to create the BASESENSOR table if it doesn't exist
-async function createTableIfNotExists() {
+async function createTableIfNotExistsScrapped() {
   try {
    
     // Create the Sensor Detail table
@@ -115,6 +115,94 @@ async function createTableIfNotExists() {
     console.error("Error creating table:", error);
   }
 }
+
+async function createTableIfNotExists() {
+  try {
+    const createSensorReadingsTable = `
+      CREATE TABLE IF NOT EXISTS SensorReadings (
+        Datetime DATETIME,
+        MicrocontrollerID INT UNIQUE,
+        Temperature FLOAT,
+        Humidity INT,
+        Brightness INT,
+        pH FLOAT,
+        CO2 FLOAT,
+        EC FLOAT,
+        TDS FLOAT,
+        PRIMARY KEY (Datetime, MicrocontrollerID)
+    );
+  `
+  
+    const createInvetoryTable = `
+      CREATE TABLE IF NOT EXISTS Inventory (
+          InventoryID INT AUTO_INCREMENT PRIMARY KEY,
+          InventoryName VARCHAR(255),
+          Qty INT,
+          Units VARCHAR(50)
+    );
+  `
+  const createPlantSeedInventoryTable = `
+    CREATE TABLE IF NOT EXISTS PlantSeedInventory (
+        PlantID INT PRIMARY KEY,
+        Qty INT
+    );
+  `
+  const createPlantHarverstTable = `
+    CREATE TABLE IF NOT EXISTS PlantHarvest (
+        PlantID INT,
+        Quantity INT,
+        PRIMARY KEY (PlantID)
+    );
+  `
+  const createPlantInfoTable = `
+    CREATE TABLE IF NOT EXISTS PlantInfo (
+        PlantID INT AUTO_INCREMENT PRIMARY KEY,
+        PlantName VARCHAR(255),
+        SensorsRanges INT,
+        DaysToMature INT
+    );
+  `
+  const createTaskTable = `
+    CREATE TABLE IF NOT EXISTS Task (
+        Action VARCHAR(255),
+        Datetime DATETIME,
+        Status BOOLEAN
+    );
+  `
+  const createAlertSentTable = `
+    CREATE TABLE IF NOT EXISTS AlertsSent (
+        Action VARCHAR(255),
+        Datetime DATETIME,
+        Status VARCHAR(255),
+        Severity ENUM('Low', 'Medium', 'High'),
+        IsRead BOOLEAN
+    );
+  `
+  const createRemindersTable = `
+    CREATE TABLE IF NOT EXISTS Reminders (
+        Task VARCHAR(255),
+        Datetime DATETIME,
+        Status BOOLEAN
+    );
+  `
+  
+
+    await dbConnection.execute(createSensorReadingsTable);
+    await dbConnection.execute(createInvetoryTable);
+    await dbConnection.execute(createPlantSeedInventoryTable);
+    await dbConnection.execute(createPlantHarverstTable);
+    await dbConnection.execute(createPlantInfoTable);
+    await dbConnection.execute(createTaskTable);
+    await dbConnection.execute(createAlertSentTable);
+    await dbConnection.execute(createRemindersTable);
+    // await dbConnection.execute(createMicrocontrollerLocationTable);
+    // await dbConnection.execute(createPlantBatchTable);
+    // console.log("Tables created or already exists.");
+  } catch (error) {
+    console.error("Error creating table:", error);
+  }
+}
+
 
 async function insertSensorValues(dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness){
   await dbConnection.execute('INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)',
