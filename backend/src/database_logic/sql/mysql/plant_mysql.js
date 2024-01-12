@@ -15,11 +15,12 @@ async function getAllPlantHarvestData(){
 
 //updatePlantHarvestData
 async function updatePlantHarvestData(plantName, quantityChange){
-    const plantId = await dbConnection.execute('SELECT id FROM PlantInfo WHERE PlantName = ?', plantName);
-    if(plantId.length == 0){
+    const plantIdList = await dbConnection.execute('SELECT id FROM PlantInfo WHERE PlantName = ?', plantName);
+    if(plantIdList.length == 0){
         return 0;
     }
-    const currentQuantity = await dbConnection.execute('SELECT quantity FROM PlantHarvest WHERE PlantId = ?', plantId[0]);
+    const plantId = plantIdList[0];
+    const currentQuantity = await dbConnection.execute('SELECT quantity FROM PlantHarvest WHERE PlantId = ?', plantId);
     const newQuantity = currentQuantity + quantityChange;
     await dbConnection.execute('UPDATE plantHarvest SET quantity = ? WHERE plant_id = ?;', [newQuantity, plantId]);
     return 1;

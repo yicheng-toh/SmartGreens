@@ -61,18 +61,18 @@ async function createTableIfNotExistsScrapped() {
       );
     `
     
-      const createInvetoryTable = `
+      const createInventoryTable = `
         CREATE TABLE IF NOT EXISTS Inventory (
             InventoryID INT AUTO_INCREMENT PRIMARY KEY,
             InventoryName VARCHAR(255),
-            Qty INT,
+            Quantity INT,
             Units VARCHAR(50)
       );
     `
     const createPlantSeedInventoryTable = `
       CREATE TABLE IF NOT EXISTS PlantSeedInventory (
           PlantID INT PRIMARY KEY,
-          Qty INT
+          Quantity INT
       );
     `
     const createPlantHarverstTable = `
@@ -116,7 +116,7 @@ async function createTableIfNotExistsScrapped() {
     
   
       await dbConnection.execute(createSensorReadingsTable);
-      await dbConnection.execute(createInvetoryTable);
+      await dbConnection.execute(createInventoryTable);
       await dbConnection.execute(createPlantSeedInventoryTable);
       await dbConnection.execute(createPlantHarverstTable);
       await dbConnection.execute(createPlantInfoTable);
