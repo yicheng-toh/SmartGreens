@@ -26,18 +26,18 @@ if(MSSQL){
 
 
 }else{
-    ({dbConnection,
-        insertSensorValues,
-        getSensorDataByMicrocontrollerId,
-        getAllSensorData,
-        initialiseMySQL} = require("./mysql.js"));
-    const a = 1;
+  //import dbConnection from one file and then funtions from another file.
+    ({dbConnection} = require("./mysql.js"));
+    const plantLogic = require("./mysql/plant_mysql.js");
+    const miscLogic = require("./mysql/misc_mysql.js");
     module.exports = {
       dbConnection,
       insertSensorValues,
       getSensorDataByMicrocontrollerId,
       getAllSensorData,
       initialiseMySQL,
+      ...plantLogic,
+      ...miscLogic,
     };
 }
 

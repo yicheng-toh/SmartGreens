@@ -1,6 +1,5 @@
 const { json } = require("express");
 const express = require("express");
-// const mysqlLogic = require("../database_logic/mysql.js")
 const mysqlLogic = require("../../database_logic/sql/sql.js")
 const mysql = require('mysql2/promise');
 const router = express.Router();
