@@ -1,13 +1,14 @@
 const { json } = require("express");
 const express = require("express");
-const mysqlLogic = require("../database_logic/mysql.js")
+const mysqlLogic = require("../../database_logic/sql/sql.js")
 const mysql = require('mysql2/promise');
 const router = express.Router();
-const {sendBadRequestResponse, sendInternalServerError} = require("./request_error_messages.js")
+const {sendBadRequestResponse, sendInternalServerError} = require("../request_error_messages.js")
 
 router.use(json());
 
 const PLANTBATCH = 1
+// console.log(`mysqllogic is ${JSON.stringify(mysqlLogic, null, 2)}`);
 
 // Inserts data into sqlite database.
 // This is determined by the microcontroller id
@@ -128,5 +129,11 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
     sendInternalServerError(res);
   }
   });
+
+  inventoryRouter = require('./inventory_route.js');
+  router.use("/inventory", inventoryRouter);
+
+  const plantRouter = require('./plant_route.js');
+  router.use( "/plant", plantRouter);
 
 module.exports = router;

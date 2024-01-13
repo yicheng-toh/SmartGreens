@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require('sqlite3').verbose();
-const {dbConnection, initialiseMySQL } = require("./database_logic/mysql.js");
+// const {dbConnection, initialiseMySQL } = require("./database_logic/mysql.js");
 const {sendBadRequestResponse, sendInternalServerError, sendPageNotFound} = require("./routes/request_error_messages.js");
-const {DEPLOYMENT, DATABASE} = require("./env.js");
+const {DEPLOYMENT, DATABASE, MSSQL} = require("./env.js");
 
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
@@ -23,7 +23,7 @@ let MYSQL_ROUTER_ROUTE;
 console.log("Deployment: ", DEPLOYMENT);
 console.log("Database: ", DATABASE);
 
-
+let initialiseMySQL, dbConnection;
 if (!DEPLOYMENT){
   SQLITE_ROUTER_ROUTE = "/sqlite3";
   MYSQL_ROUTER_ROUTE = "/mysql";
@@ -39,10 +39,27 @@ if (!DEPLOYMENT){
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "";
 
+    if(MSSQL){
+      console.log("Preparing for MSSQL...");
+      dbConnection = require("./database_logic/sql/sql.js");
+      initialiseMySQL = dbConnection.initialiseMySQL;
+    }else{
+      console.log("Preparing for MYSQL...");
+      ({dbConnection, initialiseMySQL } = require("./database_logic/sql/sql.js"));
+    }
+
   }else if (DATABASE == SQLITE_MYSQL){
 
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "/mysql";
+    if(MSSQL){
+      console.log("Preparing for MSSQL...");
+      dbConnection = require("./database_logic/sql/sql.js");
+      initialiseMySQL = dbConnection.initialiseMySQL;
+    }else{
+      console.log("Preparing for MYSQL...");
+      ({dbConnection, initialiseMySQL } = require("./database_logic/sql/sql.js"));
+    }
 
   }else{
     console.log("Database not defined properly")
@@ -66,7 +83,7 @@ mode = DATABASE
 globallst = [];
 
 
-app.get("/", async (req, res) => {
+app.get("/hello", async (req, res) => {
   try{
     //TODO is dbconnection is not required here, then delete the query and shift the import statement.
     const result = await dbConnection.promise().query(`SELECT * FROM BASESENSOR;`);
@@ -86,6 +103,15 @@ app.get("/", async (req, res) => {
 app.get("/docker", async (req, res) => {
   try{
     res.status(200).json({message: "Docker success"});
+  } catch (error) {
+    sendInternalServerError(res);
+  }
+
+});
+
+app.get("/", async (req, res) => {
+  try{
+    res.status(200).json({message: "homepage"});
   } catch (error) {
     sendInternalServerError(res);
   }
@@ -143,9 +169,13 @@ if(mode == SQLITE || mode == SQLITE_MYSQL){
 //MySQL routes
 if (mode == MYSQL || mode == SQLITE_MYSQL){
   try{
-  const MySQLRoute = require("./routes/mysql_route.js");
+  const MySQLRoute = require("./routes/mysql/mysql_route.js");
   app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
-  initialiseMySQL() 
+  if(MSSQL){
+    dbConnection.initialiseMySQL()
+  }else{
+    initialiseMySQL(); 
+  }
   } catch (error){
     console.log("Currently initalising MYSQL databaes");
     console.log(error);
