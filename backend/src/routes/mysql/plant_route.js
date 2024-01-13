@@ -44,7 +44,7 @@ story.
 
 const { json } = require("express");
 const express = require("express");
-const router = express.Router();
+const router = express.Router({mergeParams: true});
 const {sendBadRequestResponse, sendInternalServerError} = require("../request_error_messages.js")
 const mysqlLogic = require("../../database_logic/sql/sql.js")
 
@@ -54,8 +54,24 @@ router.use(json());
 router.post('/insertData/:microcontrollerId', async (req, res) => {
     try{     
       try {
+        const plantBatch = 1;
+        const {microcontrollerId} = req.params;
+        const currentDateTime = new Date();
+        const formattedDateTime = currentDateTime.toISOString().slice(0, 19).replace('T', ' ');
+        const dateTime = formattedDateTime.toString();
+        console.log("Data has successfully been received.");
+
+        const { temperature, humidity, brightness } = req.body;
         await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
         res.status(201).send('Data inserted successfully');
+        // await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness)
+        // .then(() => {
+        //   res.status(201).send('Data inserted successfully');
+        // })
+        // .catch((sqlError) => {
+        //   console.error('Error inserting data:', sqlError);
+        //   sendInternalServerError(res);
+        // });
       } catch (error) {
         console.error('Error inserting data:', error);
         sendInternalServerError(res);
@@ -66,13 +82,16 @@ router.post('/insertData/:microcontrollerId', async (req, res) => {
     
     });
 
-//Todo: this route is not completed yet.
 router.post('/createPlant', async (req, res) => {
     try{     
         try {
-        const {plantName, sensorRanges, plantPicture, daysToMature} = res.body;
-        //await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
-        res.status(201).send('Data inserted successfully');
+          const {plantName, sensorRanges, daysToMature} = res.body;
+          const success = await mysqlLogic.insertNewPlant(plantName,sensorRanges,daysToMature);
+          if(success){
+            res.status(201).send('Data inserted successfully');
+          }else{
+            sendInternalServerError(res);
+          }
         } catch (error) {
         console.error('Error inserting data:', error);
         sendInternalServerError(res);
@@ -82,31 +101,39 @@ router.post('/createPlant', async (req, res) => {
     }
 });
 
-//Todo: this route is not completed yet.
 router.post('/editSeedQuantity', async (req, res) => {
     try{     
         try {
-        const {plantName, seedNumIncrement} = res.body;
-        //Double check if the plant name exists in the database and throw an error if not.
-        //await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
-        res.status(201).send('Data inserted successfully');
+          const {plantName, quantityChange} = res.body;
+          const success = await mysqlLogic.pdatePlantSeedInventory(plantName, quantityChange);
+          if(success){
+            res.status(201).send('Data inserted successfully');
+          }else{
+            sendInternalServerError(res);
+          }
         } catch (error) {
-        console.error('Error inserting data:', error);
-        sendInternalServerError(res);
+          console.error('Error inserting data:', error);
+          sendInternalServerError(res);
         }
     } catch (error) {
         sendBadRequestResponse(res);
     }
 });
 
-//Todo: this route is not completed yet.
+//Todo: this route is not completed yet. TODO CLARIFICATION REQUIRED
 router.post('/growPlant', async (req, res) => {
     try{     
         try {
         const {plantName, plantLocation, microcontrollerId, quantity} = res.body;
+        const success = mysqlLogic.growPlants(plantName, plantLocation, microcontrollerId, quantity);
+        if(success){
+          res.status(201).send('Data inserted successfully');
+        }else{
+          sendInternalServerError(res);
+        }
         //Double check if the plant name exists in the database and throw an error if not.
         //await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
-        res.status(201).send('Data inserted successfully');
+        
         } catch (error) {
         console.error('Error inserting data:', error);
         sendInternalServerError(res);
@@ -121,8 +148,18 @@ router.post('/growPlant', async (req, res) => {
   // Retrieves data from the database based on microcontroller
 router.get('/retrieveData', async(req, res) => {
     try {
-        const [rows] = await mysqlLogic.getAllSensorData();
-        res.json(rows);
+        // const [rows] = await mysqlLogic.getAllSensorData();
+        const result = await mysqlLogic.getAllSensorData();
+        const rows = result._result;
+        // await mysqlLogic.getAllSensorData();
+        // const rows = 1;
+        // if (Array.isArray(rows) && rows.length > 0) {
+        if (rows) {
+          res.status(200).json(rows);
+        } else {
+          // res.json({ message: 'No sensor data available' });
+          res.json(result);
+        }
     } catch (error) {
         console.error('Error retrieving data:', error);
         sendInternalServerError(res);
@@ -132,9 +169,8 @@ router.get('/retrieveData', async(req, res) => {
 //Todo: This route is not completed yet.
 router.get('/plantSeedsInventory', async(req, res) => {
     try {
-    //   const [rows] = await mysqlLogic.getAllSensorData();
-    //   res.json(rows);
-    const i = 1;
+      const result = await mysqlLogic.getAllPlantSeedInventory();
+      res.status(200).json(result);
     } catch (error) {
       console.error('Error retrieving data:', error);
       sendInternalServerError(res);
@@ -145,20 +181,19 @@ router.get('/plantSeedsInventory', async(req, res) => {
 //Todo: This route is not completed yet.
 router.get('/plantData', async(req, res) => {
     try {
-    //   const [rows] = await mysqlLogic.getAllSensorData();
-    //   res.json(rows);
-    const i = 1;
+      const result = await mysqlLogic.getAllPlantInfo();
+      res.status(200).json(result);
     } catch (error) {
       console.error('Error retrieving data:', error);
       sendInternalServerError(res);
     }
 });
 
-//Todo: This route is not completed yet.
+//Todo: This route is not completed yet. 
 router.get('/plantSensorReading', async(req, res) => {
     try {
-    //   const [rows] = await mysqlLogic.getAllSensorData();
-    //   res.json(rows);
+      const result = await mysqlLogic.getAllSensorData();
+      res.status(200).json(result);
     const i = 1;
     } catch (error) {
       console.error('Error retrieving data:', error);
@@ -166,3 +201,4 @@ router.get('/plantSensorReading', async(req, res) => {
     }
 });
 
+module.exports = router;

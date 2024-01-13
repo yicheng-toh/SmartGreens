@@ -49,7 +49,8 @@ async function createTableIfNotExistsScrapped() {
       const createSensorReadingsTable = `
         CREATE TABLE IF NOT EXISTS SensorReadings (
           Datetime DATETIME,
-          MicrocontrollerID INT UNIQUE,
+          MicrocontrollerID INT,
+          PlantBatch INT,
           Temperature FLOAT,
           Humidity INT,
           Brightness INT,
@@ -60,7 +61,22 @@ async function createTableIfNotExistsScrapped() {
           PRIMARY KEY (Datetime, MicrocontrollerID)
       );
     `
-    
+        // Create Microcontroller Plant Pair Table
+      const createMicrocontrollerPlantPairTable = `
+          CREATE TABLE IF NOT EXISTS MicrocontrollerPlantbatchPair (
+          microcontrollerId INT,
+          plantBatch INT
+          )
+       `
+      const createPlantBatchTable = `
+            CREATE TABLE IF NOT EXISTS PlantDetail (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            plantBatch INT,
+            plantSpecies VARCHAR(100),
+            positionLocation INT,
+            positionLayer INT
+            )
+       `
       const createInventoryTable = `
         CREATE TABLE IF NOT EXISTS Inventory (
             InventoryID INT AUTO_INCREMENT PRIMARY KEY,
@@ -116,6 +132,8 @@ async function createTableIfNotExistsScrapped() {
     
   
       await dbConnection.execute(createSensorReadingsTable);
+      await dbConnection.execute(createMicrocontrollerPlantPairTable);
+      await dbConnection.execute(createPlantBatchTable);
       await dbConnection.execute(createInventoryTable);
       await dbConnection.execute(createPlantSeedInventoryTable);
       await dbConnection.execute(createPlantHarverstTable);
@@ -132,28 +150,28 @@ async function createTableIfNotExistsScrapped() {
   }
   
   
-  async function insertSensorValues(dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness){
-    await dbConnection.execute('INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)',
-        [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]);
-  }
+  // async function insertSensorValues(dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness){
+  //   await dbConnection.execute('INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)',
+  //       [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]);
+  // }
   
-  async function getSensorDataByMicrocontrollerId(microcontrollerId){
-    queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail WHERE microcontrollerId = ?', (microcontrollerId));
-    return queryResult;
-  }
+  // async function getSensorDataByMicrocontrollerId(microcontrollerId){
+  //   queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail WHERE microcontrollerId = ?', (microcontrollerId));
+  //   return queryResult;
+  // }
   
-  async function getAllSensorData(){
-    queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail');
-    // console.log("hahahahha");
-    // console.log(queryResult);
-    return queryResult;
-  }
+  // async function getAllSensorData(){
+  //   queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail');
+  //   // console.log("hahahahha");
+  //   // console.log(queryResult);
+  //   return queryResult;
+  // }
   // Reassign more meaningful function name
   initialiseMySQL = createTableIfNotExists;
 
   module.exports = {
-    insertSensorValues,
-    getSensorDataByMicrocontrollerId,
-    getAllSensorData,
+    // insertSensorValues,
+    // getSensorDataByMicrocontrollerId,
+    // getAllSensorData,
     initialiseMySQL,
   };

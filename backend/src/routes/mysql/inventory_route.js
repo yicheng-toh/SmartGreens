@@ -134,3 +134,4 @@ router.delete('/deleteInvenotry/:currentInventoryId',async (req, res) => {
   }
 });
  
+module.exports = router;
