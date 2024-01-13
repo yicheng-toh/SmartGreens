@@ -1,5 +1,9 @@
 const sqlite3 = require("sqlite3");
+<<<<<<< HEAD:backend/src/database_logic/sqlite/sqlite.js
 const {DEPLOYMENT} = require("../../env.js");
+=======
+const { DEPLOYMENT } = require("../env.js");
+>>>>>>> 533d11fd0e9184f85b237e6292308913810014f9:backend/src/database_logic/sqlite.js
 // const { router } = require("../routes/sqlite3_route");
 // const { sendInternalServerError } = require("./request_error_messages");
 
@@ -9,22 +13,22 @@ const TEST_DB = "mydatabase_test.db";
 
 if (DEPLOYMENT) {
   sqliteFile = DEPLOYMENT_DB;
-}else {
+} else {
   sqliteFile = TEST_DB;
 }
 
 function initialiseSqlite3() {
-    // Initialize the SQLite database connection
-    // TODO : to ensure that all the errors are caught.
-    const db = new sqlite3.Database(sqliteFile, sqlite3.OPEN_READWRITE, (err) => {
-      if (err) {
-        console.error('Error connecting to the SQLite database:', err);
-      } else {
-        console.log('Connected to the SQLite database');
-      }
-    });
+  // Initialize the SQLite database connection
+  // TODO : to ensure that all the errors are caught.
+  const db = new sqlite3.Database(sqliteFile, sqlite3.OPEN_READWRITE, (err) => {
+    if (err) {
+      console.error("Error connecting to the SQLite database:", err);
+    } else {
+      console.log("Connected to the SQLite database");
+    }
+  });
 
-    return db;
+  return db;
 }
 
 function createTableIfNotExists(db) {
@@ -61,42 +65,54 @@ function createTableIfNotExists(db) {
 }
 
 const getSensorDataByMicrocontrollerId = (microcontrollerId, db) => {
-    return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM SensorDetail WHERE microcontrollerId = ?', microcontrollerId, (err, rows) => {
+  return new Promise((resolve, reject) => {
+    db.all(
+      "SELECT * FROM SensorDetail WHERE microcontrollerId = ?",
+      microcontrollerId,
+      (err, rows) => {
         if (err) {
-          console.error('Error retrieving data:', err);
+          console.error("Error retrieving data:", err);
           reject(err);
         } else {
           resolve(rows);
         }
-      });
-    });
-  };
+      }
+    );
+  });
+};
 
 const getAllSensorData = (db) => {
-    return new Promise((resolve, reject) => {
-      db.all('SELECT * FROM SensorDetail', (err, rows) => {
-        if (err) {
-          console.error('Error retrieving data:', err);
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
+  return new Promise((resolve, reject) => {
+    db.all("SELECT * FROM SensorDetail", (err, rows) => {
+      if (err) {
+        console.error("Error retrieving data:", err);
+        reject(err);
+      } else {
+        resolve(rows);
+      }
     });
-  };
+  });
+};
 
-
-const insertSensorValues = (dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness, db) => {
-    db.run('INSERT INTO SensorDetail (DateTime, MicroControllerID,PlantBatch,Temperature,Humidity,brightness) VALUES (?,?, ?,?, ?,?)', 
-                [dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness]);
-}
+const insertSensorValues = (
+  dateTime,
+  microcontrollerId,
+  plantBatch,
+  temperature,
+  humidity,
+  brightness,
+  db
+) => {
+  db.run(
+    "INSERT INTO SensorDetail (DateTime, MicroControllerID,PlantBatch,Temperature,Humidity,brightness) VALUES (?,?, ?,?, ?,?)",
+    [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]
+  );
+};
 
 module.exports = {
-    initialiseSqlite3,
-    createTableIfNotExists,
-    getSensorDataByMicrocontrollerId,
-    getAllSensorData,
-    insertSensorValues,
-
+  initialiseSqlite3,
+  createTableIfNotExists,
+  getSensorDataByMicrocontrollerId,
+  getAllSensorData,
+  insertSensorValues,
 };

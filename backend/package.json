@@ -9,8 +9,12 @@
     "startTest": "cross-env DEPLOYMENT=false DATABASE=both npx jest --detectOpenHandles --coverage",
     "startyc": "cross-env DEPLOYMENT=false DATABASE=both node src/main.js",
     "sqlite": "cross-env DEPLOYMENT=false DATABASE=SQLite node src/main.js",
+<<<<<<< HEAD
     "docker": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=true node src/main.js",
     "mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js"
+=======
+    "docker": "cross-env DEPLOYMENT=true DATABASE=MySQL node main.js"
+>>>>>>> 533d11fd0e9184f85b237e6292308913810014f9
   },
   "keywords": [],
   "author": "",
