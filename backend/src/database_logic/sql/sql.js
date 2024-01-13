@@ -30,6 +30,7 @@ if(MSSQL){
     ({dbConnection} = require("./mysql.js"));
     const plantLogic = require("./mysql/plant_mysql.js");
     const miscLogic = require("./mysql/misc_mysql.js");
+    const sensorLogic = require("./mysql/sensor_mysql.js");
     module.exports = {
       dbConnection,
       insertSensorValues,
@@ -38,6 +39,7 @@ if(MSSQL){
       initialiseMySQL,
       ...plantLogic,
       ...miscLogic,
+      ...sensorLogic,
     };
 }
 
