@@ -11,6 +11,7 @@ const { DEPLOYMENT, DATABASE } = require("./env.js");
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
 const SQLITE_MYSQL = "both";
+const MSSQL = process.env.MSSQL === "true" || false;
 
 // const DEPLOYMENT = true; //False deployment refers to testing.
 // const DEPLOYMENT = false; //False deployment refers to testing.
@@ -35,14 +36,14 @@ if (!DEPLOYMENT) {
     const {
       dbConnection,
       initialiseMySQL,
-    } = require("./database_logic/mysql.js");
+    } = require("./database_logic/sql/mysql.js");
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "";
   } else if (DATABASE == SQLITE_MYSQL) {
     const {
       dbConnection,
       initialiseMySQL,
-    } = require("./database_logic/mysql.js");
+    } = require("./database_logic/sql/mysql.js");
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "/mysql";
   } else {

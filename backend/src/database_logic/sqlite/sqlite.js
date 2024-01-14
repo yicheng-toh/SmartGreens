@@ -1,9 +1,5 @@
 const sqlite3 = require("sqlite3");
-<<<<<<< HEAD:backend/src/database_logic/sqlite/sqlite.js
-const {DEPLOYMENT} = require("../../env.js");
-=======
-const { DEPLOYMENT } = require("../env.js");
->>>>>>> 533d11fd0e9184f85b237e6292308913810014f9:backend/src/database_logic/sqlite.js
+const { DEPLOYMENT } = require("../../env.js");
 // const { router } = require("../routes/sqlite3_route");
 // const { sendInternalServerError } = require("./request_error_messages");
 

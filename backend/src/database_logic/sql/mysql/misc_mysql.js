@@ -126,7 +126,7 @@ async function createTableIfNotExistsScrapped() {
     `
     const createRemindersTable = `
       CREATE TABLE IF NOT EXISTS Reminders (
-          Id AUTO_INCREMENT PRIMARY KEY,
+          Id INT AUTO_INCREMENT PRIMARY KEY,
           Task VARCHAR(255),
           Datetime DATETIME,
           Status BOOLEAN
