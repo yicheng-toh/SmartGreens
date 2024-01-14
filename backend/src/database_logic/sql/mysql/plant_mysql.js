@@ -36,14 +36,18 @@ async function insertNewPlant(plantName,SensorsRanges,DaysToMature){
 async function harvestPlant(plantBatch, quantityHarvested){
     await dbConnection.execute('UPDATE PlantBatch SET quantityHarvested = ? WHERE plantBatch = ?;', 
     [plantBatch, quantityHarvested]);
+    const plantIdResultList = await dbConnection.prommise().query('SELECT plantId FROM PlantBatch WHERE plantBatch = ?', 
+        []);
+    const plantId = plantIdResultList[0].plantId;
+    await updatePlantHarvestData(plantId, quantityHarvested);
     return 1;
 }
 
 //This function may need to be broken up in the routes for error catching.
 async function growPlant(plantId, plantLocation, microcontrollerId, quantityDecrement){
     //update the seed inventory
-    const [result] = await dbConnection.execute('INSERT INTO PlantBatch (plantID, plantLocation) VALUES (?,?)',
-        [plantId, plantLocation]);
+    const [result] = await dbConnection.execute('INSERT INTO PlantBatch (plantID, plantLocation, quantityPlanted) VALUES (?,?,?)',
+        [plantId, plantLocation, quantityDecrement]);
     const plantBatchId = result.insertId;
     const originalQuantityResultList = await dbConnection.promise().query('SELECT quantity FROM PlantSeedInventory WHERE PlantId = ?', plantId);
     const originalQuantity = originalQuantityResultList[0].quantity;
@@ -86,6 +90,7 @@ module.exports = {
     getAllPlantInfo,
     insertNewPlant,
     getAllPlantSeedInventory,
+    growPlant,
     harvestPlant,
     updatePlantSeedInventory,
     verifyPlantExists,

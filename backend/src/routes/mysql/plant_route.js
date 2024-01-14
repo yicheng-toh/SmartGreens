@@ -116,7 +116,7 @@ router.post('/editSeedQuantity', async (req, res) => {
           }else if(quantityChange === undefined){
             sendInternalServerError(res);
           }
-          const success = await mysqlLogic.pdatePlantSeedInventory(plantId, quantityChange);
+          const success = await mysqlLogic.updatePlantSeedInventory(plantId, quantityChange);
           if(success){
             res.status(201).send('Data inserted successfully');
           }else{
