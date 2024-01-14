@@ -1,4 +1,5 @@
 const mysql = require("mysql2");
+<<<<<<< HEAD:backend/src/database_logic/sql/mysql_prev.js
 const mssql = require("mssql");
 const {DEPLOYMENT, MYSQL, DOCKER} = require("../../env.js");
 let MSSQL = false;
@@ -8,19 +9,28 @@ if (DEPLOYMENT && !DOCKER){
   dbDetails = require("../../../yc_data.js");
 }else if (!DEPLOYMENT){
   dbDetails = require("../../../yc_data_test.js");
+=======
+const { DEPLOYMENT, MYSQL, DOCKER } = require("../env.js");
+
+let dbDetails;
+
+if (DEPLOYMENT && !DOCKER) {
+  dbDetails = require("../../yc_data.js");
+} else if (!DEPLOYMENT) {
+  dbDetails = require("../../yc_data_test.js");
+>>>>>>> 533d11fd0e9184f85b237e6292308913810014f9:backend/src/database_logic/mysql.js
 }
 
-
 let dbConnection;
-if (DOCKER){
+if (DOCKER) {
   dbConnection = mysql.createConnection({
-  host: MYSQL.HOST,
-  user: MYSQL.USER,
-  password: MYSQL.PASSWORD,
-  database: MYSQL.DATABASE,
-  waitForConnections: true,
-  connectionLimit: 10, // Adjust according to your needs
-  queueLimit: 0,
+    host: MYSQL.HOST,
+    user: MYSQL.USER,
+    password: MYSQL.PASSWORD,
+    database: MYSQL.DATABASE,
+    waitForConnections: true,
+    connectionLimit: 10, // Adjust according to your needs
+    queueLimit: 0,
   });
 } else if (MSSQL) {
     dbConnection = new mssql.ConnectionPool({
@@ -36,13 +46,12 @@ if (DOCKER){
 
 } else {
   dbConnection = mysql.createConnection({
-  host: dbDetails.host,
-  user: dbDetails["user"],
-  password: dbDetails.password,
-  database: dbDetails.database,
-});
+    host: dbDetails.host,
+    user: dbDetails["user"],
+    password: dbDetails.password,
+    database: dbDetails.database,
+  });
 }
-
 
 // // Wrap the connection setup in a function to handle asynchronous operations
 // const connectToDatabase = async () => {
@@ -71,7 +80,6 @@ if (DOCKER){
 // Function to create the BASESENSOR table if it doesn't exist
 async function createTableIfNotExists() {
   try {
-   
     // Create the Sensor Detail table
     const createSensorDetailTable = `
         CREATE TABLE IF NOT EXISTS SensorDetail (
@@ -83,7 +91,7 @@ async function createTableIfNotExists() {
         brightness INT
         )
         `;
-    
+
     // Create Microcontroller Plant Pair Table
     const createMicrocontrollerPlantPairTable = `
         CREATE TABLE IF NOT EXISTS MicrocontrollerPlantbatchPair (
@@ -112,18 +120,34 @@ async function createTableIfNotExists() {
   }
 }
 
-async function insertSensorValues(dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness){
-  await dbConnection.execute('INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)',
-      [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]);
+async function insertSensorValues(
+  dateTime,
+  microcontrollerId,
+  plantBatch,
+  temperature,
+  humidity,
+  brightness
+) {
+  await dbConnection.execute(
+    "INSERT INTO SensorDetail (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (?, ?, ?, ?, ?, ?)",
+    [dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness]
+  );
 }
 
-async function getSensorDataByMicrocontrollerId(microcontrollerId){
-  queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail WHERE microcontrollerId = ?', (microcontrollerId));
+async function getSensorDataByMicrocontrollerId(microcontrollerId) {
+  queryResult = await dbConnection
+    .promise()
+    .query(
+      "SELECT * FROM SensorDetail WHERE microcontrollerId = ?",
+      microcontrollerId
+    );
   return queryResult;
 }
 
-async function getAllSensorData(){
-  queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail');
+async function getAllSensorData() {
+  queryResult = await dbConnection
+    .promise()
+    .query("SELECT * FROM SensorDetail");
   // console.log("hahahahha");
   // console.log(queryResult);
   return queryResult;
@@ -138,5 +162,3 @@ module.exports = {
   getAllSensorData,
   initialiseMySQL,
 };
-
-
