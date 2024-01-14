@@ -82,9 +82,8 @@ mode = DATABASE
 
 globallst = [];
 
-
 app.get("/hello", async (req, res) => {
-  try{
+  try {
     //TODO is dbconnection is not required here, then delete the query and shift the import statement.
     const result = await dbConnection.promise().query(`SELECT * FROM BASESENSOR;`);
     console.log("/");

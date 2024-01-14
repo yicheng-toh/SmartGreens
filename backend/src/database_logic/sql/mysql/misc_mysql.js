@@ -69,12 +69,12 @@ async function createTableIfNotExistsScrapped() {
           )
        `
       const createPlantBatchTable = `
-            CREATE TABLE IF NOT EXISTS PlantDetail (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            plantBatch INT,
-            plantSpecies VARCHAR(100),
-            positionLocation INT,
-            positionLayer INT
+            CREATE TABLE IF NOT EXISTS PlantBatch (
+            plantBatch INT AUTO_INCREMENT PRIMARY KEY,
+            plantID INT,
+            plantLocation INT,
+            quantityPlanted INT,
+            quantityHarvested INT
             )
        `
       const createInventoryTable = `
@@ -108,6 +108,7 @@ async function createTableIfNotExistsScrapped() {
     `
     const createTaskTable = `
       CREATE TABLE IF NOT EXISTS Task (
+          Id INT PRIMARY KEY AUTO_INCREMENT,
           Action VARCHAR(255),
           Datetime DATETIME,
           Status BOOLEAN
@@ -115,6 +116,7 @@ async function createTableIfNotExistsScrapped() {
     `
     const createAlertSentTable = `
       CREATE TABLE IF NOT EXISTS AlertsSent (
+          Id INT PRIMARY KEY AUTO_INCREMENT,
           Action VARCHAR(255),
           Datetime DATETIME,
           Status VARCHAR(255),
@@ -124,6 +126,7 @@ async function createTableIfNotExistsScrapped() {
     `
     const createRemindersTable = `
       CREATE TABLE IF NOT EXISTS Reminders (
+          Id AUTO_INCREMENT PRIMARY KEY,
           Task VARCHAR(255),
           Datetime DATETIME,
           Status BOOLEAN
