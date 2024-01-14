@@ -1,14 +1,14 @@
 version: '3'
 services:
-  # mysql:
-  #   image: mysql:8
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: root_password
-  #     MYSQL_DATABASE: your-mysql-database
-  #     MYSQL_USER: your-mysql-user
-  #     MYSQL_PASSWORD: your-mysql-password
-  #   volumes:
-  #     - mysql-data:/var/lib/mysql
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: your-mysql-database
+      MYSQL_USER: your-mysql-user
+      MYSQL_PASSWORD: your-mysql-password
+    volumes:
+      - mysql-data:/var/lib/mysql
 
   nodejs-app:
     build:

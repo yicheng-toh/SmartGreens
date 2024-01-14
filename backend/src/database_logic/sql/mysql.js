@@ -47,32 +47,6 @@ if (DOCKER){
 }
 
 
-// // Wrap the connection setup in a function to handle asynchronous operations
-// const connectToDatabase = async () => {
-//   dbConnection = mysql.createConnection({
-//     host: dbDetails.host,
-//     user: dbDetails["user"],
-//     password: dbDetails.password,
-//     database: dbDetails.database,
-//   });
-
-//   // Promisify the connection to allow the use of async/await
-//   return new Promise((resolve, reject) => {
-//     dbConnection.connect((err) => {
-//       if (err) {
-//         reject(err);
-//       } else {
-//         resolve();
-//       }
-//     });
-//   });
-// };
-
-// Call the connectToDatabase function to establish the connection
-// await connectToDatabase();
-
-
-
 module.exports = {
   dbConnection,
 };

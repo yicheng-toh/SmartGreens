@@ -5,11 +5,7 @@ const {
   sendInternalServerError,
 } = require("./request_error_messages");
 const router = express.Router();
-<<<<<<< HEAD
-const sqlite = require("../database_logic/sqlite/sqlite")
-=======
-const sqlite = require("../database_logic/sqlite");
->>>>>>> 533d11fd0e9184f85b237e6292308913810014f9
+const sqlite = require("../database_logic/sqlite/sqlite");
 
 router.use(json());
 

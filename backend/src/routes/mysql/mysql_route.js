@@ -130,10 +130,13 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
   }
   });
 
-  inventoryRouter = require('./inventory_route.js');
+  const inventoryRouter = require('./inventory_route.js');
   router.use("/inventory", inventoryRouter);
 
   const plantRouter = require('./plant_route.js');
   router.use( "/plant", plantRouter);
+
+  const calendarRouter = require('./calendar_route.js');
+  router.use("/calendar", calendarRouter);
 
 module.exports = router;
