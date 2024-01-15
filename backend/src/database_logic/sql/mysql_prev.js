@@ -1,15 +1,4 @@
 const mysql = require("mysql2");
-<<<<<<< HEAD:backend/src/database_logic/sql/mysql_prev.js
-const mssql = require("mssql");
-const {DEPLOYMENT, MYSQL, DOCKER} = require("../../env.js");
-let MSSQL = false;
-let dbDetails;
-
-if (DEPLOYMENT && !DOCKER){
-  dbDetails = require("../../../yc_data.js");
-}else if (!DEPLOYMENT){
-  dbDetails = require("../../../yc_data_test.js");
-=======
 const { DEPLOYMENT, MYSQL, DOCKER } = require("../env.js");
 
 let dbDetails;
@@ -18,7 +7,6 @@ if (DEPLOYMENT && !DOCKER) {
   dbDetails = require("../../yc_data.js");
 } else if (!DEPLOYMENT) {
   dbDetails = require("../../yc_data_test.js");
->>>>>>> 533d11fd0e9184f85b237e6292308913810014f9:backend/src/database_logic/mysql.js
 }
 
 let dbConnection;
