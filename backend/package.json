@@ -5,12 +5,14 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cross-env DEPLOYMENT=true DATABASE=both Docker=false node src/main.js",
+    "start": "cross-env DEPLOYMENT=true DATABASE=both Docker=false MSSQL=false node src/main.js",
     "startTest": "cross-env DEPLOYMENT=false DATABASE=both npx jest --detectOpenHandles --coverage",
     "startyc": "cross-env DEPLOYMENT=false DATABASE=both node src/main.js",
     "sqlite": "cross-env DEPLOYMENT=false DATABASE=SQLite node src/main.js",
     "docker": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=true node src/main.js",
-    "mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js"
+    "mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js",
+    "docker1": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=true node main.js",
+    "local_mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js"
   },
   "keywords": [],
   "author": "",

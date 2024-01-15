@@ -22,22 +22,23 @@ if(MSSQL){
     // initialiseMySQL = dbConnection.initialiseMySQL;
     console.log(initialiseMySQL);
     module.exports = dbConnection;
-
-
-
 }else{
-    // ({dbConnection,
-    //     insertSensorValues,
-    //     getSensorDataByMicrocontrollerId,
-    //     getAllSensorData,
-    //     initialiseMySQL} = require("./mysql.js"));
-    const a = 1;
+  //import dbConnection from one file and then funtions from another file.
+    ({dbConnection} = require("./mysql.js"));
+    const plantLogic = require("./mysql/plant_mysql.js");
+    const miscLogic = require("./mysql/misc_mysql.js");
+    const sensorLogic = require("./mysql/sensor_mysql.js");
+    const calendarLogic = require("./mysql/calendar_mysql.js");
     module.exports = {
       dbConnection,
       insertSensorValues,
       getSensorDataByMicrocontrollerId,
       getAllSensorData,
       initialiseMySQL,
+      ...plantLogic,
+      ...miscLogic,
+      ...sensorLogic,
+      ...calendarLogic,
     };
 }
 
