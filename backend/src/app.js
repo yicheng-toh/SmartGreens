@@ -155,6 +155,7 @@ if (mode == SQLITE || mode == SQLITE_MYSQL) {
 
 //MySQL routes
 if (mode == MYSQL || mode == SQLITE_MYSQL){
+  console.log('MSSQL is', MSSQL);
   try{
   const MySQLRoute = require("./routes/mysql/mysql_route.js");
   app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
