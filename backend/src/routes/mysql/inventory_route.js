@@ -98,7 +98,7 @@ router.post('/updateInventoryUnit', async (req, res) => {
   }
 });
 
-router.get('/retrieveAllInvenotryData', async(req, res) => {
+router.get('/retrieveAllInventoryData', async(req, res) => {
     try {
         const [rows] = await mysqlLogic.getAllInventoryData();
         res.statusCode(200).send({'success': 1, 'result': rows});
@@ -108,7 +108,7 @@ router.get('/retrieveAllInvenotryData', async(req, res) => {
     }
 });
 
-router.delete('/deleteInvenotry/:currentInventoryId',async (req, res) => {
+router.delete('/deleteInventory/:currentInventoryId',async (req, res) => {
   try{     
       try {
         let success = 0;
