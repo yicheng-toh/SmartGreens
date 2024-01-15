@@ -20,4 +20,4 @@ COPY ./src /usr/src/
 EXPOSE 3000
 
 # Define the command to run your app
-CMD ["npm", "run", "docker"]
+CMD ["npm", "run", "docker1"]

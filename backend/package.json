@@ -11,7 +11,8 @@
     "sqlite": "cross-env DEPLOYMENT=false DATABASE=SQLite node src/main.js",
     "docker": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=true node src/main.js",
     "mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js",
-    "docker1": "cross-env DEPLOYMENT=true DATABASE=MySQL node main.js"
+    "docker1": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=true node main.js",
+    "local_mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js"
   },
   "keywords": [],
   "author": "",
