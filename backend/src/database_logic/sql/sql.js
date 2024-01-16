@@ -11,7 +11,8 @@ const {DEPLOYMENT, MYSQL, DOCKER, MSSQL} = require("../../env.js");
 // }
 console.log(`mssql is ${MSSQL}`);
 let dbConnection,insertSensorValues,getSensorDataByMicrocontrollerId,getAllSensorData,initialiseMySQL;
-if(MSSQL){
+// if(MSSQL){
+if(false){
     // ({dbConnection,
     //     insertSensorValues,
     //     getSensorDataByMicrocontrollerId,
@@ -24,7 +25,7 @@ if(MSSQL){
     module.exports = dbConnection;
 }else{
   //import dbConnection from one file and then funtions from another file.
-    ({dbConnection} = require("./mysql.js"));
+    ({dbConnection} = require("./mysql/mysql.js"));
     const plantLogic = require("./mysql/plant_mysql.js");
     const miscLogic = require("./mysql/misc_mysql.js");
     const sensorLogic = require("./mysql/sensor_mysql.js");

@@ -1,4 +1,4 @@
-const {dbConnection} = require("../mysql.js");
+const {dbConnection} = require("./mysql.js");
 
 // Function to create the BASESENSOR table if it doesn't exist
 async function createTableIfNotExistsScrapped() {

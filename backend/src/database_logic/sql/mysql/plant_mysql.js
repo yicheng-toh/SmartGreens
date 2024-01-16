@@ -2,7 +2,7 @@
 \This file contains all the necessary plant related logic for plants route
 this is designed specifically for MYSQL database.
 */
-const {dbConnection} = require("../mysql.js");
+const {dbConnection} = require("./mysql.js");
 //Functions will be divided into different tables
 
 

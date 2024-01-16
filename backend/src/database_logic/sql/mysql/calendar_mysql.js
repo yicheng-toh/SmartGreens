@@ -1,4 +1,4 @@
-const {dbConnection} = require("../mysql.js");
+const {dbConnection} = require("./mysql.js");
 
 //reminder
 //getAllReminders

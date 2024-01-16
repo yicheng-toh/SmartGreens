@@ -1,4 +1,4 @@
-const {dbConnection} = require("../mysql.js");
+const {dbConnection} = require("./mysql.js");
 
 //insert data into the database.
 //TODO this is to be updated to phase 2 code.
