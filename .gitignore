@@ -13847,3 +13847,6 @@ backend/node_modules/dotenv/lib/cli-options.js
 backend/node_modules/dotenv/lib/env-options.js
 backend/node_modules/dotenv/lib/main.d.ts
 backend/node_modules/dotenv/lib/main.js
+backend/DigiCertGlobalRootCA.crt.pem
+backend/node_modules/fs/package.json
+backend/node_modules/fs/README.md

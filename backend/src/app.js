@@ -36,14 +36,14 @@ if (!DEPLOYMENT) {
     const {
       dbConnection,
       initialiseMySQL,
-    } = require("./database_logic/sql/mysql.js");
+    } = require("./database_logic/sql/mysql/mysql.js");
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "";
   } else if (DATABASE == SQLITE_MYSQL) {
     const {
       dbConnection,
       initialiseMySQL,
-    } = require("./database_logic/sql/mysql.js");
+    } = require("./database_logic/sql/mysql/mysql.js");
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "/mysql";
   } else {
@@ -161,6 +161,7 @@ if (mode == MYSQL || mode == SQLITE_MYSQL){
   app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
   if(MSSQL){
     dbConnection.initialiseMySQL()
+    // initialiseMySQL(); 
   }else{
     initialiseMySQL(); 
   }
