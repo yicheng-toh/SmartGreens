@@ -1,5 +1,7 @@
 const sql = require("mssql");
-const {config} = require("./config.js");
+// const {config} = require("./config.js");
+const {config} = require("../../../env.js");
+
 
 class Database {
   config = {};
@@ -22,6 +24,7 @@ class Database {
         console.log('Database already connected');
       }
     } catch (error) {
+      console.log(error);
       console.error(`Error connecting to database: ${JSON.stringify(error)}`);
     }
     return this.poolconnection.request();
@@ -109,8 +112,10 @@ class Database {
   }
 }
 
+async function createDbConnection(){
+  return new Database(config);
+}
+// const dbConnection = new Database(config);
 
-const dbConnection = new Database(config);
-
-module.exports =  {dbConnection};
+module.exports =  {createDbConnection};
 

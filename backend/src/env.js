@@ -49,12 +49,16 @@ if (MSSQL){
     // };
     config = {
         // 'ROOT_PASSWORD' : process.env.MYSQL_ROOT_PASSWORD,
-        'DATABASE' : process.env.AZURE_SQL_DATABASE,
-        'USER' : process.env.AZURE_SQL_USER,
-        'PASSWORD' : process.env.AZURE_SQL_PASSWORD,
-        'HOST' : process.env.AZURE_SQL_SERVER,
-        'PORT' : process.env.AZURE_SQL_PORT,
-        'CERTIFICATE' : process.env.AZURE_SQL_CERTIFICATE
+        server : process.env.AZURE_SQL_SERVER,
+        database : process.env.AZURE_SQL_DATABASE,
+        user : process.env.AZURE_SQL_USER,
+        password : process.env.AZURE_SQL_PASSWORD,
+        // 'HOST' : process.env.AZURE_SQL_SERVER,
+        port : parseInt(process.env.AZURE_SQL_PORT),
+        // 'CERTIFICATE' : process.env.AZURE_SQL_CERTIFICATE,
+        options: {
+            encrypt: true
+        }
     };
 }else{
     MYSQL = {

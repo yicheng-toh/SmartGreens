@@ -1,10 +1,11 @@
 
 
 const { query } = require("mssql");
-const {dbConnection} = require("../mssql.js");
+const {createDbConnection} = require("../mssql.js");
 
 //insertNewInventoryObject
 async function insertNewInventoryObject(itemName, quantity, units){
+    const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     request.input('itemName', dbConnection.VarChar, itemName)
         .input('quantity', dbConnection.Int, quantity)
@@ -16,6 +17,7 @@ async function insertNewInventoryObject(itemName, quantity, units){
 
 //verifyInventoryIdExist
 async function verifyInventoryIdExist(inventoryId){
+    const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     const inventoryIdList = await request
         .input('inventoryId', dbConnection.Int, inventoryId)
@@ -26,6 +28,7 @@ async function verifyInventoryIdExist(inventoryId){
 
 //updateInventoryQuantity TODO!!!paused here.
 async function updateInventoryQuantity(inventoryId, quantityChange){
+    const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // const currentQuantity = await request.query('SELECT quantity FROM Inventory WHERE InventoryID = ?', inventoryId);
     const currentQuantity = await request
@@ -42,6 +45,7 @@ async function updateInventoryQuantity(inventoryId, quantityChange){
 }
 //updateInventoryUnits
 async function updateInventoryUnit(inventoryId, newUnit){
+    const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // await dbConnection.execute('UPDATE Inventory SET Units = ? WHERE InventoryID = ?;', [newUnit, inventoryId]);
     await request
@@ -54,6 +58,7 @@ async function updateInventoryUnit(inventoryId, newUnit){
 }
 //deleteInventoryObject
 async function deleteInventoryObject(inventoryId){
+    const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // await dbConnection.execute('DELETE FROM Inventory WHERE InventoryID = ?', [inventoryId]);
     await request
@@ -64,6 +69,7 @@ async function deleteInventoryObject(inventoryId){
 
 //getAllInventoryData
 async function getAllInventoryData(){
+    const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     const queryResult =  await request.query('SELECT * FROM Inventory');
     dbConnection.disconnect();
