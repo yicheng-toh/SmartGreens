@@ -69,7 +69,9 @@ router.post('/insertData/:microcontrollerId', async (req, res) => {
         console.log("Data has successfully been received.");
 
         ({ temperature, humidity, brightness } = req.body);
-        // console.log(temperature, humidity, brightness);
+        console.log(temperature, humidity, brightness);
+        console.log(dateTime, microcontrollerId, plantBatch);
+        // console.log(dateTime, microcontrollerId, plantBatch);
         await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
         res.status(201).send('Data inserted successfully');
       } catch (error) {
@@ -176,7 +178,8 @@ router.post('/harvestPlant', async(req, res) => {
 router.get('/retrieveData', async(req, res) => {
     try {
         // const [rows] = await mysqlLogic.getAllSensorData();
-        const [rows]  = await mysqlLogic.getAllSensorData();
+        // const [rows]  = await mysqlLogic.getAllSensorData();
+        const rows = await mysqlLogic.getAllSensorData();
         if (rows) {
           res.status(200).json(rows);
         } else {

@@ -1,4 +1,5 @@
 const {createDbConnection} = require("./mssql.js");
+const sql = require("mssql");
 
 //insert data into the database.
 //TODO this is to be updated to phase 2 code.
@@ -8,14 +9,14 @@ async function insertSensorValues(dateTime,microcontrollerId, plantBatch, temper
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     await request
-        .input('dateTime', dbConnection.DateTime, dateTime)
-        .input('microcontrollerId', dbConnection.Int, microcontrollerId)
-        .input('plantBatch', dbConnection.Int, plantBatch)
-        .input('temperature', dbConnection.Float, temperature)
-        .input('humidity', dbConnection.Float, humidity)
-        .input('brightness', dbConnection.Float, brightness)
+        .input('dateTime', sql.DateTime, dateTime)
+        .input('microcontrollerId', sql.Int, microcontrollerId)
+        .input('plantBatch', sql.Int, plantBatch)
+        .input('temperature', sql.Float, temperature)
+        .input('humidity', sql.Float, humidity)
+        .input('brightness', sql.Float, brightness)
         .query('INSERT INTO SensorReadings (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (@dateTime, @microcontrollerId, @plantBatch, @temperature, @humidity, @brightness)');
-    dbConnection.disconnect()
+    await dbConnection.disconnect()
     return 1;
 }
 
@@ -24,7 +25,7 @@ async function getAllSensorData(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect()
     const queryResult = await request.query('SELECT * FROM SensorReadings');
-    dbConnection.disconnect()
+    await dbConnection.disconnect()
     return queryResult;
 }
 

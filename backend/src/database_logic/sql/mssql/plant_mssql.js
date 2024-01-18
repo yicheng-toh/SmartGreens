@@ -1,4 +1,5 @@
 const {createDbConnection} = require("./mssql.js");
+const sql = require("mssql");
 
 
 
@@ -125,9 +126,18 @@ async function updatePlantHarvestData(plantId, quantityChange){
 async function updatePlantSeedInventory(plantId, quantityChange){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    const currentQuantity = await dbConnection.promise().query('SELECT quantity FROM PlantSeedInventory WHERE PlantId = ?', plantId);
+    const currentQuantityResult = await request
+        .input('plantId', sql.Int, plantId)
+        .query('SELECT quantity FROM PlantSeedInventory WHERE PlantId = @plantId');
+
+    const currentQuantity = currentQuantityResult[0].quantity;
     const newQuantity = currentQuantity + quantityChange;
-    await dbConnection.execute('UPDATE PlantSeedInventory SET quantity = ? WHERE plant_id = ?;', [newQuantity, plantId]);
+
+    await request
+        .input('newQuantity', sql.Int, newQuantity)
+        .input('plantId', sql.Int, plantId)
+        .query('UPDATE PlantSeedInventory SET quantity = @newQuantity WHERE plant_id = @plantId');
+
     await dbConnection.disconnect();
     return 1;
 }
@@ -135,7 +145,11 @@ async function updatePlantSeedInventory(plantId, quantityChange){
 async function verifyPlantExists(plantId){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    const plantIdList = await dbConnection.promise().query('SELECT id FROM PlantInfo WHERE PlantID= ?', plantId);
+
+    const plantIdList = await request
+        .input('plantId', sql.Int, plantId)
+        .query('SELECT id FROM PlantInfo WHERE PlantID = @plantId');
+
     await dbConnection.disconnect();
     return plantIdList.length;
 }

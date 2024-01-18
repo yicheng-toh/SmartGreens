@@ -1,7 +1,8 @@
 
 
-const { query } = require("mssql");
+// const { query } = require("mssql");
 const {createDbConnection} = require("../mssql.js");
+const sql = require("mssql");
 
 //insertNewInventoryObject
 async function insertNewInventoryObject(itemName, quantity, units){

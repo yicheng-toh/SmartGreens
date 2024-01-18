@@ -1,5 +1,5 @@
 const {createDbConnection} = require("./mssql.js");
-
+const sql = require("mssql");
 //reminder
 //getAllReminders
 async function getAllReminders(){
