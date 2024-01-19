@@ -26,7 +26,7 @@ async function getAllSensorData(){
     const request = await dbConnection.connect()
     const queryResult = await request.query('SELECT * FROM SensorReadings');
     await dbConnection.disconnect()
-    return queryResult;
+    return queryResult.recordset;
 }
 
 module.exports = {

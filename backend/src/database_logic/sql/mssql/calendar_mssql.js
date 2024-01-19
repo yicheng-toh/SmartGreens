@@ -7,7 +7,7 @@ async function getAllReminders(){
     const request = await dbConnection.connect();
     queryResult = await request.query('SELECT * FROM Reminders');
     dbConnection.disconnect();
-    return queryResult;
+    return queryResult.recordset;
 }
 //insertReminder
 async function insertReminder(task, datetime, status){
@@ -31,7 +31,7 @@ async function getAllAlerts(){
     const request = await dbConnection.connect();
     queryResult = await request.query('SELECT * FROM AlertsSent');
     dbConnection.disconnect();
-    return queryResult;
+    return queryResult.recordset;
 }
 //insertAlert
 async function insertAlert(action, datetime, status, severity){
@@ -56,7 +56,7 @@ async function getAllTasks(){
     const request = await dbConnection.connect();
     queryResult = await request.query('SELECT * FROM Tasks');
     dbConnection.disconnect();
-    return queryResult;
+    return queryResult.recordset;
 }
 //insertTask
 async function insertTask(action, datetime, status){

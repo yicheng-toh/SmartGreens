@@ -11,7 +11,7 @@ async function insertSensorValues(dateTime,microcontrollerId, plantBatch, temper
 //retrieve all data regardless of the microcontroller and batch id.
 async function getAllSensorData(){
     const queryResult = await dbConnection.promise().query('SELECT * FROM SensorReadings');
-    return queryResult;
+    return queryResult[0];
 }
 
 module.exports = {

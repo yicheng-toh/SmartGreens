@@ -8,7 +8,7 @@ async function getAllPlantHarvestData(){
     const request = await dbConnection.connect();
     const queryResult = await request.query('SELECT * FROM PlantHarvest');
     await dbConnection.disconnect();
-    return queryResult;
+    return queryResult.recordset;
 }
 
 async function getAllPlantInfo(){
@@ -16,7 +16,7 @@ async function getAllPlantInfo(){
     const request = await dbConnection.connect();
     queryResult = await request.query('SELECT * FROM PlantInfo');
     await dbConnection.disconnect();
-    return queryResult;
+    return queryResult.recordset;
 }
 
 async function getAllPlantSeedInventory(){
@@ -24,7 +24,7 @@ async function getAllPlantSeedInventory(){
     const request = await dbConnection.connect();
     queryResult = await request.query('SELECT * FROM PlantSeedInventory');
     await dbConnection.disconnect();
-    return queryResult;
+    return queryResult.recordset;
 }
 
 async function insertNewPlant(plantName,SensorsRanges,DaysToMature){
@@ -110,7 +110,7 @@ async function updatePlantHarvestData(plantId, quantityChange){
         .input('plantId', sql.Int, plantId)
         .query('SELECT quantity FROM PlantHarvest WHERE PlantId = @plantId');
 
-    const currentQuantity = currentQuantityResult[0].quantity;
+    const currentQuantity = currentQuantityResult.recordset[0].quantity;
     const newQuantity = currentQuantity + quantityChange;
 
     await request
@@ -130,7 +130,7 @@ async function updatePlantSeedInventory(plantId, quantityChange){
         .input('plantId', sql.Int, plantId)
         .query('SELECT quantity FROM PlantSeedInventory WHERE PlantId = @plantId');
 
-    const currentQuantity = currentQuantityResult[0].quantity;
+    const currentQuantity = currentQuantityResult.recordset[0].quantity;
     const newQuantity = currentQuantity + quantityChange;
 
     await request
@@ -151,7 +151,7 @@ async function verifyPlantExists(plantId){
         .query('SELECT id FROM PlantInfo WHERE PlantID = @plantId');
 
     await dbConnection.disconnect();
-    return plantIdList.length;
+    return plantIdList.recordset.length;
 }
 
 //need to rethink on how to write the functions......write them based on sql queries... or....

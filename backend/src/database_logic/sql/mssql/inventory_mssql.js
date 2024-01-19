@@ -24,7 +24,7 @@ async function verifyInventoryIdExist(inventoryId){
         .input('inventoryId', dbConnection.Int, inventoryId)
         .query('SELECT id FROM Inventory WHERE InventoryID = @inventoryId');
     dbConnection.disconnect();
-    return inventoryIdList.length;
+    return inventoryIdList.recordset.length;
 }
 
 //updateInventoryQuantity TODO!!!paused here.
@@ -34,7 +34,7 @@ async function updateInventoryQuantity(inventoryId, quantityChange){
     // const currentQuantity = await request.query('SELECT quantity FROM Inventory WHERE InventoryID = ?', inventoryId);
     const currentQuantity = await request
         .input('inventoryId', dbConnection.Int, inventoryId)
-        .query('SELECT quantity FROM Inventory WHERE InventoryID = @inventoryId');
+        .query('SELECT quantity FROM Inventory WHERE InventoryID = @inventoryId').recordset[0];
     const newQuantity = currentQuantity + quantityChange;
     // await dbConnection.execute('UPDATE Inventory SET quantity = ? WHERE InventoryID = ?;', [newQuantity, inventoryId]);
     await request
@@ -53,7 +53,6 @@ async function updateInventoryUnit(inventoryId, newUnit){
         .input('newUnit', dbConnection.VarChar, newUnit)
         .input('inventoryId', dbConnection.Int, inventoryId)
         .query('UPDATE Inventory SET Units = @newUnit WHERE InventoryID = @inventoryId');
-    dbConnection.disconnect();
     dbConnection.disconnect();
     return 1;
 }
@@ -74,7 +73,7 @@ async function getAllInventoryData(){
     const request = await dbConnection.connect();
     const queryResult =  await request.query('SELECT * FROM Inventory');
     dbConnection.disconnect();
-    return queryResult;
+    return queryResult.recordset;
 }
 
 module.exports ={

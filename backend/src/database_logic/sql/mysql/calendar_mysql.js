@@ -4,7 +4,7 @@ const {dbConnection} = require("./mysql.js");
 //getAllReminders
 async function getAllReminders(){
     queryResult = await dbConnection.promise().query('SELECT * FROM Reminders');
-    return queryResult;
+    return queryResult[0];
 }
 //insertReminder
 async function insertReminder(task, datetime, status){
@@ -17,7 +17,7 @@ async function insertReminder(task, datetime, status){
 //getAllAlerts
 async function getAllAlerts(){
     queryResult = await dbConnection.promise().query('SELECT * FROM AlertsSent');
-    return queryResult;
+    return queryResult[0];
 }
 //insertAlert
 async function insertAlert(action, datetime, status, severity){
@@ -31,7 +31,7 @@ async function insertAlert(action, datetime, status, severity){
 //getAllTasks
 async function getAllTasks(){
     queryResult = await dbConnection.promise().query('SELECT * FROM Tasks');
-    return queryResult;
+    return queryResult[0];
 }
 //insertTask
 async function insertTask(action, datetime, status){
