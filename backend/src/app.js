@@ -33,17 +33,24 @@ if (!DEPLOYMENT) {
     SQLITE_ROUTER_ROUTE = "";
     MYSQL_ROUTER_ROUTE = "/mysql";
   } else if (DATABASE == MYSQL) {
+    // const {
+    //   dbConnection,
+    //   initialiseMySQL,
+    // } = require("./database_logic/sql/mysql/mysql.js");
     const {
       dbConnection,
       initialiseMySQL,
-    } = require("./database_logic/sql/mysql.js");
+    } = require("./database_logic/sql/sql.js");
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "";
   } else if (DATABASE == SQLITE_MYSQL) {
+    // const {
+    //   dbConnection,
+    //   initialiseMySQL,
+    // } = require("./database_logic/sql/mysql/mysql.js");
     const {
-      dbConnection,
       initialiseMySQL,
-    } = require("./database_logic/sql/mysql.js");
+    } = require("./database_logic/sql/sql.js");
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "/mysql";
   } else {
@@ -157,15 +164,16 @@ if (mode == SQLITE || mode == SQLITE_MYSQL) {
 if (mode == MYSQL || mode == SQLITE_MYSQL){
   console.log('MSSQL is', MSSQL);
   try{
-  const MySQLRoute = require("./routes/mysql/mysql_route.js");
-  app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
-  if(MSSQL){
-    dbConnection.initialiseMySQL()
-  }else{
-    initialiseMySQL(); 
-  }
+    const MySQLRoute = require("./routes/mysql/mysql_route.js");
+    app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
+    if(MSSQL){
+      // dbConnection.initialiseMySQL()
+      initialiseMySQL(); 
+    }else{
+      initialiseMySQL(); 
+    }
   } catch (error){
-    console.log("Currently initalising MYSQL databaes");
+    console.log("Currently encountering error initalising MYSQL database");
     console.log(error);
   }
 }

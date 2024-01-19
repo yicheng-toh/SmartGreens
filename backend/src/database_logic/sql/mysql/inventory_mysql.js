@@ -12,7 +12,7 @@ async function insertNewInventoryObject(itemName, quantity, units){
 //verifyInventoryIdExist
 async function verifyInventoryIdExist(inventoryId){
     const inventoryIdList = await dbConnection.promise().query('SELECT id FROM Inventory WHERE InventoryName = ?', itemName);
-    return inventoryIdList.length;
+    return inventoryIdList[0].length;
 }
 
 //updateInventoryQuantity TODO!!!paused here.
@@ -34,7 +34,7 @@ async function deleteInventoryObject(inventoryId){
 
 //getAllInventoryData
 async function getAllInventoryData(){
-    return await dbConnection.promise().query('SELECT * FROM Inventory');
+    return await dbConnection.promise().query('SELECT * FROM Inventory')[0];
 }
 
 module.exports ={
