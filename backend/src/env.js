@@ -2,17 +2,12 @@ require('dotenv').config();
 const DEPLOYMENT = process.env.DEPLOYMENT === 'true';
 const DATABASE = process.env.DATABASE || 'SQLite_MySQL';
 const DOCKER = process.env.Docker === 'true';
-const MYSQL = {
-    'ROOT_PASSWORD' : process.env.MYSQL_ROOT_PASSWORD,
-    'DATABASE' : process.env.MYSQL_DATABASE,
-    'USER' : process.env.MYSQL_USER,
-    'PASSWORD' : process.env.MYSQL_PASSWORD,
-    'HOST' : "mysql",
-};
-console.log(`docker is ${DOCKER}`);
 
+console.log(`docker is ${DOCKER}`);
+ 
 const MSSQL = process.env.MSSQL === "true" || false;
 let config;
+let MYSQL;
 if (MSSQL){
     // config = {
     //     server: process.env.AZURE_SQL_SERVER,
@@ -33,24 +28,45 @@ if (MSSQL){
     //     },
     //     connectionTimeout: parseInt(process.env.AZURE_SQL_CONNECTION_TIMEOUT, 10) || 30,
     // };
+    // config = {
+    //     server: 'smartgreenbackendatabase.database.windows.net',
+    //     database: 'smartgreenBackendDatabase',
+    //     port: parseInt(1433),
+    //     user: 'EE4002D',
+    //     password: 'EEfyp?!!',
+    //     options:{
+    //         encrypt: process.env.AZURE_SQL_ENCRYPT === 'true'|| true, // Convert string to boolean
+    //         database: process.env.AZURE_SQL_DATABASE,
+    //         trustServerCertificate: false,
+    //         debug: {
+    //             packet: true,
+    //             payload: true,
+    //             token: false,
+    //             data: true,
+    //         },
+    //     },
+    //     connectionTimeout: parseInt(process.env.AZURE_SQL_CONNECTION_TIMEOUT, 10) || 30,
+    // };
     config = {
-        server: 'smartgreenbackendatabase.database.windows.net',
-        database: 'smartgreenBackendDatabase',
-        port: parseInt(1433),
-        user: 'EE4002D',
-        password: 'EEfyp?!!',
-        options:{
-            encrypt: process.env.AZURE_SQL_ENCRYPT === 'true'|| true, // Convert string to boolean
-            database: process.env.AZURE_SQL_DATABASE,
-            trustServerCertificate: false,
-            debug: {
-                packet: true,
-                payload: true,
-                token: false,
-                data: true,
-            },
-        },
-        connectionTimeout: parseInt(process.env.AZURE_SQL_CONNECTION_TIMEOUT, 10) || 30,
+        // 'ROOT_PASSWORD' : process.env.MYSQL_ROOT_PASSWORD,
+        server : process.env.AZURE_SQL_SERVER,
+        database : process.env.AZURE_SQL_DATABASE,
+        user : process.env.AZURE_SQL_USER,
+        password : process.env.AZURE_SQL_PASSWORD,
+        // 'HOST' : process.env.AZURE_SQL_SERVER,
+        port : parseInt(process.env.AZURE_SQL_PORT),
+        // 'CERTIFICATE' : process.env.AZURE_SQL_CERTIFICATE,
+        options: {
+            encrypt: true
+        }
+    };
+}else{
+    MYSQL = {
+        'ROOT_PASSWORD' : process.env.MYSQL_ROOT_PASSWORD,
+        'DATABASE' : process.env.MYSQL_DATABASE,
+        'USER' : process.env.MYSQL_USER,
+        'PASSWORD' : process.env.MYSQL_PASSWORD,
+        'HOST' : "mysql",
     };
 }
 
