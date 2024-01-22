@@ -6,7 +6,19 @@ const sql = require("mssql");
 async function getAllPlantHarvestData(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    const queryResult = await request.query('SELECT * FROM PlantHarvest');
+    const query =  `
+            SELECT
+                PlantInfo.PlantID,
+                PlantInfo.PlantName,
+                COALESCE(SUM(PlantBatch.QuantityHarvested), 0) AS TotalQuantityHavested
+            FROM
+                PlantInfo
+            LEFT JOIN
+                PlantBatch ON PlantInfo.PlantID = PlantBatch.PlantID
+            GROUP BY
+                PlantInfo.PlantID, PlantInfo.PlantName;
+        `;
+    const queryResult = await request.query(query);
     await dbConnection.disconnect();
     return queryResult.recordset;
 }
@@ -14,6 +26,7 @@ async function getAllPlantHarvestData(){
 async function getAllPlantInfo(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
+    //This may be depedent on what the frontend wants...
     queryResult = await request.query('SELECT * FROM PlantInfo');
     await dbConnection.disconnect();
     return queryResult.recordset;
@@ -22,7 +35,7 @@ async function getAllPlantInfo(){
 async function getAllPlantSeedInventory(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    queryResult = await request.query('SELECT * FROM PlantSeedInventory');
+    queryResult = await request.query('SELECT CurrentSeedInventory FROM PlantInfo');
     await dbConnection.disconnect();
     return queryResult.recordset;
 }
@@ -35,41 +48,34 @@ async function insertNewPlant(plantName,SensorsRanges,DaysToMature){
         .input('SensorsRanges', sql.NVarChar(255), SensorsRanges)
         .input('DaysToMature', sql.Int, DaysToMature)
         .query('INSERT INTO PlantInfo (PlantName, SensorsRanges, DaysToMature) VALUES (@plantName, @SensorsRanges, @DaysToMature); SELECT SCOPE_IDENTITY() AS newPlantId');
-    const newPlantId = result.recordset[0].newPlantId;   
-
-    
-    await request
-        .input('newPlantId', sql.Int, newPlantId)
-        .query('INSERT INTO PlantHarvest (PlantID, Quantity) VALUES (@newPlantId, 0)');
-
-    await request
-        .input('newPlantId', sql.Int, newPlantId)
-        .query('INSERT INTO PlantSeedInventory (PlantID, Quantity) VALUES (@newPlantId, 0)');
-
     await dbConnection.disconnect();
     return 1;
 }
 
 //This function may need to be broken up in the routes for error catching.
-async function harvestPlant(plantBatch, quantityHarvested){
+//Todo 22 jan: to update the microcontroller batch pair table too.
+async function harvestPlant(plantBatchId, quantityHarvested){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     await request
         .input('quantityHarvested', sql.Int, quantityHarvested)
-        .input('plantBatch', sql.Int, plantBatch)
-        .query('UPDATE PlantBatch SET quantityHarvested = @quantityHarvested WHERE plantBatch = @plantBatch');
+        .input('plantBatchId', sql.Int, plantBatchId)
+        .query('UPDATE PlantBatch SET QuantityHarvested = @quantityHarvested WHERE PlantBatchId = @plantBatchId');
 
-    const plantIdResultList = await request.query('SELECT plantId FROM PlantBatch WHERE plantBatch = @plantBatch');
+    // const plantIdResultList = await request.query('SELECT plantId FROM PlantBatch WHERE plantBatch = @plantBatch');
 
-    const plantId = plantIdResultList[0].plantId;
+    // const plantId = plantIdResultList[0].plantId;
 
-    await updatePlantHarvestData(plantId, quantityHarvested);
-
+    // await updatePlantHarvestData(plantId, quantityHarvested);
+    await request
+    .input('plantId', sql.Int, plantId)
+    .query('UPDATE MicrocontrollerPlantBatchPair SET plantId = NULL WHERE plantid = @plantId');
     await dbConnection.disconnect();
     return 1;
 }
 
 //This function may need to be broken up in the routes for error catching.
+//the variables used can be discussed with the frontend if efficiency can be an issue.
 async function growPlant(plantId, plantLocation, microcontrollerId, quantityDecrement){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
@@ -83,7 +89,7 @@ async function growPlant(plantId, plantLocation, microcontrollerId, quantityDecr
 
     const originalQuantityResultList = await request
         .input('plantId', sql.Int, plantId)
-        .query('SELECT quantity FROM PlantSeedInventory WHERE PlantId = @plantId');
+        .query('SELECT CurrentSeedInventory FROM PlantInfo WHERE PlantId = @plantId');
 
     const originalQuantity = originalQuantityResultList[0].quantity;
     const updatedQuantity = originalQuantity - quantityDecrement;
@@ -91,44 +97,44 @@ async function growPlant(plantId, plantLocation, microcontrollerId, quantityDecr
     await request
         .input('updatedQuantity', sql.Int, updatedQuantity)
         .input('plantId', sql.Int, plantId)
-        .query('UPDATE PlantSeedInventory SET quantity = @updatedQuantity WHERE plant_id = @plantId');
+        .query('UPDATE PlantInfo SET CurrentSeedInventory = @updatedQuantity WHERE plantId = @plantId');
 
     await request
         .input('microcontrollerId', sql.Int, microcontrollerId)
         .input('plantBatchId', sql.Int, plantBatchId)
-        .query('INSERT INTO MicrocontrollerPlantbatchPair (microcontrollerId, plantBatch) VALUES (@microcontrollerId, @plantBatchId) ON DUPLICATE KEY UPDATE microcontrollerId = VALUES(microcontrollerId), column2 = VALUES(plantBatch)');
+        .query('INSERT INTO MicrocontrollerPlantbatchPair (microcontrollerId, plantBatchId) VALUES (@microcontrollerId, @plantBatchId) ON DUPLICATE KEY UPDATE microcontrollerId = VALUES(microcontrollerId), column2 = VALUES(plantBatch)');
 
     await dbConnection.disconnect();
     return 1;
 }
 
-async function updatePlantHarvestData(plantId, quantityChange){
-    const dbConnection = await createDbConnection();
-    const request = await dbConnection.connect();
+// async function updatePlantHarvestData(plantId, quantityChange){
+//     const dbConnection = await createDbConnection();
+//     const request = await dbConnection.connect();
     
-    const currentQuantityResult = await request
-        .input('plantId', sql.Int, plantId)
-        .query('SELECT quantity FROM PlantHarvest WHERE PlantId = @plantId');
+//     const currentQuantityResult = await request
+//         .input('plantId', sql.Int, plantId)
+//         .query('SELECT quantity FROM PlantHarvest WHERE PlantId = @plantId');
 
-    const currentQuantity = currentQuantityResult.recordset[0].quantity;
-    const newQuantity = currentQuantity + quantityChange;
+//     const currentQuantity = currentQuantityResult.recordset[0].quantity;
+//     const newQuantity = currentQuantity + quantityChange;
 
-    await request
-        .input('newQuantity', sql.Int, newQuantity)
-        .input('plantId', sql.Int, plantId)
-        .query('UPDATE PlantHarvest SET quantity = @newQuantity WHERE plant_id = @plantId');
+//     await request
+//         .input('newQuantity', sql.Int, newQuantity)
+//         .input('plantId', sql.Int, plantId)
+//         .query('UPDATE PlantHarvest SET quantity = @newQuantity WHERE plant_id = @plantId');
 
-    await dbConnection.disconnect();
-    return 1;
+//     await dbConnection.disconnect();
+//     return 1;
 
-}
+// }
 
 async function updatePlantSeedInventory(plantId, quantityChange){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     const currentQuantityResult = await request
         .input('plantId', sql.Int, plantId)
-        .query('SELECT quantity FROM PlantSeedInventory WHERE PlantId = @plantId');
+        .query('SELECT CurrentSeedInventory FROM PlantInfo WHERE PlantId = @plantId');
 
     const currentQuantity = currentQuantityResult.recordset[0].quantity;
     const newQuantity = currentQuantity + quantityChange;
@@ -136,7 +142,7 @@ async function updatePlantSeedInventory(plantId, quantityChange){
     await request
         .input('newQuantity', sql.Int, newQuantity)
         .input('plantId', sql.Int, plantId)
-        .query('UPDATE PlantSeedInventory SET quantity = @newQuantity WHERE plant_id = @plantId');
+        .query('UPDATE PlantInfo SET CurrentSeedInventory = @newQuantity WHERE plantId = @plantId');
 
     await dbConnection.disconnect();
     return 1;
@@ -160,7 +166,7 @@ async function verifyPlantExists(plantId){
 
 module.exports = {
     getAllPlantHarvestData,
-    updatePlantHarvestData,
+    // updatePlantHarvestData,
     getAllPlantInfo,
     insertNewPlant,
     getAllPlantSeedInventory,

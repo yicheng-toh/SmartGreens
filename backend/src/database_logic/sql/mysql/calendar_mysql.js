@@ -2,12 +2,12 @@ const {dbConnection} = require("./mysql.js");
 
 //reminder
 //getAllReminders
-async function getAllReminders(){
-    queryResult = await dbConnection.promise().query('SELECT * FROM Reminders');
+async function getAllSchedules(){
+    queryResult = await dbConnection.promise().query('SELECT * FROM Schedule');
     return queryResult[0];
 }
 //insertReminder
-async function insertReminder(task, datetime, status){
+async function insertSchedule(task, datetime, status){
     await dbConnection.execute('INSERT INTO Reminders (Task, Datetime, Status) VALUES (?,?,?)',
         [task, datetime, status]);
     return 1;
@@ -16,13 +16,13 @@ async function insertReminder(task, datetime, status){
 //alerts
 //getAllAlerts
 async function getAllAlerts(){
-    queryResult = await dbConnection.promise().query('SELECT * FROM AlertsSent');
+    queryResult = await dbConnection.promise().query('SELECT * FROM Alert');
     return queryResult[0];
 }
 //insertAlert
-async function insertAlert(action, datetime, status, severity){
-    await dbConnection.execute('INSERT INTO AlertsSent (Action, Datetime, Status, Severity) VALUES (?,?,?,?)',
-        [action, datetime, status, severity]);
+async function insertAlert(issue, datetime, plantBatchId, severity){
+    await dbConnection.execute('INSERT INTO Alert (Issue, Datetime, PlantBatchId, Severity) VALUES (?,?,?,?)',
+        [issue, datetime, plantBatchId, severity]);
 
     return 1;
 }
@@ -30,7 +30,7 @@ async function insertAlert(action, datetime, status, severity){
 //tasks
 //getAllTasks
 async function getAllTasks(){
-    queryResult = await dbConnection.promise().query('SELECT * FROM Tasks');
+    queryResult = await dbConnection.promise().query('SELECT * FROM Task');
     return queryResult[0];
 }
 //insertTask
@@ -43,9 +43,9 @@ async function insertTask(action, datetime, status){
 
 module.exports = {
     getAllAlerts,
-    getAllReminders,
+    getAllReminders: getAllSchedules,
     getAllTasks,
     insertAlert,
-    insertReminder,
+    insertReminder: insertSchedule,
     insertTask,
 };

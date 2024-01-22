@@ -269,9 +269,128 @@ async function createTableIfNotExists() {
     }
 }
 
+async function createTableIfNotExistsVersion3() {
+    
+    try {
+        // Create SensorReadings Table
+        const createSensorReadingsTable = `
+            CREATE TABLE IF NOT EXISTS SensorReadings (
+                Datetime DATETIME,
+                MicrocontrollerID INT,
+                PlantBatchId INT,
+                Temperature FLOAT,
+                Humidity INT,
+                Brightness INT,
+                pH FLOAT,
+                CO2 FLOAT,
+                EC FLOAT,
+                TDS FLOAT,
+                PRIMARY KEY (Datetime, MicrocontrollerID)
+            );
+        `;
+
+        // Create MicrocontrollerPlantBatchPair Table
+        const createMicrocontrollerPlantPairTable = `
+            CREATE TABLE IF NOT EXISTS MicrocontrollerPlantBatchPair (
+                MicrocontrollerId INT,
+                PlantBatchId INT
+            );
+        `;
+
+        // Create PlantBatch Table
+        const createPlantBatchTable = `
+            CREATE TABLE IF NOT EXISTS PlantBatch (
+                PlantBatchId INT PRIMARY KEY IDENTITY(1,1),
+                PlantId INT NOT NULL,
+                PlantLocation INT,
+                QuantityPlanted INT,
+                QuantityHarvested INT,
+                DatePlanted DATETIME NOT NULL,
+                DateHarvested DATETIME
+            );
+        `;
+
+        // Create Inventory Table
+        const createInventoryTable = `
+            CREATE TABLE IF NOT EXISTS Inventory (
+                InventoryId INT PRIMARY KEY IDENTITY(1,1),
+                InventoryName VARCHAR(255),
+                Quantity INT,
+                Units VARCHAR(50),
+                Location INT
+            );
+        `;
+
+        // Create PlantInfo Table
+        //Total quantity harvesetd means the number of plant collected. This may be collected from plant batch...
+        // TotalQuantityHarvested INT DEFAULT 0,
+        const createPlantInfoTable = `
+            CREATE TABLE IF NOT EXISTS PlantInfo (
+                PlantId INT PRIMARY KEY IDENTITY(1,1),
+                PlantName VARCHAR(255),
+                PlantPicture VARBINARY(MAX),
+                SensorsRanges INT,
+                DaysToMature INT,
+                CurrentSeedInventory INT DEFAULT 0,
+                TotalHarvestSold INT DEFAULT 0,
+                TotalHarvestDiscarded INT DEFAULT 0
+            );
+        `;
+
+        // Create Task Table
+        const createTaskTable = `
+            CREATE TABLE IF NOT EXISTS Task (
+                TaskId INT PRIMARY KEY IDENTITY(1,1),
+                Action VARCHAR(255),
+                Datetime DATETIME,
+                Status BOOLEAN
+            );
+        `;
+
+        // Create Alert Table
+        const createAlertTable = `
+            CREATE TABLE IF NOT EXISTS Alert (
+                AlertId INT PRIMARY KEY IDENTITY(1,1),
+                Issue VARCHAR(255),
+                Datetime DATETIME,
+                PlantBatchId INT,
+                Severity VARCHAR(50) CHECK (Severity IN ('Low', 'Medium', 'High'))
+            );
+        `;
+
+        // Create Schedule Table
+        const createScheduleTable = `
+            CREATE TABLE IF NOT EXISTS Schedule (
+                ScheduleId INT PRIMARY KEY IDENTITY(1,1),
+                ScheduleDescription VARCHAR(255) NOT NULL,
+                Datetime DATETIME NOT NULL,
+                Status BOOLEAN
+            );
+        `;
+        const dbConnection = await createDbConnection();
+        const request = await dbConnection.connect();
+
+        await request.query(createSensorReadingsTable);
+        await request.query(createMicrocontrollerPlantPairTable);
+        await request.query(createPlantBatchTable);
+        await request.query(createInventoryTable);
+        // await request.query(createPlantSeedInventoryTable);
+        // await request.query(createPlantHarvestTable);
+        await request.query(createPlantInfoTable);
+        await request.query(createTaskTable);
+        await request.query(createAlertTable);
+        await request.query(createScheduleTable);
+
+        console.log("Tables created or already exist.");
+        await dbConnection.disconnect();
+    } catch (error) {
+        console.error("Error creating table:", error);
+    }
+}
+
 
 // Reassign more meaningful function name
-initialiseMySQL = createTableIfNotExists;
+initialiseMySQL = createTableIfNotExistsVersion3;
 
 module.exports = {
 // insertSensorValues,

@@ -7,7 +7,19 @@ const {dbConnection} = require("./mysql.js");
 
 
 async function getAllPlantHarvestData(){
-    queryResult = await dbConnection.promise().query('SELECT * FROM PlantHarvest');
+    const query =  `
+            SELECT
+                PlantInfo.PlantID,
+                PlantInfo.PlantName,
+                COALESCE(SUM(PlantBatch.QuantityHarvested), 0) AS TotalQuantityHavested
+            FROM
+                PlantInfo
+            LEFT JOIN
+                PlantBatch ON PlantInfo.PlantID = PlantBatch.PlantID
+            GROUP BY
+                PlantInfo.PlantID, PlantInfo.PlantName;
+        `;
+    queryResult = await dbConnection.promise().query(query);
     return queryResult[0];
 }
 
@@ -17,29 +29,26 @@ async function getAllPlantInfo(){
 }
 
 async function getAllPlantSeedInventory(){
-    queryResult = await dbConnection.promise().query('SELECT * FROM PlantSeedInventory');
+    queryResult = await dbConnection.promise().query('SELECT CurrentSeedInventory FROM PlantInfo');
     return queryResult[0];
 }
 
 async function insertNewPlant(plantName,SensorsRanges,DaysToMature){
     const result = await dbConnection.execute('INSERT INTO PlantInfo (PlantName,SensorsRanges,DaysToMature) VALUES (?, ?, ?)',
         [plantName,SensorsRanges,DaysToMature]);
-    const newPlantId = result[0].insertId;
-    await dbConnection.execute('INSERT INTO PlantHarvest (PlantID, Quantity) VALUES (?,?)',
-        [newPlantId, 0]);
-    await dbConnection.execute('INSERT INTO PlantSeedInventory (PlantID, Quantity) VALUES (?,?)',
-        [newPlantId, 0]);
     return 1;
 }
 
 //This function may need to be broken up in the routes for error catching.
-async function harvestPlant(plantBatch, quantityHarvested){
-    await dbConnection.execute('UPDATE PlantBatch SET quantityHarvested = ? WHERE plantBatch = ?;', 
-    [plantBatch, quantityHarvested]);
-    const plantIdResultList = await dbConnection.prommise().query('SELECT plantId FROM PlantBatch WHERE plantBatch = ?', 
-        [])[0];
-    const plantId = plantIdResultList[0].plantId;
-    await updatePlantHarvestData(plantId, quantityHarvested);
+async function harvestPlant(plantBatchId, quantityHarvested){
+    await dbConnection.execute('UPDATE PlantBatch SET quantityHarvested = ? WHERE plantBatchId = ?;', 
+    [quantityHarvested, plantBatchId]);
+    // const plantIdResultList = await dbConnection.prommise().query('SELECT plantId FROM PlantBatch WHERE PlantBatchId = ?', 
+    //     [plantBatchId])[0];
+    // const plantId = plantIdResultList[0].plantId;
+    // await updatePlantHarvestData(plantId, quantityHarvested);
+    await dbConnection.execute('UPDATE MicroncontrollerPlantBatchPair SET plantId= NULL WHERE PlantBatchId = ?', 
+        [plantBatchId])
     return 1;
 }
 
@@ -49,34 +58,34 @@ async function growPlant(plantId, plantLocation, microcontrollerId, quantityDecr
     const [result] = await dbConnection.execute('INSERT INTO PlantBatch (plantID, plantLocation, quantityPlanted) VALUES (?,?,?)',
         [plantId, plantLocation, quantityDecrement]);
     const plantBatchId = result.insertId;
-    const originalQuantityResultList = await dbConnection.promise().query('SELECT quantity FROM PlantSeedInventory WHERE PlantId = ?', plantId);
+    const originalQuantityResultList = await dbConnection.promise().query('SELECT CurrentSeedInventory FROM PlantInfo WHERE PlantId = ?', plantId);
     const originalQuantity = originalQuantityResultList[0][0].quantity;
     const updatedQuantity= originalQuantity - quantityDecrement;
-    await dbConnection.execute('UPDATE PlantSeedInventory SET quantity = ? WHERE plant_id = ?;', [updatedQuantity, plantId]);
+    await dbConnection.execute('UPDATE PlantInfo SET CurrentSeedInventory = ? WHERE plantId = ?;', [updatedQuantity, plantId]);
     //update the microcontoller batch table.
-    await dbConnection.execute('INSERT INTO MicrocontrollerPlantbatchPair (microcontrollerId, plantBatch) VALUES (?, ?) ON DUPLICATE KEY UPDATE microcontrollerId = VALUES(microcontrollerId),  column2 = VALUES(plantBatch)',
+    await dbConnection.execute('INSERT INTO MicrocontrollerPlantbatchPair (microcontrollerId, plantBatchId) VALUES (?, ?) ON DUPLICATE KEY UPDATE microcontrollerId = VALUES(microcontrollerId),  column2 = VALUES(plantBatch)',
         [microcontrollerId,plantBatchId]);
     return 1;
 }
 
-async function updatePlantHarvestData(plantId, quantityChange){
-    const currentQuantity = await dbConnection.promise().query('SELECT quantity FROM PlantHarvest WHERE PlantId = ?', plantId);
-    const newQuantity = currentQuantity[0].quantity + quantityChange;
-    await dbConnection.execute('UPDATE plantHarvest SET quantity = ? WHERE plant_id = ?;', [newQuantity, plantId]);
-    //remove from the microcontroller batch table.
-    return 1;
+// async function updatePlantHarvestData(plantId, quantityChange){
+//     const currentQuantity = await dbConnection.promise().query('SELECT quantity FROM PlantHarvest WHERE PlantId = ?', plantId);
+//     const newQuantity = currentQuantity[0].quantity + quantityChange;
+//     await dbConnection.execute('UPDATE plantHarvest SET quantity = ? WHERE plant_id = ?;', [newQuantity, plantId]);
+//     //remove from the microcontroller batch table.
+//     return 1;
 
-}
+// }
 
 async function updatePlantSeedInventory(plantId, quantityChange){
-    const currentQuantity = await dbConnection.promise().query('SELECT quantity FROM PlantSeedInventory WHERE PlantId = ?', plantId);
+    const currentQuantity = await dbConnection.promise().query('SELECT CurrentSeedInventory FROM PlantInfo WHERE PlantId = ?', plantId);
     const newQuantity = currentQuantity[0].quantity + quantityChange;
-    await dbConnection.execute('UPDATE PlantSeedInventory SET quantity = ? WHERE plant_id = ?;', [newQuantity, plantId]);
+    await dbConnection.execute('UPDATE PlantInfo SET CurrentSeedInventory = ? WHERE plantId = ?;', [newQuantity, plantId]);
     return 1;
 }
 
 async function verifyPlantExists(plantId){
-    const plantIdList = await dbConnection.promise().query('SELECT id FROM PlantInfo WHERE PlantID= ?', plantId);
+    const plantIdList = await dbConnection.promise().query('SELECT id FROM PlantInfo WHERE PlantId= ?', plantId);
     return plantIdList[0].length;
 }
 
@@ -86,7 +95,7 @@ async function verifyPlantExists(plantId){
 
 module.exports = {
     getAllPlantHarvestData,
-    updatePlantHarvestData,
+    // updatePlantHarvestData,
     getAllPlantInfo,
     insertNewPlant,
     getAllPlantSeedInventory,

@@ -13850,3 +13850,15 @@ backend/node_modules/dotenv/lib/main.js
 backend/DigiCertGlobalRootCA.crt.pem
 backend/node_modules/fs/package.json
 backend/node_modules/fs/README.md
+backend/src/database_logic/sql/mssql_sprint5Scrapped/calendar_mssql.js
+backend/src/database_logic/sql/mssql_sprint5Scrapped/inventory_mssql.js
+backend/src/database_logic/sql/mssql_sprint5Scrapped/misc_mssql.js
+backend/src/database_logic/sql/mssql_sprint5Scrapped/mssql.js
+backend/src/database_logic/sql/mssql_sprint5Scrapped/plant_mssql.js
+backend/src/database_logic/sql/mssql_sprint5Scrapped/sensor_mssql.js
+backend/src/database_logic/sql/mysql_sprint5Scrapped/calendar_mysql.js
+backend/src/database_logic/sql/mysql_sprint5Scrapped/inventory_mysql.js
+backend/src/database_logic/sql/mysql_sprint5Scrapped/misc_mysql.js
+backend/src/database_logic/sql/mysql_sprint5Scrapped/mysql.js
+backend/src/database_logic/sql/mysql_sprint5Scrapped/plant_mysql.js
+backend/src/database_logic/sql/mysql_sprint5Scrapped/sensor_mysql.js

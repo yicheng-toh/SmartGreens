@@ -151,6 +151,108 @@ async function createTableIfNotExistsScrapped() {
       console.error("Error creating table:", error);
     }
   }
+
+  async function createTableIfNotExistsVersion3() {
+    try {
+      const createSensorReadingsTable = `
+        CREATE TABLE IF NOT EXISTS SensorReadings (
+          Datetime DATETIME,
+          MicrocontrollerID INT,
+          PlantBatchId INT,
+          Temperature FLOAT,
+          Humidity INT,
+          Brightness INT,
+          pH FLOAT,
+          CO2 FLOAT,
+          EC FLOAT,
+          TDS FLOAT,
+          PRIMARY KEY (Datetime, MicrocontrollerID)
+      );
+    `
+        // Create Microcontroller Plant Pair Table
+      const createMicrocontrollerPlantPairTable = `
+          CREATE TABLE IF NOT EXISTS MicrocontrollerPlantBatchPair (
+          MicrocontrollerId INT,
+          PlantBatchId INT
+          )
+       `
+      const createPlantBatchTable = `
+            CREATE TABLE IF NOT EXISTS PlantBatch (
+            PlantBatchId INT AUTO_INCREMENT PRIMARY KEY,
+            PlantId INT NOT NULL,
+            PlantLocation INT,
+            QuantityPlanted INT,
+            QuantityHarvested INT,
+            DatePlanted datetime NOT NULL,
+            DateHarvested datetime
+            )
+       `
+      const createInventoryTable = `
+        CREATE TABLE IF NOT EXISTS Inventory (
+            InventoryId INT AUTO_INCREMENT PRIMARY KEY,
+            InventoryName VARCHAR(255),
+            Quantity INT,
+            Units VARCHAR(50),
+            Location INT
+      );
+    `
+    const createPlantInfoTable = `
+      CREATE TABLE IF NOT EXISTS PlantInfo (
+          PlantId INT AUTO_INCREMENT PRIMARY KEY,
+          PlantName VARCHAR(255),
+          PlantPicture BLOB,
+          SensorsRanges INT,
+          DaysToMature INT,
+          CurrentSeedInventory INT,
+          TotalQuantityHarvested INT DEFAULT 0,
+          TotalHarvestSold INT DEFAULT 0,
+          TotalHarvestDiscarded INT DEFAULT 0
+      );
+    `
+    const createTaskTable = `
+      CREATE TABLE IF NOT EXISTS Task (
+          TaskId INT PRIMARY KEY AUTO_INCREMENT,
+          Action VARCHAR(255),
+          Datetime DATETIME,
+          Status BOOLEAN
+      );
+    `
+    const createAlertSentTable = `
+      CREATE TABLE IF NOT EXISTS Alert (
+          AlertId INT PRIMARY KEY AUTO_INCREMENT,
+          Issue VARCHAR(255),
+          Datetime DATETIME,
+          PlantBatchId INT,
+          Severity ENUM('Low', 'Medium', 'High')
+      );
+    `
+    const createRemindersTable = `
+      CREATE TABLE IF NOT EXISTS Schedule (
+          ScheduleId INT AUTO_INCREMENT PRIMARY KEY,
+          ScheduleDescription VARCHAR(255) NOT NULL,
+          Datetime DATETIME NOT NULL,
+          Status BOOLEAN
+      );
+    `
+    
+  
+      await dbConnection.execute(createSensorReadingsTable);
+      await dbConnection.execute(createMicrocontrollerPlantPairTable);
+      await dbConnection.execute(createPlantBatchTable);
+      await dbConnection.execute(createInventoryTable);
+      // await dbConnection.execute(createPlantSeedInventoryTable);
+      // await dbConnection.execute(createPlantHarverstTable);
+      await dbConnection.execute(createPlantInfoTable);
+      await dbConnection.execute(createTaskTable);
+      await dbConnection.execute(createAlertSentTable);
+      await dbConnection.execute(createRemindersTable);
+      // await dbConnection.execute(createMicrocontrollerLocationTable);
+      // await dbConnection.execute(createPlantBatchTable);
+      // console.log("Tables created or already exists.");
+    } catch (error) {
+      console.error("Error creating table:", error);
+    }
+  }
   
   
   // async function insertSensorValues(dateTime,microcontrollerId, plantBatch, temperature,humidity,brightness){
@@ -170,7 +272,7 @@ async function createTableIfNotExistsScrapped() {
   //   return queryResult;
   // }
   // Reassign more meaningful function name
-  initialiseMySQL = createTableIfNotExists;
+  initialiseMySQL = createTableIfNotExistsVersion3;
 
   module.exports = {
     // insertSensorValues,
