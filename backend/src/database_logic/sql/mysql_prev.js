@@ -104,7 +104,7 @@ async function createTableIfNotExists() {
     await dbConnection.execute(createPlantBatchTable);
     // console.log("Tables created or already exists.");
   } catch (error) {
-    console.error("Error creating table:", error);
+    console.log("Error creating table:", error);
   }
 }
 
