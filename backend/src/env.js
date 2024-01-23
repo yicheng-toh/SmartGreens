@@ -2,8 +2,8 @@ require('dotenv').config();
 const DEPLOYMENT = process.env.DEPLOYMENT === 'true';
 const DATABASE = process.env.DATABASE || 'SQLite_MySQL';
 const DOCKER = process.env.Docker === 'true';
+const NOT_LOGGING = process.env.NOT_LOGGING === 'true';
 
-console.log(`docker is ${DOCKER}`);
  
 const MSSQL = process.env.MSSQL === "true" || false;
 let config;
@@ -79,5 +79,6 @@ module.exports = {
     DOCKER,
     MYSQL,
     MSSQL,
-    config
+    config,
+    NOT_LOGGING
 }

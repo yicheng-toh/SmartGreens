@@ -6,7 +6,7 @@ const {
   sendInternalServerError,
   sendPageNotFound,
 } = require("./routes/request_error_messages.js");
-const { DEPLOYMENT, DATABASE } = require("./env.js");
+const { DEPLOYMENT, DATABASE, NOT_LOGGING, DOCKER } = require("./env.js");
 
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
@@ -22,8 +22,11 @@ const MSSQL = process.env.MSSQL === "true" || false;
 let SQLITE_ROUTER_ROUTE;
 let MYSQL_ROUTER_ROUTE;
 
-console.log("Deployment: ", DEPLOYMENT);
-console.log("Database: ", DATABASE);
+if (!NOT_LOGGING) {
+  console.log("Deployment: ", DEPLOYMENT);
+  console.log("Database: ", DATABASE);
+  console.log(`docker is ${DOCKER}`);
+}
 
 if (!DEPLOYMENT) {
   SQLITE_ROUTER_ROUTE = "/sqlite3";
@@ -48,9 +51,7 @@ if (!DEPLOYMENT) {
     //   dbConnection,
     //   initialiseMySQL,
     // } = require("./database_logic/sql/mysql/mysql.js");
-    const {
-      initialiseMySQL,
-    } = require("./database_logic/sql/sql.js");
+    const { initialiseMySQL } = require("./database_logic/sql/sql.js");
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "/mysql";
   } else {
@@ -74,7 +75,6 @@ globallst = [];
 
 app.get("/hello", async (req, res) => {
   try {
-
     //TODO is dbconnection is not required here, then delete the query and shift the import statement.
     // const result = await dbConnection
     //   .promise()
@@ -101,12 +101,11 @@ app.get("/docker", async (req, res) => {
 });
 
 app.get("/", async (req, res) => {
-  try{
-    res.status(200).json({message: "homepage"});
+  try {
+    res.status(200).json({ message: "homepage" });
   } catch (error) {
     sendInternalServerError(res);
   }
-
 });
 
 //Commented out due to clashing command in mysql routes.
@@ -155,24 +154,27 @@ if (mode == SQLITE || mode == SQLITE_MYSQL) {
     app.use(SQLITE_ROUTER_ROUTE, SQlite3Route);
     initialiseSqlite3(db);
   } catch (error) {
-    console.log("currently initialising sqlite database");
+    console.log("error initialising sqlite database");
     console.log(error);
   }
 }
 
 //MySQL routes
-if (mode == MYSQL || mode == SQLITE_MYSQL){
-  console.log('MSSQL is', MSSQL);
-  try{
+if (mode == MYSQL || mode == SQLITE_MYSQL) {
+  if (!NOT_LOGGING) {
+    console.log("MSSQL is", MSSQL);
+  }
+
+  try {
     const MySQLRoute = require("./routes/mysql/mysql_route.js");
-    app.use( MYSQL_ROUTER_ROUTE, MySQLRoute);
-    if(MSSQL){
+    app.use(MYSQL_ROUTER_ROUTE, MySQLRoute);
+    if (MSSQL) {
       // dbConnection.initialiseMySQL()
-      initialiseMySQL(); 
-    }else{
-      initialiseMySQL(); 
+      initialiseMySQL();
+    } else {
+      initialiseMySQL();
     }
-  } catch (error){
+  } catch (error) {
     console.log("Currently encountering error initalising MYSQL database");
     console.log(error);
   }
