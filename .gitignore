@@ -13862,3 +13862,4 @@ backend/src/database_logic/sql/mysql_sprint5Scrapped/misc_mysql.js
 backend/src/database_logic/sql/mysql_sprint5Scrapped/mysql.js
 backend/src/database_logic/sql/mysql_sprint5Scrapped/plant_mysql.js
 backend/src/database_logic/sql/mysql_sprint5Scrapped/sensor_mysql.js
+backend/coverage/lcov-report/backend/src/database_logic/sql/mysql/inventory_mysql.js.html
