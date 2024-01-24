@@ -59,7 +59,7 @@ if (DOCKER){
 
 //     dbConnection.connect((err) => {
 //       if (err) {
-//         console.error('Error connecting to local MySQL database:', err);
+//         console.log('Error connecting to local MySQL database:', err);
 //         return;
 //       }
 //       console.log('Connected to local MySQL database');
