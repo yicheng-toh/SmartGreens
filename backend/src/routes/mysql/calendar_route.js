@@ -6,138 +6,176 @@ reminder
 */
 const { json } = require("express");
 const express = require("express");
-const router = express.Router({mergeParams: true});
-const {sendBadRequestResponse, sendInternalServerError} = require("../request_error_messages.js")
-const mysqlLogic = require("../../database_logic/sql/sql.js")
+const router = express.Router({ mergeParams: true });
+const {
+  sendBadRequestResponse,
+  sendInternalServerError,
+} = require("../request_error_messages.js");
+const mysqlLogic = require("../../database_logic/sql/sql.js");
 
 //This route is not done yet.
-router.post('/insertAlert', async (req, res) => {
-    try{     
-        try {
-          const {action, datetime, status, severity} = res.body;
-          if(action === undefined){
-            sendInternalServerError(res);
-          }else if(datetime === undefined){
-            sendInternalServerError(res);
-          }else if (status === undefined){
-            sendInternalServerError(res);
-          }else if (severity === undefined){
-            sendInternalServerError(res);
-          }
+router.post("/insertAlert", async (req, res) => {
+    try {
+      let success = 0;
+      let { issue, datetime, plantBatchId, severity } = req.body;
 
-          const success = await mysqlLogic.insertAlert(action, datetime, status, severity);
-          if(success){
-            res.status(201).send('Data inserted successfully');
-          }else{
-            sendInternalServerError(res);
-          }
-        } catch (error) {
-          console.error('Error inserting data:', error);
-          sendInternalServerError(res);
-        }
+      if (issue === undefined || !issue.trim()) {
+        sendInternalServerError(res);
+        return;
+      } else if (datetime === undefined || isNaN(Date.parse(datetime.trim()))) {
+        // console.log(Date(datetime.trim()));
+        sendInternalServerError(res);
+        return;
+      } else if (plantBatchId === undefined) {
+        sendInternalServerError(res);
+        return;
+      } else if (severity === undefined) {
+        sendInternalServerError(res);
+        return;
+      }
+      datetime = datetime.trim();
+      issue = issue.trim();
+      severity = severity.trim();
+
+      success = await mysqlLogic.insertAlert(
+        issue,
+        datetime,
+        plantBatchId,
+        severity
+      );
+      // console.log(success);
+      if (success) {
+        res.status(201).send("Data inserted successfully");
+        return;
+      } else {
+        sendInternalServerError(res);
+        return;
+      }
     } catch (error) {
-        sendBadRequestResponse(res);
+      console.log("Error inserting data:", error);
+      sendInternalServerError(res);
+      return;
     }
 });
 
 //This route is not done yet.
-router.post('/insertReminder', async (req, res) => {
-    try{     
-        try {
-          const {task, datetime, status} = res.body;
-          if(task === undefined){
-            sendInternalServerError(res);
-          }else if(datetime === undefined){
-            sendInternalServerError(res);
-          }else if (status === undefined){
-            sendInternalServerError(res);
-          }
-          const success = await mysqlLogic.insertReminder(task, datetime, status);
-          if(success){
-            res.status(201).send('Data inserted successfully');
-          }else{
-            sendInternalServerError(res);
-          }
-        } catch (error) {
-          console.error('Error inserting data:', error);
-          sendInternalServerError(res);
-        }
+router.post("/insertSchedule", async (req, res) => {
+    try {
+			let success = 0;
+      let { task, datetime, status } = req.body;
+      if (task === undefined || !task.trim()) {
+        sendInternalServerError(res);
+        return;
+      } else if (datetime === undefined || isNaN(Date.parse(datetime.trim()))) {
+        sendInternalServerError(res);
+        return;
+      } else if (status === undefined || isNaN(parseInt(status))) {
+        sendInternalServerError(res);
+        return;
+      }
+			task = task.trim();
+			datetime = datetime.trim();
+			status = parseInt(status);
+      success = await mysqlLogic.insertReminder(task, datetime, status);
+      if (success) {
+        res.status(201).send("Data inserted successfully");
+        return;
+      } else {
+        sendInternalServerError(res);
+        return;
+      }
     } catch (error) {
-        sendBadRequestResponse(res);
+      console.log("Error inserting data:", error);
+      sendInternalServerError(res);
+      return;
     }
 });
 
 //This route is not done yet
-router.post('/insertTask', async (req, res) => {
-    try{     
-        try {
-          const {action, datetime, status} = res.body;
-          if(action === undefined){
-            sendInternalServerError(res);
-          }else if(datetime === undefined){
-            sendInternalServerError(res);
-          }else if(status === undefined){
-            sendInternalServerError(res);
-          }
-          const success = await mysqlLogic.insertTask(action, datetime, status);
-          if(success){
-            res.status(201).send('Data inserted successfully');
-          }else{
-            sendInternalServerError(res);
-          }
-        } catch (error) {
-          console.error('Error inserting data:', error);
-          sendInternalServerError(res);
-        }
+router.post("/insertTask", async (req, res) => {
+    try {
+			let success = 0;
+      let { action, datetime, status } = req.body;
+      if (action === undefined || !action.trim()) {
+        sendInternalServerError(res);
+        return;
+      } else if (datetime === undefined || isNaN(Date.parse(datetime.trim()))) {
+        sendInternalServerError(res);
+        return;
+      } else if (status === undefined || !(!isNaN(parseInt(status)) || typeof myVariable === 'boolean')) {
+				// console.log("status failed");
+        sendInternalServerError(res);
+        return;
+      }
+			action = action.trim();
+			datetime = datetime.trim();
+			status = typeof myVariable !== 'boolean' ? parseInt(status): status;
+      success = await mysqlLogic.insertTask(action, datetime, status);
+      if (success) {
+        res.status(201).send("Data inserted successfully");
+        return;
+      } else {
+        sendInternalServerError(res);
+        return;
+      }
     } catch (error) {
-        sendBadRequestResponse(res);
+      console.log("Error inserting data:", error);
+      sendInternalServerError(res);
+      return;
     }
 });
 
-router.get('/retrieveAlerts', async(req, res) => {
-    try {
-        // const [rows] = await mysqlLogic.getAllSensorData();
-        const [rows]  = await mysqlLogic.getAllAlerts();
-        if (rows) {
-          res.status(200).json(rows);
-        } else {
-          res.json({ message: 'No sensor data available' });
-        }
-    } catch (error) {
-        console.error('Error retrieving data:', error);
-        sendInternalServerError(res);
+router.get("/retrieveAlerts", async (req, res) => {
+  try {
+    // const [rows] = await mysqlLogic.getAllSensorData();
+    const [rows] = await mysqlLogic.getAllAlerts();
+    if (rows) {
+      res.status(200).json(rows);
+      return;
+    } else {
+      res.json({ message: "No sensor data available" });
+      return;
     }
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res);
+    return;
+  }
 });
 
-
-router.get('/retrieveReminders', async(req, res) => {
-    try {
-        // const [rows] = await mysqlLogic.getAllSensorData();
-        const [rows]  = await mysqlLogic.getAllReminders();
-        if (rows) {
-          res.status(200).json(rows);
-        } else {
-          res.json({ message: 'No sensor data available' });
-        }
-    } catch (error) {
-        console.error('Error retrieving data:', error);
-        sendInternalServerError(res);
+router.get("/retrieveReminders", async (req, res) => {
+  try {
+    // const [rows] = await mysqlLogic.getAllSensorData();
+    const [rows] = await mysqlLogic.getAllReminders();
+    if (rows) {
+      res.status(200).json(rows);
+      return;
+    } else {
+      res.json({ message: "No sensor data available" });
+      return;
     }
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res);
+    return;
+  }
 });
 
-
-router.get('/retrieveTasks', async(req, res) => {
-    try {
-        const [rows]  = await mysqlLogic.getAllTasks();
-        if (rows) {
-          res.status(200).json(rows);
-        } else {
-          res.json({ message: 'No sensor data available' });
-        }
-    } catch (error) {
-        console.error('Error retrieving data:', error);
-        sendInternalServerError(res);
+router.get("/retrieveTasks", async (req, res) => {
+  try {
+    const [rows] = await mysqlLogic.getAllTasks();
+    if (rows) {
+      res.status(200).json(rows);
+      return;
+    } else {
+      res.json({ message: "No sensor data available" });
+      return;
     }
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res);
+    return;
+  }
 });
 
 module.exports = router;

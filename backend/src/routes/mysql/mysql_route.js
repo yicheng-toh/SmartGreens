@@ -29,7 +29,7 @@ router.post('/insertData/:microcontrollerId', async (req, res) => {
       await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
       res.status(201).send('Data inserted successfully');
     } catch (error) {
-      console.error('Error inserting data:', error);
+      console.log('Error inserting data:', error);
       sendInternalServerError(res);
     }
   } catch (error) {
@@ -45,7 +45,7 @@ router.get('/retrieveData', async(req, res) => {
     const [rows] = await mysqlLogic.getAllSensorData();
     res.json(rows);
   } catch (error) {
-    console.error('Error retrieving data:', error);
+    console.log('Error retrieving data:', error);
     sendInternalServerError(res);
   }
   });
@@ -57,7 +57,7 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
     const [rows] = await mysqlLogic.getSensorDataByMicrocontrollerId(microcontrollerId);    
     res.status(200).json(rows);
   } catch (error) {
-    console.error('Error retrieving data:', error);
+    console.log('Error retrieving data:', error);
     sendInternalServerError(res);
   }
   });
@@ -67,7 +67,7 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
 //      // Initialize the SQLite database connection
 //      const db = new sqlite3.Database('mydatabase.db', sqlite3.OPEN_READWRITE,(err) => {
 //         if (err) {
-//           console.error('Error connecting to the SQLite database:', err);
+//           console.log('Error connecting to the SQLite database:', err);
 //         } else {
 //           console.log('Connected to the SQLite database');
 //         }
@@ -108,7 +108,7 @@ router.post('/', async (req, res) => {
       await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
       res.status(201).send('Data inserted successfully');
     } catch (error) {
-      console.error('Error inserting data:', error);
+      console.log('Error inserting data:', error);
       sendInternalServerError(res);
     }
   } catch (error) {
@@ -125,7 +125,7 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
     const [rows] = await mysqlLogic.getSensorDataByMicrocontrollerId(microcontrollerId);
     res.status(200).json(rows);
   } catch (error) {
-    console.error('Error retrieving data:', error);
+    console.log('Error retrieving data:', error);
     sendInternalServerError(res);
   }
   });
