@@ -25,7 +25,7 @@ class Database {
       }
     } catch (error) {
       console.log(error);
-      console.error(`Error connecting to database: ${JSON.stringify(error)}`);
+      console.log(`Error connecting to database: ${JSON.stringify(error)}`);
     }
     return this.poolconnection.request();
   }
@@ -35,7 +35,7 @@ class Database {
       this.poolconnection.close();
       console.log('Database connection closed');
     } catch (error) {
-      console.error(`Error closing database connection: ${error}`);
+      console.log(`Error closing database connection: ${error}`);
     }
   }
 

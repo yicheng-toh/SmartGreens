@@ -76,14 +76,16 @@ async function harvestPlant(plantBatchId, quantityHarvested){
 
 //This function may need to be broken up in the routes for error catching.
 //the variables used can be discussed with the frontend if efficiency can be an issue.
-async function growPlant(plantId, plantLocation, microcontrollerId, quantityDecrement){
+//This has issue with my sql. please test this function thoroughly.
+async function growPlant(plantId, plantLocation, microcontrollerId, quantityDecrement, datePlanted){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     const result = await request
         .input('plantID', sql.Int, plantId)
         .input('plantLocation', sql.NVarChar(255), plantLocation)
         .input('quantityPlanted', sql.Int, quantityDecrement)
-        .query('INSERT INTO PlantBatch (plantID, plantLocation, quantityPlanted) VALUES (@plantID, @plantLocation, @quantityPlanted); SELECT SCOPE_IDENTITY() AS plantBatchId');
+        .input('datePlanted', sql.DateTime, datePlanted)
+        .query('INSERT INTO PlantBatch (plantID, plantLocation, quantityPlanted, datePlanted) VALUES (@plantID, @plantLocation, @quantityPlanted, @datePlanted); SELECT SCOPE_IDENTITY() AS plantBatchId');
 
     const plantBatchId = result.recordset[0].plantBatchId;
 

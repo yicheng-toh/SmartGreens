@@ -23,7 +23,7 @@ async function verifyInventoryIdExist(inventoryId){
     const request = await dbConnection.connect();
     const inventoryIdList = await request
         .input('inventoryId', sql.Int, inventoryId)
-        .query('SELECT id FROM Inventory WHERE InventoryId = @inventoryId');
+        .query('SELECT * FROM Inventory WHERE InventoryId = @inventoryId');
     dbConnection.disconnect();
     return inventoryIdList.recordset.length;
 }
@@ -66,6 +66,7 @@ async function deleteInventoryObject(inventoryId){
     .input('inventoryId', sql.Int, inventoryId)
     .query('DELETE FROM Inventory WHERE InventoryID = @inventoryId');
     dbConnection.disconnect();
+    return 1;
 }
 
 //getAllInventoryData

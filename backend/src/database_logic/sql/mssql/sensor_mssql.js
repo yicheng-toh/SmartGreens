@@ -11,11 +11,11 @@ async function insertSensorValues(dateTime,microcontrollerId, plantBatch, temper
     await request
         .input('dateTime', sql.DateTime, dateTime)
         .input('microcontrollerId', sql.Int, microcontrollerId)
-        .input('plantBatch', sql.Int, plantBatch)
+        .input('plantBatchId', sql.Int, plantBatch)
         .input('temperature', sql.Float, temperature)
         .input('humidity', sql.Float, humidity)
         .input('brightness', sql.Float, brightness)
-        .query('INSERT INTO SensorReadings (dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness) VALUES (@dateTime, @microcontrollerId, @plantBatch, @temperature, @humidity, @brightness)');
+        .query('INSERT INTO SensorReadings (DateTime, MicrocontrollerId, PlantBatchId, Temperature, Humidity, Brightness) VALUES (@dateTime, @microcontrollerId, @plantBatchId, @temperature, @humidity, @brightness)');
     await dbConnection.disconnect()
     return 1;
 }

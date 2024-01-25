@@ -10,16 +10,16 @@ async function getAllSchedules(){
     return queryResult.recordset;
 }
 //insertReminder
-async function insertSchedule(task, datetime, status){
+async function insertSchedule(description, datetime, status){
     const dbConnection = await createDbConnection();
     // await dbConnection.execute('INSERT INTO Reminders (Task, Datetime, Status) VALUES (?,?,?)',
     //     [task, datetime, status]);
     const request = await dbConnection.connect();
     await request
-        .input('task', sql.VarChar, task)
+        .input('task', sql.VarChar, description)
         .input('datetime', sql.DateTime, datetime)
         .input('status', sql.VarChar, status)
-        .query('INSERT INTO Reminders (SheduleTask, Datetime, Status) VALUES (@task, @datetime, @status)');
+        .query('INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (@description, @datetime, @status)');
     dbConnection.disconnect();
     return 1;
 }
