@@ -275,8 +275,8 @@ async function createTableIfNotExistsVersion3() {
         // Create SensorReadings Table
         const createSensorReadingsTable = `
             CREATE TABLE IF NOT EXISTS SensorReadings (
-                Datetime DATETIME,
-                MicrocontrollerID INT,
+                Datetime DATETIME NOT NULL,
+                MicrocontrollerID INT NOT NULL,
                 PlantBatchId INT,
                 Temperature FLOAT,
                 Humidity INT,
@@ -368,33 +368,378 @@ async function createTableIfNotExistsVersion3() {
             );
         `;
         const dbConnection = await createDbConnection();
-        const request = await dbConnection.connect();
+        let request = await dbConnection.connect();
+        
 
         await request.query(createSensorReadingsTable);
+        request = await dbConnection.connect();
         await request.query(createMicrocontrollerPlantPairTable);
+        request = await dbConnection.connect();
         await request.query(createPlantBatchTable);
+        request = await dbConnection.connect();
         await request.query(createInventoryTable);
+        request = await dbConnection.connect();
         // await request.query(createPlantSeedInventoryTable);
         // await request.query(createPlantHarvestTable);
         await request.query(createPlantInfoTable);
+        request = await dbConnection.connect();
         await request.query(createTaskTable);
+        request = await dbConnection.connect();
         await request.query(createAlertTable);
+        request = await dbConnection.connect();
         await request.query(createScheduleTable);
 
         console.log("Tables created or already exist.");
-        await dbConnection.disconnect();
+        dbConnection.disconnect();
     } catch (error) {
         console.log("Error creating table:", error);
     }
 }
 
+async function createTableIfNotExistsVersion4() {
+    try {
+        
+        // Create SensorReadings Table
+        const createSensorReadingsQuery = `
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'SensorReadings')
+            BEGIN
+                CREATE TABLE SensorReadings (
+                    Datetime DATETIME NOT NULL,
+                    MicrocontrollerID INT NOT NULL,
+                    PlantBatchId INT,
+                    Temperature FLOAT,
+                    Humidity INT,
+                    Brightness INT,
+                    pH FLOAT,
+                    CO2 FLOAT,
+                    EC FLOAT,
+                    TDS FLOAT,
+                    PRIMARY KEY (Datetime, MicrocontrollerID)
+                );
+            END
+        `;
+
+        // Create MicrocontrollerPlantBatchPair Table
+        const createMicrocontrollerPlantBatchPairQuery = `
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'MicrocontrollerPlantBatchPair')
+            BEGIN
+                CREATE TABLE MicrocontrollerPlantBatchPair (
+                    MicrocontrollerId INT,
+                    PlantBatchId INT
+                );
+            END
+        `;
+
+        // Create PlantBatch Table
+        const createPlantBatchQuery = `
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantBatch')
+            BEGIN
+                CREATE TABLE PlantBatch (
+                    PlantBatchId INT PRIMARY KEY IDENTITY(1,1),
+                    PlantId INT NOT NULL,
+                    PlantLocation INT,
+                    QuantityPlanted INT,
+                    QuantityHarvested INT,
+                    DatePlanted DATETIME NOT NULL,
+                    DateHarvested DATETIME
+                );
+            END
+        `;
+
+        // Create Inventory Table
+        const createInventoryQuery = `
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Inventory')
+            BEGIN
+                CREATE TABLE Inventory (
+                    InventoryId INT PRIMARY KEY IDENTITY(1,1),
+                    InventoryName VARCHAR(255) UNIQUE,
+                    Quantity INT,
+                    Units VARCHAR(50),
+                    Location INT
+                );
+            END
+        `;
+
+        // Create PlantInfo Table
+        const createPlantInfoQuery = `
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantInfo')
+            BEGIN
+                CREATE TABLE PlantInfo (
+                    PlantId INT PRIMARY KEY IDENTITY(1,1),
+                    PlantName VARCHAR(255),
+                    PlantPicture VARBINARY(MAX),
+                    SensorsRanges INT,
+                    DaysToMature INT,
+                    CurrentSeedInventory INT DEFAULT 0,
+                    TotalHarvestSold INT DEFAULT 0,
+                    TotalHarvestDiscarded INT DEFAULT 0
+                );
+            END
+        `;
+
+        // Create Task Table
+        const createTaskQuery = `
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Task')
+            BEGIN
+                CREATE TABLE Task (
+                    TaskId INT PRIMARY KEY IDENTITY(1,1),
+                    Action VARCHAR(255),
+                    Datetime DATETIME,
+                    Status BIT
+                );
+            END
+        `;
+
+        // Create Alert Table
+        const createAlertQuery = `
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Alert')
+            BEGIN
+                CREATE TABLE Alert (
+                    AlertId INT PRIMARY KEY IDENTITY(1,1),
+                    Issue VARCHAR(255),
+                    Datetime DATETIME,
+                    PlantBatchId INT,
+                    Severity VARCHAR(50) CHECK (Severity IN ('Low', 'Medium', 'High'))
+                );
+            END
+        `;
+
+        // Create Schedule Table
+        const createScheduleQuery = `
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Schedule')
+            BEGIN
+                CREATE TABLE Schedule (
+                    ScheduleId INT PRIMARY KEY IDENTITY(1,1),
+                    ScheduleDescription VARCHAR(255) NOT NULL,
+                    Datetime DATETIME NOT NULL,
+                    Status BIT
+                );
+            END
+        `;
+        const dbConnection = await createDbConnection();
+        let request = await dbConnection.connect();
+        // Execute all queries
+        await request.query(createSensorReadingsQuery);
+        request = await dbConnection.connect();
+        await request.query(createMicrocontrollerPlantBatchPairQuery);
+        request = await dbConnection.connect();
+        await request.query(createPlantBatchQuery);
+        request = await dbConnection.connect();
+        await request.query(createInventoryQuery);
+        request = await dbConnection.connect();
+        await request.query(createPlantInfoQuery);
+        request = await dbConnection.connect();
+        await request.query(createTaskQuery);
+        request = await dbConnection.connect();
+        await request.query(createAlertQuery);
+        request = await dbConnection.connect();
+        await request.query(createScheduleQuery);
+
+        console.log("Tables created or already exist.");
+        await dbConnection.disconnect();
+        // dbConnection.disconnect();
+    } catch (error) {
+        console.error("Error creating table:", error.message);
+    }
+}
+
+async function dropAllTableMySQLVersion1() {
+    try {
+        const dbConnection = await createDbConnection();
+        const request = await dbConnection.connect();
+
+        // Drop SensorReadings Table
+        const dropSensorReadingsQuery = `
+            IF OBJECT_ID('[dbo].[SensorReadings]', 'U') IS NOT NULL
+                DROP TABLE [dbo].[SensorReadings];
+        `;
+
+        // Drop MicrocontrollerPlantBatchPair Table
+        const dropMicrocontrollerPlantBatchPairQuery = `
+            IF OBJECT_ID('dbo.MicrocontrollerPlantBatchPair', 'U') IS NOT NULL
+                DROP TABLE dbo.MicrocontrollerPlantBatchPair;
+        `;
+
+        // Drop PlantBatch Table
+        const dropPlantBatchQuery = `
+            IF OBJECT_ID('dbo.PlantBatch', 'U') IS NOT NULL
+                DROP TABLE dbo.PlantBatch;
+        `;
+
+        // Drop Inventory Table
+        const dropInventoryQuery = `
+            IF OBJECT_ID('dbo.Inventory', 'U') IS NOT NULL
+                DROP TABLE dbo.Inventory;
+        `;
+
+        // Drop PlantInfo Table
+        const dropPlantInfoQuery = `
+            IF OBJECT_ID('dbo.PlantInfo', 'U') IS NOT NULL
+                DROP TABLE dbo.PlantInfo;
+        `;
+
+        // Drop Task Table
+        const dropTaskQuery = `
+            IF OBJECT_ID('dbo.Task', 'U') IS NOT NULL
+                DROP TABLE dbo.Task;
+        `;
+
+        // Drop Alert Table
+        const dropAlertQuery = `
+            IF OBJECT_ID('dbo.Alert', 'U') IS NOT NULL
+                DROP TABLE dbo.Alert;
+        `;
+
+        // Drop Schedule Table
+        const dropScheduleQuery = `
+            IF OBJECT_ID('dbo.Schedule', 'U') IS NOT NULL
+                DROP TABLE dbo.Schedule;
+        `;
+
+        // Execute drop queries
+        await request.query(dropSensorReadingsQuery);
+        await request.query(dropMicrocontrollerPlantBatchPairQuery);
+        await request.query(dropPlantBatchQuery);
+        await request.query(dropInventoryQuery);
+        await request.query(dropPlantInfoQuery);
+        await request.query(dropTaskQuery);
+        await request.query(dropAlertQuery);
+        await request.query(dropScheduleQuery);
+
+        console.log("Tables dropped successfully.");
+        await dbConnection.disconnect();
+        // dbConnection.disconnect();
+    } catch (error) {
+        console.error("Error dropping tables:", error.message);
+    }
+}
+
+async function createTablesIfNotExistVersion5() {
+    try {
+        const dbConnection = await createDbConnection();
+        const request = await dbConnection.connect();
+
+        const sqlScript = `
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'SensorReadings')
+        BEGIN
+            CREATE TABLE SensorReadings (
+                Datetime DATETIME NOT NULL,
+                MicrocontrollerID INT NOT NULL,
+                PlantBatchId INT,
+                Temperature FLOAT,
+                Humidity INT,
+                Brightness INT,
+                pH FLOAT,
+                CO2 FLOAT,
+                EC FLOAT,
+                TDS FLOAT,
+                PRIMARY KEY (Datetime, MicrocontrollerID)
+            );
+        END;
+        
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'MicrocontrollerPlantBatchPair')
+        BEGIN
+            CREATE TABLE MicrocontrollerPlantBatchPair (
+                MicrocontrollerId INT,
+                PlantBatchId INT
+            );
+        END;
+        
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantBatch')
+        BEGIN
+            CREATE TABLE PlantBatch (
+                PlantBatchId INT PRIMARY KEY IDENTITY(1,1),
+                PlantId INT NOT NULL,
+                PlantLocation INT,
+                QuantityPlanted INT,
+                QuantityHarvested INT,
+                DatePlanted DATETIME NOT NULL,
+                DateHarvested DATETIME
+            );
+        END;
+        
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Inventory')
+        BEGIN
+            CREATE TABLE Inventory (
+                InventoryId INT PRIMARY KEY IDENTITY(1,1),
+                InventoryName VARCHAR(255) UNIQUE,
+                Quantity INT,
+                Units VARCHAR(50),
+                Location INT
+            );
+        END;
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantInfo')
+        BEGIN
+            CREATE TABLE PlantInfo (
+                PlantId INT PRIMARY KEY IDENTITY(1,1),
+                PlantName VARCHAR(255),
+                PlantPicture VARBINARY(MAX),
+                SensorsRanges INT,
+                DaysToMature INT,
+                CurrentSeedInventory INT DEFAULT 0,
+                TotalHarvestSold INT DEFAULT 0,
+                TotalHarvestDiscarded INT DEFAULT 0
+            );
+        END;
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Task')
+        BEGIN
+            CREATE TABLE Task (
+                TaskId INT PRIMARY KEY IDENTITY(1,1),
+                Action VARCHAR(255),
+                Datetime DATETIME,
+                Status BIT
+            );
+        END;
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Alert')
+        BEGIN
+            CREATE TABLE Alert (
+                AlertId INT PRIMARY KEY IDENTITY(1,1),
+                Issue VARCHAR(255),
+                Datetime DATETIME,
+                PlantBatchId INT,
+                Severity VARCHAR(50) CHECK (Severity IN ('Low', 'Medium', 'High'))
+            );
+        END;
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Schedule')
+        BEGIN
+            CREATE TABLE Schedule (
+                ScheduleId INT PRIMARY KEY IDENTITY(1,1),
+                ScheduleDescription VARCHAR(255) NOT NULL,
+                Datetime DATETIME NOT NULL,
+                Status BIT
+            );
+        END;
+    `;
+
+        // Execute the entire script
+        // await request.batch(sqlScript);
+        await request.query(sqlScript);
+
+        console.log("Tables created or already exist.");
+        await dbConnection.disconnect();
+    } catch (error) {
+        console.error("Error creating tables:", error.message);
+    }
+}
+
+
+
 
 // Reassign more meaningful function name
-initialiseMySQL = createTableIfNotExistsVersion3;
+initialiseMySQL = createTablesIfNotExistVersion5;
+dropAllTableMySQL = dropAllTableMySQLVersion1;
 
 module.exports = {
 // insertSensorValues,
 // getSensorDataByMicrocontrollerId,
 // getAllSensorData,
 initialiseMySQL,
+dropAllTableMySQL,
 };

@@ -272,11 +272,37 @@ const {dbConnection} = require("./mysql.js");
   //   return queryResult;
   // }
   // Reassign more meaningful function name
-  initialiseMySQL = createTableIfNotExistsVersion3;
+  async function dropAllTableMySQLVersion1(){
+    const tablesToDrop = [
+      "alert",
+      "inventory",
+      "microcontrollerplantbatchpair",
+      "plantbatch",
+      "plantinfo",
+      "schedule",
+      "sensorreadings",
+      "task",
+    ];
 
+    // connection.connect();
+
+    // Loop through the array of tables and drop each one
+    for (const tableName of tablesToDrop) {
+      const dropTableQuery = `DROP TABLE IF EXISTS ${tableName}`;
+      await new Promise((resolve, reject) => {
+        dbConnection.execute(dropTableQuery, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    }
+  }
+  initialiseMySQL = createTableIfNotExistsVersion3;
+  dropAllTableMySQL = dropAllTableMySQLVersion1;
   module.exports = {
     // insertSensorValues,
     // getSensorDataByMicrocontrollerId,
     // getAllSensorData,
     initialiseMySQL,
+    dropAllTableMySQL,
   };

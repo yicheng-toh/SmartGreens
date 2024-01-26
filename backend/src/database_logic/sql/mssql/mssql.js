@@ -27,7 +27,7 @@ class Database {
       console.log(error);
       console.log(`Error connecting to database: ${JSON.stringify(error)}`);
     }
-    return this.poolconnection.request();
+    return await this.poolconnection.request();
   }
 
   async disconnect() {
