@@ -1,5 +1,6 @@
 # Use an official Node.js runtime as a base image
-FROM node:18.18-slim
+# FROM node:18.18-slim
+FROM node:18.18.0-alpine
 
 # Set the working directory in the container
 WORKDIR /usr/src/
@@ -20,4 +21,5 @@ COPY ./src /usr/src/
 EXPOSE 3000
 
 # Define the command to run your app
-CMD ["npm", "run", "docker1"]
+# CMD ["npm", "run", "docker1"]
+CMD ["npm", "run", "docker_azure_documentation"]

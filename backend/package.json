@@ -5,14 +5,21 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cross-env DEPLOYMENT=true DATABASE=both Docker=false MSSQL=false node src/main.js",
-    "startTest": "cross-env DEPLOYMENT=false DATABASE=both npx jest --detectOpenHandles --coverage",
+    "start": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=false node src/main.js",
+    "azure": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js",
+    "start1": "cross-env DEPLOYMENT=true DATABASE=both Docker=false MSSQL=false node src/main.js",
+    "startTest": "cross-env DEPLOYMENT=false DATABASE=MySQL NOT_LOGGING=true MSSQL=false npx jest --detectOpenHandles --coverage",
+    "startTest_mssql": "cross-env DEPLOYMENT=false DATABASE=MySQL MSSQL=true NOT_LOGGING=true npx jest --detectOpenHandles --coverage",
+    "startTestBackend": "cross-env DEPLOYMENT=false DATABASE=MySQL MSSQL=false node src/main.js",
+    "startTestBackend_mssql": "cross-env DEPLOYMENT=false DATABASE=MySQL MSSQL=true  node src/main.js",
     "startyc": "cross-env DEPLOYMENT=false DATABASE=both node src/main.js",
     "sqlite": "cross-env DEPLOYMENT=false DATABASE=SQLite node src/main.js",
     "docker": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=true node src/main.js",
     "mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js",
-    "docker1": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=true node main.js",
-    "local_mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js"
+    "docker_azure": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=true MSSQL=true node main.js",
+    "local_mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js",
+    "documentation": "cross-env DEPLOYMENT=true DOCUMENTATION=true DATABASE=MySQL node src/main.js",
+    "docker_azure_documentation": "cross-env DOCKER_AZURE=true DEPLOYMENT=true DOCUMENTATION=true DATABASE=MySQL MSSQL=true node main.js"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +30,10 @@
     "express": "^4.18.2",
     "mssql": "^10.0.1",
     "mysql2": "^3.6.2",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
