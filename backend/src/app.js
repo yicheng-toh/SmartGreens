@@ -6,7 +6,14 @@ const {
   sendInternalServerError,
   sendPageNotFound,
 } = require("./routes/request_error_messages.js");
-const { DEPLOYMENT, DATABASE, NOT_LOGGING, DOCKER } = require("./env.js");
+const {
+  DEPLOYMENT,
+  DATABASE,
+  NOT_LOGGING,
+  DOCKER,
+  DOCUMENTATION,
+  DOCKER_AZURE,
+} = require("./env.js");
 
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
@@ -26,6 +33,7 @@ if (!NOT_LOGGING) {
   console.log("Deployment: ", DEPLOYMENT);
   console.log("Database: ", DATABASE);
   console.log(`docker is ${DOCKER}`);
+  console.log(`Documentation is ${DOCUMENTATION}`);
 }
 
 if (!DEPLOYMENT) {
@@ -178,6 +186,36 @@ if (mode == MYSQL || mode == SQLITE_MYSQL) {
     console.log("Currently encountering error initalising MYSQL database");
     console.log(error);
   }
+}
+
+if (DOCUMENTATION) {
+  const swaggerJSDoc = require("swagger-jsdoc");
+  const swaggerUi = require("swagger-ui-express");
+  // Swagger setup
+  const swaggerDefinition = {
+    openapi: "3.0.0",
+    info: {
+      title: "Express Swagger Example",
+      version: "1.0.0",
+      description: "A simple Express Swagger example",
+    },
+    basePath: "/",
+  };
+  let options;
+  if (!DOCKER_AZURE) {
+    options = {
+      swaggerDefinition,
+      apis: ["./src/routes/mysql/*.js", "./src/app.js"], // Path to the API routes
+    };
+  } else {
+    options = {
+      swaggerDefinition,
+      apis: ["./routes/mysql/*.js", "./app.js"], // Do this before launching to docker.
+    };
+  }
+
+  const swaggerSpec = swaggerJSDoc(options);
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }
 
 app.use((req, res) => {
