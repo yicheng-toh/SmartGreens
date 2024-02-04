@@ -624,7 +624,7 @@ async function createTablesIfNotExistVersion5() {
         BEGIN
             CREATE TABLE SensorReadings (
                 Datetime DATETIME NOT NULL,
-                MicrocontrollerID INT NOT NULL,
+                MicrocontrollerID VARCHAR(20) NOT NULL,
                 PlantBatchId INT,
                 Temperature FLOAT,
                 Humidity INT,
@@ -641,7 +641,7 @@ async function createTablesIfNotExistVersion5() {
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'MicrocontrollerPlantBatchPair')
         BEGIN
             CREATE TABLE MicrocontrollerPlantBatchPair (
-                MicrocontrollerId INT,
+                MicrocontrollerId VARCHAR(20),
                 PlantBatchId INT
             );
         END;
@@ -652,7 +652,7 @@ async function createTablesIfNotExistVersion5() {
             CREATE TABLE PlantBatch (
                 PlantBatchId INT PRIMARY KEY IDENTITY(1,1),
                 PlantId INT NOT NULL,
-                PlantLocation INT,
+                PlantLocation VARCHAR(255),
                 QuantityPlanted INT,
                 QuantityHarvested INT,
                 DatePlanted DATETIME NOT NULL,

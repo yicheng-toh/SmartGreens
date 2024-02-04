@@ -138,5 +138,8 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
 
   const calendarRouter = require('./calendar_route.js');
   router.use("/calendar", calendarRouter);
+  
+  const miscRouter = require('./misc_route.js');
+  router.use("/misc", miscRouter);
 
 module.exports = router;

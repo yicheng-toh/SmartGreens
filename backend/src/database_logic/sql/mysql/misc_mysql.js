@@ -157,7 +157,7 @@ const {dbConnection} = require("./mysql.js");
       const createSensorReadingsTable = `
         CREATE TABLE IF NOT EXISTS SensorReadings (
           Datetime DATETIME,
-          MicrocontrollerID INT,
+          MicrocontrollerID VARCHAR(20),
           PlantBatchId INT,
           Temperature FLOAT,
           Humidity INT,
@@ -172,7 +172,7 @@ const {dbConnection} = require("./mysql.js");
         // Create Microcontroller Plant Pair Table
       const createMicrocontrollerPlantPairTable = `
           CREATE TABLE IF NOT EXISTS MicrocontrollerPlantBatchPair (
-          MicrocontrollerId INT,
+          MicrocontrollerId VARCHAR(20),
           PlantBatchId INT
           )
        `
@@ -180,7 +180,7 @@ const {dbConnection} = require("./mysql.js");
             CREATE TABLE IF NOT EXISTS PlantBatch (
             PlantBatchId INT AUTO_INCREMENT PRIMARY KEY,
             PlantId INT NOT NULL,
-            PlantLocation INT,
+            PlantLocation VARCHAR(255),
             QuantityPlanted INT,
             QuantityHarvested INT,
             DatePlanted datetime NOT NULL,

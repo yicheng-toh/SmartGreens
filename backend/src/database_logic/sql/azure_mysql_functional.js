@@ -60,7 +60,7 @@ async function connectAndQuery() {
         // close connection only when we're certain application is finished
         poolConnection.close();
     } catch (err) {
-        console.error(err.message);
+        console.log(err.message);
     }
 }
 

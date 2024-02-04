@@ -16,9 +16,9 @@ async function insertSchedule(description, datetime, status){
     //     [task, datetime, status]);
     const request = await dbConnection.connect();
     await request
-        .input('task', sql.VarChar, description)
+        .input('description', sql.VarChar, description)
         .input('datetime', sql.DateTime, datetime)
-        .input('status', sql.VarChar, status)
+        .input('status', sql.Bit, !!status)
         .query('INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (@description, @datetime, @status)');
     dbConnection.disconnect();
     return 1;
@@ -65,10 +65,9 @@ async function insertTask(action, datetime, status){
     // await dbConnection.execute('INSERT INTO Task (Action, Datetime, Status) VALUES (?,?,?)', 
     //     [action, datetime, status]);
     await request
-        .request()
         .input('action', sql.VarChar, action)
         .input('datetime', sql.DateTime, datetime)
-        .input('status', sql.VarChar, status)
+        .input('status', sql.Bit, status)
         .query('INSERT INTO Task (Action, Datetime, Status) VALUES (@action, @datetime, @status)');
     dbConnection.disconnect();
     return 1;

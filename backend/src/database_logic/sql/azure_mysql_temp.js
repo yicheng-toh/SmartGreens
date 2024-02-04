@@ -33,7 +33,7 @@ export default class Database {
         console.log('Database already connected');
       }
     } catch (error) {
-      console.error(`Error connecting to database: ${JSON.stringify(error)}`);
+      console.log(`Error connecting to database: ${JSON.stringify(error)}`);
     }
   }
 
@@ -42,7 +42,7 @@ export default class Database {
       this.poolconnection.close();
       console.log('Database connection closed');
     } catch (error) {
-      console.error(`Error closing database connection: ${error}`);
+      console.log(`Error closing database connection: ${error}`);
     }
   }
 
@@ -155,7 +155,7 @@ export default class Database {
       await dbConnection.execute(createPlantBatchTable);
       // console.log("Tables created or already exists.");
     } catch (error) {
-      console.error("Error creating table:", error);
+      console.log("Error creating table:", error);
     }
   }
   

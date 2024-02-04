@@ -18,7 +18,7 @@ function initialiseSqlite3() {
   // TODO : to ensure that all the errors are caught.
   const db = new sqlite3.Database(sqliteFile, sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
-      console.error("Error connecting to the SQLite database:", err);
+      console.log("Error connecting to the SQLite database:", err);
     } else {
       console.log("Connected to the SQLite database");
     }
@@ -67,7 +67,7 @@ const getSensorDataByMicrocontrollerId = (microcontrollerId, db) => {
       microcontrollerId,
       (err, rows) => {
         if (err) {
-          console.error("Error retrieving data:", err);
+          console.log("Error retrieving data:", err);
           reject(err);
         } else {
           resolve(rows);
@@ -81,7 +81,7 @@ const getAllSensorData = (db) => {
   return new Promise((resolve, reject) => {
     db.all("SELECT * FROM SensorDetail", (err, rows) => {
       if (err) {
-        console.error("Error retrieving data:", err);
+        console.log("Error retrieving data:", err);
         reject(err);
       } else {
         resolve(rows);
