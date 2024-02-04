@@ -13,9 +13,10 @@ const mysqlLogic = require("../../database_logic/sql/sql.js")
 
 /**
  * @swagger
- * /energyConsumption:
+ * /misc/energyConsumption:
  *   get:
  *     summary: Get energy consumption data.
+ *     tags: [Misc]
  *     description: Retrieve energy consumption data.
  *     responses:
  *       200:

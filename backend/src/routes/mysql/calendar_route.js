@@ -30,10 +30,17 @@ const mysqlLogic = require("../../database_logic/sql/sql.js");
  *                 type: string
  *               datetime:
  *                 type: string
+ *                 format: date
+ *                 example: "2024-01-22"
  *               plantBatchId:
  *                 type: integer
  *               severity:
  *                 type: string
+ *                 enum:
+ *                  - high
+ *                  - medium
+ *                  - low
+ *                 example: 'high'
  *     responses:
  *       201:
  *         description: Data inserted successfully
@@ -42,7 +49,6 @@ const mysqlLogic = require("../../database_logic/sql/sql.js");
  *       500:
  *         description: Internal server error
  */
-//This route is not done yet.
 router.post("/insertAlert", async (req, res) => {
     try {
       let success = 0;
@@ -104,8 +110,11 @@ router.post("/insertAlert", async (req, res) => {
  *                 type: string
  *               datetime:
  *                 type: string
+ *                 format: date
+ *                 example: "2024-01-22"
  *               status:
  *                 type: integer
+ *                 example: 1
  *     responses:
  *       201:
  *         description: Data inserted successfully
@@ -165,8 +174,12 @@ router.post("/insertSchedule", async (req, res) => {
  *                 type: string
  *               datetime:
  *                 type: string
+ *                 format: date
+ *                 example: "2024-01-22"
  *               status:
- *                 type: integer | boolean
+ *                 oneOf:
+ *                    - type: integer
+ *                    - type: boolean
  *     responses:
  *       201:
  *         description: Data inserted successfully

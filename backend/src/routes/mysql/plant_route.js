@@ -26,8 +26,8 @@ router.use(json());
  *         name: microcontrollerId
  *         required: true
  *         schema:
- *           type: integer
- *           example: 1
+ *           type: string
+ *           example: A1
  *     requestBody:
  *       required: true
  *       content:
@@ -320,8 +320,8 @@ router.post("/editSeedQuantity", async (req, res) => {
  *                 type: integer
  *                 example: 2
  *               microcontrollerId:
- *                 type: integer
- *                 example: 3
+ *                 type: String
+ *                 example: A1
  *               quantityPlanted:
  *                 type: integer
  *                 example: 5
@@ -554,9 +554,10 @@ router.get("/plantData", async (req, res) => {
 
 /**
  * @swagger
- * /plantYield:
+ * /plant/plantYield:
  *   get:
  *     summary: Get plant yield rate data.
+ *     tags: [Plant]
  *     description: Retrieve plant yield rate data.
  *     responses:
  *       200:
@@ -587,6 +588,29 @@ router.get("/plantYield", async (req, res) => {
   }
 });
 
+
+/**
+ * @swagger
+ * /plant/plantBatchInfoAndYield:
+ *   get:
+ *     summary: Get information about plant batches and their yields.
+ *     tags: [Plant]
+ *     responses:
+ *       200:
+ *         description: Successful response. Returns plant batch info and yield data.
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: 1
+ *               result:
+ *                 - PlantBatchId: 1
+ *                   PlantId: 123
+ *                   PlantName: "Sample Plant"
+ *                   DatePlanted: "2022-02-10"
+ *                   ExpectedHarvestDate: "2022-03-10"
+ *                   QuantityPlanted: 100
+ *                   YieldRate: 0.75
+ */
 router.get("/plantBatchInfoAndYield", async (req, res) => {
   try {
     let success = 0;
