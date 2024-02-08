@@ -25,9 +25,9 @@ class Database {
       }
     } catch (error) {
       console.log(error);
-      console.error(`Error connecting to database: ${JSON.stringify(error)}`);
+      console.log(`Error connecting to database: ${JSON.stringify(error)}`);
     }
-    return this.poolconnection.request();
+    return await this.poolconnection.request();
   }
 
   async disconnect() {
@@ -35,33 +35,33 @@ class Database {
       this.poolconnection.close();
       console.log('Database connection closed');
     } catch (error) {
-      console.error(`Error closing database connection: ${error}`);
+      console.log(`Error closing database connection: ${error}`);
     }
   }
 
 
-  //to be deleted
-  async executeQuery(query) {
-    await this.connect();
-    const request = this.poolconnection.request();
-    const result = await request.query(query);
+  // //to be deleted
+  // async executeQuery(query) {
+  //   await this.connect();
+  //   const request = this.poolconnection.request();
+  //   const result = await request.query(query);
 
-    return result.rowsAffected[0];
-  }
+  //   return result.rowsAffected[0];
+  // }
 
-  async create(data) {
-    await this.connect();
-    const request = this.poolconnection.request();
+  // async create(data) {
+  //   await this.connect();
+  //   const request = this.poolconnection.request();
 
-    request.input('firstName', sql.NVarChar(255), data.firstName);
-    request.input('lastName', sql.NVarChar(255), data.lastName);
+  //   request.input('firstName', sql.NVarChar(255), data.firstName);
+  //   request.input('lastName', sql.NVarChar(255), data.lastName);
 
-    const result = await request.query(
-      `INSERT INTO Person (firstName, lastName) VALUES (@firstName, @lastName)`
-    );
+  //   const result = await request.query(
+  //     `INSERT INTO Person (firstName, lastName) VALUES (@firstName, @lastName)`
+  //   );
 
-    return result.rowsAffected[0];
-  }
+  //   return result.rowsAffected[0];
+  // }
 
   // async readAll() {
   //   await this.connect();
@@ -71,45 +71,45 @@ class Database {
   //   return result.recordsets[0];
   // }
 
-  async read(id) {
-    await this.connect();
+  // async read(id) {
+  //   await this.connect();
 
-    const request = this.poolconnection.request();
-    const result = await request
-      .input('id', sql.Int, +id)
-      .query(`SELECT * FROM Person WHERE id = @id`);
+  //   const request = this.poolconnection.request();
+  //   const result = await request
+  //     .input('id', sql.Int, +id)
+  //     .query(`SELECT * FROM Person WHERE id = @id`);
 
-    return result.recordset[0];
-  }
+  //   return result.recordset[0];
+  // }
 
-  async update(id, data) {
-    await this.connect();
+  // async update(id, data) {
+  //   await this.connect();
 
-    const request = this.poolconnection.request();
+  //   const request = this.poolconnection.request();
 
-    request.input('id', sql.Int, +id);
-    request.input('firstName', sql.NVarChar(255), data.firstName);
-    request.input('lastName', sql.NVarChar(255), data.lastName);
+  //   request.input('id', sql.Int, +id);
+  //   request.input('firstName', sql.NVarChar(255), data.firstName);
+  //   request.input('lastName', sql.NVarChar(255), data.lastName);
 
-    const result = await request.query(
-      `UPDATE Person SET firstName=@firstName, lastName=@lastName WHERE id = @id`
-    );
+  //   const result = await request.query(
+  //     `UPDATE Person SET firstName=@firstName, lastName=@lastName WHERE id = @id`
+  //   );
 
-    return result.rowsAffected[0];
-  }
+  //   return result.rowsAffected[0];
+  // }
 
-  async delete(id) {
-    await this.connect();
+  // async delete(id) {
+  //   await this.connect();
 
-    const idAsNumber = Number(id);
+  //   const idAsNumber = Number(id);
 
-    const request = this.poolconnection.request();
-    const result = await request
-      .input('id', sql.Int, idAsNumber)
-      .query(`DELETE FROM Person WHERE id = @id`);
+  //   const request = this.poolconnection.request();
+  //   const result = await request
+  //     .input('id', sql.Int, idAsNumber)
+  //     .query(`DELETE FROM Person WHERE id = @id`);
 
-    return result.rowsAffected[0];
-  }
+  //   return result.rowsAffected[0];
+  // }
 }
 
 async function createDbConnection(){

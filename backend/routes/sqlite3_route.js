@@ -32,7 +32,7 @@ router.post("/insertData/:microcontrollerId", (req, res) => {
     ],
     (err) => {
       if (err) {
-        console.error("Error inserting data:", err);
+        console.log("Error inserting data:", err);
         console.log("Error inserting data:", err);
         console.log(err);
         res.status(500).send("Internal Server Error");
@@ -55,7 +55,7 @@ router.get("/retrieveData/:plantBatch", (req, res) => {
     plantBatch,
     (err, rows) => {
       if (err) {
-        console.error("Error retrieving data:", err);
+        console.log("Error retrieving data:", err);
         res.status(500).send("Internal Server Error");
       } else {
         res.json(rows);
@@ -68,7 +68,7 @@ router.get("/retrieveData/:plantBatch", (req, res) => {
 router.get("/retrieveData", (req, res) => {
   db.all("SELECT * FROM SensorDetail", (err, rows) => {
     if (err) {
-      console.error("Error retrieving data:", err);
+      console.log("Error retrieving data:", err);
       res.status(500).send("Internal Server Error");
     } else {
       res.json(rows);
@@ -83,7 +83,7 @@ function intialiseSqlite3() {
     sqlite3.OPEN_READWRITE,
     (err) => {
       if (err) {
-        console.error("Error connecting to the SQLite database:", err);
+        console.log("Error connecting to the SQLite database:", err);
       } else {
         console.log("Connected to the SQLite database");
       }

@@ -38,14 +38,14 @@ class Database {
       console.log(`Database connecting...${this.connected}`);
       if (this.connected === false) {
         console.log(`Database: config: ${JSON.stringify(this.config)}`);
-        this.poolconnection = await mssql.connect(this.config).catch(err => console.error('Error connecting to database:', err));;
+        this.poolconnection = await mssql.connect(this.config).catch(err => console.log('Error connecting to database:', err));;
         this.connected = true;
         console.log('Database connection successful');
       } else {
         console.log('Database already connected');
       }
     } catch (error) {
-      console.error(`Error connecting to database: ${JSON.stringify(error)}`);
+      console.log(`Error connecting to database: ${JSON.stringify(error)}`);
     }
   }
 
@@ -55,7 +55,7 @@ class Database {
       this.connected = false;
       console.log('Database connection closed');
     } catch (error) {
-      console.error(`Error closing database connection: ${error}`);
+      console.log(`Error closing database connection: ${error}`);
     }
   }
 
@@ -105,7 +105,7 @@ class Database {
       // await dbConnection.execute(createPlantBatchTable);
       // // console.log("Tables created or already exists.");
     } catch (error) {
-      console.error("Error creating table:", error);
+      console.log("Error creating table:", error);
     }
   }
   
@@ -130,7 +130,7 @@ class Database {
         `);
         await this.disconnect();
     } catch (error) {
-      console.error('Error executing insert query:', error);
+      console.log('Error executing insert query:', error);
     }
   }
   
