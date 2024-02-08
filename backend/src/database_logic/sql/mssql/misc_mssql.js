@@ -276,7 +276,7 @@ async function createTableIfNotExistsVersion3() {
         const createSensorReadingsTable = `
             CREATE TABLE IF NOT EXISTS SensorReadings (
                 Datetime DATETIME NOT NULL,
-                MicrocontrollerID INT NOT NULL,
+                MicrocontrollerID VARCHAR NOT NULL,
                 PlantBatchId INT,
                 Temperature FLOAT,
                 Humidity INT,
@@ -317,7 +317,7 @@ async function createTableIfNotExistsVersion3() {
                 InventoryName VARCHAR(255) UNIQUE,
                 Quantity INT,
                 Units VARCHAR(50),
-                Location INT
+                Location VARCHAR(255)
             );
         `;
 
@@ -668,7 +668,7 @@ async function createTablesIfNotExistVersion5() {
                 InventoryName VARCHAR(255) UNIQUE,
                 Quantity INT,
                 Units VARCHAR(50),
-                Location INT
+                Location VARCHAR(255)
             );
         END;
 

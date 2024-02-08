@@ -193,7 +193,7 @@ const {dbConnection} = require("./mysql.js");
             InventoryName VARCHAR(255),
             Quantity INT,
             Units VARCHAR(50),
-            Location INT
+            Location VARCHAR(255)
       );
     `
     const createPlantInfoTable = `

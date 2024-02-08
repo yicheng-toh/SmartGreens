@@ -37,6 +37,7 @@ async function insertSensorValuesSuffix1(
   brightness
 ) {
   const shouldUpdate = await shouldUpdateExisingSensorReadings(microcontrollerIdPrefix, microcontrollerIdSuffix);
+  console.log("Insert data suffix1 shouldUpdate:", shouldUpdate);
   const dbConnection = await createDbConnection();
   let request = await dbConnection.connect();
   if (shouldUpdate) {
@@ -120,6 +121,7 @@ async function insertSensorValuesSuffix2(
         .input("dateTime", sql.DateTime, dateTime)
         .input("microcontrollerId", sql.VarChar(20), microcontrollerIdPrefix)
         .input("plantBatchId", sql.Int, plantBatchId)
+        .input('pH', sql.Float, pH)
         .input('CO2', sql.Float, CO2)
         .input('EC', sql.Float, EC)
         .input('TDS', sql.Float, TDS)
@@ -160,7 +162,8 @@ async function shouldUpdateExisingSensorReadings(micrcontrolleridPrefix, microco
       .input('minutes', sql.Int, minutes)
       .query(getLatestMicroControllerSensorReadingQuery);
     await dbConnection.disconnect();
-    if (!queryResult.recordset){
+    console.log("should uupdate funtion recrodset",queryResult.recordset)
+    if (!queryResult.recordset.length){
         return shouldUpdate;
     }
     let rows = queryResult.recordset;

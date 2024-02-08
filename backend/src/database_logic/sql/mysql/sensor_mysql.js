@@ -68,8 +68,10 @@ async function insertSensorValuesSuffix1(
 ) {
    let shouldUpdate = await shouldUpdateExisingSensorReadings(microcontrollerIdPrefix, microcontrollerIdSuffix);
    console.log("should update is", shouldUpdate);
+   console.log("Insert data suffix1 shouldUpdate:", shouldUpdate);
    console.log("mc id previx is", microcontrollerIdPrefix);
    if (shouldUpdate){
+    
     await dbConnection.execute(
         `
         UPDATE SensorReadings

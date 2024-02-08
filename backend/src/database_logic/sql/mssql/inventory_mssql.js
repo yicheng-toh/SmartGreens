@@ -12,7 +12,7 @@ async function insertNewInventoryObject(itemName, quantity, units, location){
     await request.input('itemName', sql.VarChar, itemName)
         .input('quantity', sql.Int, quantity)
         .input('units', sql.VarChar, units)
-        .input('location', sql.Int, location)
+        .input('location', sql.VarChar, location)
         .query('INSERT INTO Inventory (InventoryName, Quantity, Units, Location) VALUES (@itemName, @quantity, @units, @location)');
     await dbConnection.disconnect();
     return 1;
