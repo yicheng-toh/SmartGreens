@@ -66,7 +66,7 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
       //if yes and the entries to be updated is still null, update it, else creaste a new entry
       const { microcontrollerId } = req.params;
       if (microcontrollerId === undefined || microcontrollerId.length < 2 || microcontrollerId.length > 20) {
-        sendBadRequestResponse(res);
+        sendBadRequestResponse(res, "Invalid microcontroller Id.");
         return;
       }
       let success = 0;
@@ -96,15 +96,15 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
         ({ temperature, humidity, brightness } = req.body);
         if (temperature === undefined || isNaN(parseFloat(temperature))) {
           // console.log("fail at temperature");
-          sendInternalServerError(res);
+          sendInternalServerError(res, "Invalid Temperature Reading.");
           return;
         } else if (brightness === undefined || isNaN(parseFloat(brightness))) {
           // console.log("fail at brightness");
-          sendInternalServerError(res);
+          sendInternalServerError(res, "Invalid Brightness Reading.");
           return;
         } else if (humidity === undefined || isNaN(parseFloat(humidity))) {
           // console.log("fail at humidity");
-          sendInternalServerError(res);
+          sendInternalServerError(res, "Invalid Humidity Reading.");
           return;
         }
         partnerMicrocontrollerId = microcontrollerIdPrefix + "2";
@@ -121,20 +121,16 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
       } else if (microcontrollerIdSuffix == 2) {
         ({ pH, tds, ec, co2 } = req.body);
         if (pH === undefined || isNaN(parseFloat(pH))) {
-          // console.log("fail at temperature");
-          sendInternalServerError(res);
+          sendInternalServerError(res, "Invalid pH Reading.");
           return;
         } else if (tds === undefined || isNaN(parseFloat(tds))) {
-          // console.log("fail at brightness");
-          sendInternalServerError(res);
+          sendInternalServerError(res, "Invalid tds Reading.");
           return;
         } else if (ec === undefined || isNaN(parseFloat(ec))) {
-          // console.log("fail at humidity");
-          sendInternalServerError(res);
+          sendInternalServerError(res, "Invalid ec Reading.");
           return;
         } else if (co2 === undefined || isNaN(parseFloat(co2))) {
-          // console.log("fail at humidity");
-          sendInternalServerError(res);
+          sendInternalServerError(res, "Invalid co2 Reading.");
           return;
         }
         partnerMicrocontrollerId = microcontrollerIdPrefix + "1";
@@ -147,7 +143,7 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
           pH, co2, ec, tds
         );
       } else {
-        sendBadRequestResponse(res);
+        sendBadRequestResponse(res, "Invalid Microcontroller Reading.");
         return;
       }
       console.log(dateTime, microcontrollerId);
@@ -156,10 +152,10 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
         .json({ success: success, message: "Data inserted successfully" });
     } catch (error) {
       console.log("Error inserting data:", error);
-      sendInternalServerError(res);
+      sendInternalServerError(res, error);
     }
   } catch (error) {
-    sendBadRequestResponse(res);
+    sendBadRequestResponse(res, error);
   }
 });
 
@@ -201,13 +197,13 @@ router.post("/createPlant", async (req, res) => {
     try {
       let { plantName, sensorRanges, daysToMature } = req.body;
       if (plantName === undefined || !plantName.trim()) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Invalid Plant Name");
         return;
       } else if (sensorRanges === undefined || isNaN(parseInt(sensorRanges))) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Invalid Sensor Ranges.");
         return;
       } else if (daysToMature === undefined || isNaN(parseInt(daysToMature))) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Invalid Days for Plants to Mature.");
         return;
       }
       plantName = plantName.trim();
@@ -223,14 +219,14 @@ router.post("/createPlant", async (req, res) => {
           .status(201)
           .json({ success: success, message: "Data inserted successfully" });
       } else {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Error encountered when trying to insert data.");
       }
     } catch (error) {
       console.log("Error inserting data:", error);
-      sendInternalServerError(res);
+      sendInternalServerError(res, error);
     }
   } catch (error) {
-    sendBadRequestResponse(res);
+    sendBadRequestResponse(res, error);
   }
 });
 
@@ -269,13 +265,13 @@ router.post("/editSeedQuantity", async (req, res) => {
     try {
       let { plantId, quantityChange } = req.body;
       if (plantId === undefined || isNaN(parseInt(plantId))) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Invalid Plant Id");
         return;
       } else if (
         quantityChange === undefined ||
         isNaN(parseInt(quantityChange))
       ) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Invalid Quantity Changed");
         return;
       }
       plantId = parseInt(plantId);
@@ -289,14 +285,14 @@ router.post("/editSeedQuantity", async (req, res) => {
           .status(201)
           .json({ success: success, message: "Data inserted successfully" });
       } else {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Data insertion failed.");
       }
     } catch (error) {
       console.log("Error inserting data:", error);
-      sendInternalServerError(res);
+      sendInternalServerError(res, error);
     }
   } catch (error) {
-    sendBadRequestResponse(res);
+    sendBadRequestResponse(res, error);
   }
 });
 
@@ -327,8 +323,8 @@ router.post("/editSeedQuantity", async (req, res) => {
  *                 example: 5
  *               datePlanted:
  *                 type: string
- *                 format: date
- *                 example: "2024-01-22"
+ *                 format: date-time
+ *                 example: "2024-01-22T12:00:00"
  *     responses:
  *       201:
  *         description: Data inserted successfully
@@ -355,29 +351,28 @@ router.post("/growPlant", async (req, res) => {
       } = req.body;
       if (plantId === undefined || isNaN(parseInt(plantId))) {
         // console.log("fail at plantId");
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Invalid Plant Id.");
         return;
       } else if (
         plantLocation === undefined ||
         isNaN(parseInt(plantLocation))
       ) {
         // console.log('fail at plantLocation');
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Invalid Plant Location.");
         return;
       } else if (
         microcontrollerId === undefined ||
         isNaN(parseInt(microcontrollerId))
       ) {
         // console.log("fail at microcontroller");
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Inalid Microcontroller Id");
         return;
       } else if (
         quantityPlanted === undefined ||
         isNaN(parseInt(quantityPlanted)) ||
         parseInt(quantityPlanted) <= 0
       ) {
-        // console.log("fail at quantity");
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Invalid quantity of plants planted.");
         return;
       }
 
@@ -395,7 +390,7 @@ router.post("/growPlant", async (req, res) => {
           .status(201)
           .json({ success: success, message: "Data inserted successfully" });
       } else {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Data insertion failed.");
       }
     } catch (error) {
       console.log("Error inserting data:", error);
@@ -442,13 +437,13 @@ router.post("/harvestPlant", async (req, res) => {
     let success = 0;
     let { plantBatchId, quantityHarvested } = req.body;
     if (plantBatchId === undefined || isNaN(parseInt(plantBatchId))) {
-      sendInternalServerError(res);
+      sendInternalServerError(res, "Plant Batch Id is invalid.");
       return;
     } else if (
       quantityHarvested === undefined ||
       isNaN(parseInt(quantityHarvested))
     ) {
-      sendInternalServerError(res);
+      sendInternalServerError(res, "Quantity harvested is invalid.");
       return;
     }
     plantBatchId = parseInt(plantBatchId);
@@ -459,11 +454,11 @@ router.post("/harvestPlant", async (req, res) => {
         .status(201)
         .json({ success: success, message: "Data inserted successfully" });
     } else {
-      sendInternalServerError(res);
+      sendInternalServerError(res, "Data Insertion Failed");
     }
   } catch (error) {
     console.log("Error retrieving data:", error);
-    sendInternalServerError(res);
+    sendInternalServerError(res, error);
   }
 });
 
@@ -496,7 +491,7 @@ router.get("/retrieveData", async (req, res) => {
     }
   } catch (error) {
     console.log("Error retrieving data:", error);
-    sendInternalServerError(res);
+    sendInternalServerError(res, error);
   }
 });
 
@@ -521,7 +516,7 @@ router.get("/plantSeedsInventory", async (req, res) => {
     res.status(200).json({ success: 1, result: rows });
   } catch (error) {
     console.log("Error retrieving data:", error);
-    sendInternalServerError(res);
+    sendInternalServerError(res, error);
   }
 });
 
@@ -548,7 +543,7 @@ router.get("/plantData", async (req, res) => {
     res.status(200).json({ success: success, result: rows });
   } catch (error) {
     console.log("Error retrieving data:", error);
-    sendInternalServerError(res);
+    sendInternalServerError(res, error);
   }
 });
 
@@ -584,7 +579,7 @@ router.get("/plantYield", async (req, res) => {
     res.status(200).json({ success: success, result: rows });
   } catch (error) {
     console.log("Error retrieving data:", error);
-    sendInternalServerError(res);
+    sendInternalServerError(res, error);
   }
 });
 
@@ -606,8 +601,8 @@ router.get("/plantYield", async (req, res) => {
  *                 - PlantBatchId: 1
  *                   PlantId: 123
  *                   PlantName: "Sample Plant"
- *                   DatePlanted: "2022-02-10"
- *                   ExpectedHarvestDate: "2022-03-10"
+ *                   DatePlanted: "2024-01-22T12:00:00"
+ *                   ExpectedHarvestDate: "2024-02-22T12:00:00"
  *                   QuantityPlanted: 100
  *                   YieldRate: 0.75
  */
@@ -620,7 +615,7 @@ router.get("/plantBatchInfoAndYield", async (req, res) => {
     res.status(200).json({ success: success, result: rows });
   } catch (error) {
     console.log("Error retrieving data:", error);
-    sendInternalServerError(res);
+    sendInternalServerError(res, error);
   }
 });
 

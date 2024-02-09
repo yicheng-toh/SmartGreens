@@ -30,8 +30,8 @@ const mysqlLogic = require("../../database_logic/sql/sql.js");
  *                 type: string
  *               datetime:
  *                 type: string
- *                 format: date
- *                 example: "2024-01-22"
+ *                 format: date-time
+ *                 example: "2024-01-22T12:00:00"
  *               plantBatchId:
  *                 type: integer
  *               severity:
@@ -55,17 +55,17 @@ router.post("/insertAlert", async (req, res) => {
       let { issue, datetime, plantBatchId, severity } = req.body;
 
       if (issue === undefined || !issue.trim()) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Issues is invalid.");
         return;
       } else if (datetime === undefined || isNaN(Date.parse(datetime.trim()))) {
         // console.log(Date(datetime.trim()));
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Datetime is invalid.");
         return;
       } else if (plantBatchId === undefined) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Plant Batch Id is invalid.");
         return;
       } else if (severity === undefined) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Severity is invalid.");
         return;
       }
       datetime = datetime.trim();
@@ -83,12 +83,13 @@ router.post("/insertAlert", async (req, res) => {
         res.status(201).json({sucess: 1, message:"Data inserted successfully"});
         return;
       } else {
-        sendInternalServerError(res);
+        console.log("Insertion failed.");
+        sendInternalServerError(res, "Data insertion failed.");
         return;
       }
     } catch (error) {
       console.log("Error inserting data:", error);
-      sendInternalServerError(res);
+      sendInternalServerError(res, error);
       return;
     }
 });
@@ -110,8 +111,8 @@ router.post("/insertAlert", async (req, res) => {
  *                 type: string
  *               datetime:
  *                 type: string
- *                 format: date
- *                 example: "2024-01-22"
+ *                 format: date-time
+ *                 example: "2024-01-22T12:00:00"
  *               status:
  *                 type: integer
  *                 example: 1
@@ -130,13 +131,13 @@ router.post("/insertSchedule", async (req, res) => {
 			let success = 0;
       let { task, datetime, status } = req.body;
       if (task === undefined || !task.trim()) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Task is invalid.");
         return;
       } else if (datetime === undefined || isNaN(Date.parse(datetime.trim()))) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Date time is invalid");
         return;
       } else if (status === undefined || isNaN(parseInt(status))) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Status is invalid.");
         return;
       }
 			task = task.trim();
@@ -147,12 +148,12 @@ router.post("/insertSchedule", async (req, res) => {
         res.status(201).json({sucess: 1, message:"Data inserted successfully"});
         return;
       } else {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Data insertion failed.");
         return;
       }
     } catch (error) {
       console.log("Error inserting data:", error);
-      sendInternalServerError(res);
+      sendInternalServerError(res, error);
       return;
     }
 });
@@ -174,8 +175,8 @@ router.post("/insertSchedule", async (req, res) => {
  *                 type: string
  *               datetime:
  *                 type: string
- *                 format: date
- *                 example: "2024-01-22"
+ *                 format: date-time
+ *                 example: "2024-01-22T12:00:00"
  *               status:
  *                 oneOf:
  *                    - type: integer
@@ -194,14 +195,14 @@ router.post("/insertTask", async (req, res) => {
 			let success = 0;
       let { action, datetime, status } = req.body;
       if (action === undefined || !action.trim()) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Action is Invalid.");
         return;
       } else if (datetime === undefined || isNaN(Date.parse(datetime.trim()))) {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Date time is invalid.");
         return;
       } else if (status === undefined || !(!isNaN(parseInt(status)) || typeof myVariable === 'boolean')) {
 				// console.log("status failed");
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Status is invalid.");
         return;
       }
 			action = action.trim();
@@ -212,12 +213,12 @@ router.post("/insertTask", async (req, res) => {
         res.status(201).json({success: success, message:"Data inserted successfully"});
         return;
       } else {
-        sendInternalServerError(res);
+        sendInternalServerError(res, "Data insertion failed.");
         return;
       }
     } catch (error) {
       console.log("Error inserting data:", error);
-      sendInternalServerError(res);
+      sendInternalServerError(res, error);
       return;
     }
 });
@@ -247,7 +248,7 @@ router.get("/retrieveAlerts", async (req, res) => {
     }
   } catch (error) {
     console.log("Error retrieving data:", error);
-    sendInternalServerError(res);
+    sendInternalServerError(res, error);
     return;
   }
 });
@@ -277,7 +278,7 @@ router.get("/retrieveReminders", async (req, res) => {
     }
   } catch (error) {
     console.log("Error retrieving data:", error);
-    sendInternalServerError(res);
+    sendInternalServerError(res, error);
     return;
   }
 });
@@ -306,7 +307,7 @@ router.get("/retrieveTasks", async (req, res) => {
     }
   } catch (error) {
     console.log("Error retrieving data:", error);
-    sendInternalServerError(res);
+    sendInternalServerError(res, error);
     return;
   }
 });

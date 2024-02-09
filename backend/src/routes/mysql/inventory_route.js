@@ -51,7 +51,8 @@ router.post('/insertNewInventory', async (req, res) => {
           let success = 0;
           let {inventoryName, quantity, units, location} = req.body;
           if (inventoryName === undefined || !inventoryName.trim()){
-            sendInternalServerError(res, errorCode.INSERT_NEW_INVENTORY_UNDEFINED_INVENTORY_NAME);
+            // sendInternalServerError(res, errorCode.INSERT_NEW_INVENTORY_UNDEFINED_INVENTORY_NAME);
+            sendInternalServerError(res, "Inventory name is invalid.");
             return;
           }else if (quantity === undefined){
             quantity = 0;
@@ -59,7 +60,8 @@ router.post('/insertNewInventory', async (req, res) => {
             quantity = parseFloat(quantity);
           }
           if(quantity < 0 || isNaN(quantity)){
-            sendInternalServerError(res, errorCode.INSERT_NEW_INVENTORY_UNDEFINED_INVENTORY_NAME);
+            // sendInternalServerError(res, errorCode.INSERT_NEW_INVENTORY_UNDEFINED_INVENTORY_NAME);
+            sendInternalServerError(res, "Quantity is invalid.");
             return;
           }
           console.log(inventoryName,quantity, units, location);
@@ -68,7 +70,8 @@ router.post('/insertNewInventory', async (req, res) => {
           return;
         } catch (error) {
           console.log('Error inserting data:', error);
-          sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
+          // sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
+          sendInternalServerError(res, error);
           return;
         }
 });
@@ -133,7 +136,7 @@ router.post('/updateInventoryQuantity', async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        sendBadRequestResponse(res);
+        sendBadRequestResponse(res, error);
         return;
     }
 });
@@ -187,7 +190,8 @@ router.post('/updateInventoryUnit', async (req, res) => {
 
       } catch (error) {
         console.log('Error inserting data:', error);
-        sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
         return;
       }
 });
@@ -213,7 +217,8 @@ router.get('/retrieveAllInventoryData', async(req, res) => {
         return;
     } catch (error) {
         console.log('Error retrieving data:', error);
-        sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
+        // sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
         return;
     }
 });
@@ -251,7 +256,7 @@ router.delete('/deleteInventory/:currentInventoryId',async (req, res) => {
         const isInventoryIdExist = await mysqlLogic.verifyInventoryIdExist(currentInventoryId);
         if(!isInventoryIdExist){
           console.log("isInventoryIdExist",isInventoryIdExist);
-          sendInternalServerError(res);
+          sendInternalServerError(res, "Inventory Id does not exist.");
           return;
         }
 
@@ -262,7 +267,8 @@ router.delete('/deleteInventory/:currentInventoryId',async (req, res) => {
 
       } catch (error) {
         console.log('Error inserting data:', error);
-        sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
         return;
       }
 });
