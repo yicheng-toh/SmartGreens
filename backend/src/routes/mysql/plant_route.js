@@ -324,7 +324,7 @@ router.post("/editSeedQuantity", async (req, res) => {
  *               datePlanted:
  *                 type: string
  *                 format: date-time
- *                 example: "2024-01-22T12:00:00"
+ *                 example: "2024-01-22 12:00:00"
  *     responses:
  *       201:
  *         description: Data inserted successfully

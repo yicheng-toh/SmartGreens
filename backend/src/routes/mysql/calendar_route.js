@@ -31,7 +31,7 @@ const mysqlLogic = require("../../database_logic/sql/sql.js");
  *               datetime:
  *                 type: string
  *                 format: date-time
- *                 example: "2024-01-22T12:00:00"
+ *                 example: "2024-01-22 12:00:00"
  *               plantBatchId:
  *                 type: integer
  *               severity:
@@ -112,7 +112,7 @@ router.post("/insertAlert", async (req, res) => {
  *               datetime:
  *                 type: string
  *                 format: date-time
- *                 example: "2024-01-22T12:00:00"
+ *                 example: "2024-01-22 12:00:00"
  *               status:
  *                 type: integer
  *                 example: 1
@@ -176,7 +176,7 @@ router.post("/insertSchedule", async (req, res) => {
  *               datetime:
  *                 type: string
  *                 format: date-time
- *                 example: "2024-01-22T12:00:00"
+ *                 example: "2024-01-22 12:00:00"
  *               status:
  *                 oneOf:
  *                    - type: integer
