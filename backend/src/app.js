@@ -74,7 +74,7 @@ const app = express();
 
 app.use(express.json());
 //allow cors for local frontend and backend testing
-app.use(cors({ origin: ROOT_ROUTE }));
+// app.use(cors({ origin: ROOT_ROUTE }));
 
 //Instantiate Variables
 mode = DATABASE;
