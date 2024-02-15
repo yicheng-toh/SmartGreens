@@ -71,9 +71,9 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
       }
       let success = 0;
       let pH = null;
-      let tds = null;
-      let ec = null;
-      let co2 = null;
+      let TDS = null;
+      let EC = null;
+      let CO2 = null;
       let temperature = null;
       let humidity = null;
       let brightness = null;
@@ -81,10 +81,14 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
       let partnerMicrocontrollerId = null;
       // const plantBatchId = -1;
       const currentDateTime = new Date();
+      // console.log(currentUTCDateTime);
+      currentDateTime.setHours(currentDateTime.getHours() + 8); //GMT + 8
+      console.log(currentDateTime);
       const formattedDateTime = currentDateTime
         .toISOString()
         .slice(0, 19)
         .replace("T", " ");
+      console.log(formattedDateTime);
       const dateTime = formattedDateTime.toString();
       const microcontrollerIdPrefix = microcontrollerId.slice(0, -1);
       const microcontrollerIdSuffix = microcontrollerId.slice(-1);
@@ -119,28 +123,28 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
           brightness
         );
       } else if (microcontrollerIdSuffix == 2) {
-        ({ pH, tds, ec, co2 } = req.body);
+        ({ pH, TDS, EC, CO2 } = req.body);
         if (pH === undefined || isNaN(parseFloat(pH))) {
           sendInternalServerError(res, "Invalid pH Reading.");
           return;
-        } else if (tds === undefined || isNaN(parseFloat(tds))) {
-          sendInternalServerError(res, "Invalid tds Reading.");
+        } else if (TDS === undefined || isNaN(parseFloat(TDS))) {
+          sendInternalServerError(res, "Invalid TDS Reading.");
           return;
-        } else if (ec === undefined || isNaN(parseFloat(ec))) {
-          sendInternalServerError(res, "Invalid ec Reading.");
+        } else if (EC === undefined || isNaN(parseFloat(EC))) {
+          sendInternalServerError(res, "Invalid EC Reading.");
           return;
-        } else if (co2 === undefined || isNaN(parseFloat(co2))) {
-          sendInternalServerError(res, "Invalid co2 Reading.");
+        } else if (CO2 === undefined || isNaN(parseFloat(CO2))) {
+          sendInternalServerError(res, "Invalid CO2 Reading.");
           return;
         }
         partnerMicrocontrollerId = microcontrollerIdPrefix + "1";
-        console.log(pH, co2, ec, tds);
+        console.log(pH, CO2, EC, TDS);
         success = await mysqlLogic.insertSensorValuesSuffix2(
           dateTime,
           microcontrollerIdPrefix,
           microcontrollerIdSuffix,
           plantBatchId,
-          pH, co2, ec, tds
+          pH, CO2, EC, TDS
         );
       } else {
         sendBadRequestResponse(res, "Invalid Microcontroller Reading.");
