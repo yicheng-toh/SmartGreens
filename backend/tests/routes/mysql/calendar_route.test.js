@@ -174,10 +174,10 @@ describe('Alert and Reminder Route Integration Tests', () => {
     // Add more tests as needed
   });
 
-  describe('GET /retrieveReminders', () => {
-    it('should retrieve all reminders successfully', async () => {
+  describe('GET /retrieveSchedules', () => {
+    it('should retrieve all schedules successfully', async () => {
       const response = await supertest(app)
-        .get(COMMON_ROUTE + '/retrieveReminders');
+        .get(COMMON_ROUTE + '/retrieveSchedules');
 
       expect(response.status).toBe(200);
       // Add more assertions based on the expected response structure
@@ -197,6 +197,91 @@ describe('Alert and Reminder Route Integration Tests', () => {
 
     // Add more tests as needed
   });
+
+  describe("DELETE /deleteAlert/:alertId", () => {
+    it("should delete an alert successfully", async () => {
+      // Implement logic to add dummy data or setup test environment
+      
+      const response = await supertest(app).delete(COMMON_ROUTE + "/deleteAlert/1");
+      
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(1);
+  
+      // Implement assertions to verify that the alert has been deleted
+    });
+  
+    it("should handle invalid alert ID and return 500", async () => {
+      const invalidAlertIds = [
+        "invalid",
+        999,
+        // Add more invalid test cases as needed
+      ];
+  
+      for (const alertId of invalidAlertIds) {
+        const response = await supertest(app).delete(COMMON_ROUTE + "/deleteAlert/" + alertId);
+        expect(response.status).toBe(500);
+      }
+    });
+  
+    // Add more tests as needed
+  });
+  
+  describe("DELETE /deleteSchedule/:scheduleId", () => {
+    it("should delete a schedule successfully", async () => {
+      // Implement logic to add dummy data or setup test environment
+      
+      const response = await supertest(app).delete(COMMON_ROUTE + "/deleteSchedule/1");
+      
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(1);
+  
+      // Implement assertions to verify that the reminder has been deleted
+    });
+  
+    it("should handle invalid schedule ID and return 500", async () => {
+      const invalidScheduleIds = [
+        "invalid",
+        999,
+        // Add more invalid test cases as needed
+      ];
+  
+      for (const scheduleId of invalidScheduleIds) {
+        const response = await supertest(app).delete(COMMON_ROUTE + "/deleteSchedule/" + scheduleId);
+        expect(response.status).toBe(500);
+      }
+    });
+  
+    // Add more tests as needed
+  });
+  
+  describe("DELETE /deleteTask/:taskId", () => {
+    it("should delete a task successfully", async () => {
+      // Implement logic to add dummy data or setup test environment
+      
+      const response = await supertest(app).delete(COMMON_ROUTE + "/deleteTask/1");
+      
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(1);
+  
+      // Implement assertions to verify that the task has been deleted
+    });
+  
+    it("should handle invalid task ID and return 500", async () => {
+      const invalidTaskIds = [
+        "invalid",
+        999,
+        // Add more invalid test cases as needed
+      ];
+  
+      for (const taskId of invalidTaskIds) {
+        const response = await supertest(app).delete(COMMON_ROUTE + "/deleteTask/" + taskId);
+        expect(response.status).toBe(500);
+      }
+    });
+  
+    // Add more tests as needed
+  });
+  
 
   describe('Unexpected Routes', () => {
     it('should return 404 for an unknown route', async () => {

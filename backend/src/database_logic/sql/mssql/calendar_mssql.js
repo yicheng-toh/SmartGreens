@@ -73,6 +73,72 @@ async function insertTask(action, datetime, status){
     return 1;
 }
 
+async function verifyAlertIdExist(alertId){
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+    // const request =  dbConnection.connect();
+    console.log("verifying id....");
+    const alertIdList = await request
+        .input('alertId', sql.Int, alertId)
+        .query('SELECT * FROM Alert WHERE AlertId = @alertId');
+    console.log("alert id list is", alertIdList);
+    dbConnection.disconnect();
+    return alertIdList.recordset.length;
+}
+
+async function verifyScheduleIdExist(scheduleId){
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+    // const request =  dbConnection.connect();
+    console.log("verifying id....");
+    const scheduleIdList = await request
+        .input('scheduleId', sql.Int, scheduleId)
+        .query('SELECT * FROM Schedule WHERE ScheduleId = @scheduleId');
+    console.log("schedule id list is", scheduleIdList);
+    dbConnection.disconnect();
+    return scheduleIdList.recordset.length;
+}
+
+async function verifyTaskIdExist(taskId){
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+    // const request =  dbConnection.connect();
+    console.log("verifying id....");
+    const taskIdList = await request
+        .input('taskId', sql.Int, taskId)
+        .query('SELECT * FROM Task WHERE TaskId = @taskId');
+    console.log("task id list is", taskIdList);
+    dbConnection.disconnect();
+    return taskIdList.recordset.length;
+}
+
+async function deleteReminder(reminderId){
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+    await request
+    .input('reminderId', sql.Int, reminderId)
+    .query('DELETE FROM Reminder WHERE ReminderID = @reminderId');
+    dbConnection.disconnect();
+    return 1;
+}
+async function deleteSchedule(scheduleId){
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+    await request
+    .input('scheduleId', sql.Int, scheduleId)
+    .query('DELETE FROM Schedule WHERE ScheduleID = @scheduleId');
+    dbConnection.disconnect();
+    return 1;
+}
+async function deleteTask(TaskId){
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+    await request
+    .input('taskId', sql.Int, TaskId)
+    .query('DELETE FROM Task WHERE TaskID = @taskId');
+    dbConnection.disconnect();
+    return 1;
+}
 
 module.exports = {
     getAllAlerts,
@@ -81,4 +147,11 @@ module.exports = {
     insertAlert,
     insertReminder: insertSchedule,
     insertTask,
+    verifyAlertIdExist,
+    verifyScheduleIdExist,
+    verifyTaskIdExist,
+    deleteReminder,
+    deleteSchedule,
+    deleteTask,
+
 };

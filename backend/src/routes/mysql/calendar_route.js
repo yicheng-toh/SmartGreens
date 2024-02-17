@@ -124,8 +124,6 @@ router.post("/insertAlert", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-
-//This route is not done yet.
 router.post("/insertSchedule", async (req, res) => {
     try {
 			let success = 0;
@@ -189,7 +187,6 @@ router.post("/insertSchedule", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-//This route is not done yet
 router.post("/insertTask", async (req, res) => {
     try {
 			let success = 0;
@@ -255,9 +252,9 @@ router.get("/retrieveAlerts", async (req, res) => {
 
 /**
  * @swagger
- * /calendar/retrieveReminders:
+ * /calendar/retrieveSchedules:
  *   get:
- *     summary: Retrieve all reminders
+ *     summary: Retrieve all shedules
  *     tags: [Calendar]
  *     responses:
  *       200:
@@ -265,10 +262,10 @@ router.get("/retrieveAlerts", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.get("/retrieveReminders", async (req, res) => {
+router.get("/retrieveSchedules", async (req, res) => {
   try {
     // const [rows] = await mysqlLogic.getAllSensorData();
-    const [rows] = await mysqlLogic.getAllReminders();
+    const [rows] = await mysqlLogic.getAllSchedules();
     if (rows) {
       res.status(200).json({success: 1,result: rows});
       return;
@@ -310,6 +307,170 @@ router.get("/retrieveTasks", async (req, res) => {
     sendInternalServerError(res, error);
     return;
   }
+});
+
+/**
+ * @swagger
+ * /calendar/deleteAlert/{alertId}:
+ *   delete:
+ *     summary: Delete an alert by ID
+ *     tags: [Calendar]
+ *     parameters:
+ *       - in: path
+ *         name: alertId
+ *         required: true
+ *         description: ID of the alert to delete
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       201:
+ *         description: Alert deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicates whether the deletion was successful
+ */
+router.delete('/deleteAlert/:alertId',async (req, res) => {
+  // try{     
+      try {
+        let success = 0;
+        const {alertId} = req.params;
+        if (isNaN(parseInt(alertId))){
+          sendInternalServerError(res, "Alert id is not an integer");
+          return;
+        }
+        const isAlertIdExist = await mysqlLogic.verifyAlertIdExist(alertId);
+        if(!isAlertIdExist){
+          console.log("isAlertIdExist",isAlertIdExist);
+          sendInternalServerError(res, "Alert Id does not exist.");
+          return;
+        }
+
+        
+        success = await mysqlLogic.deleteAlert(alertId);
+        res.status(201).json({'success': success});
+        return;
+
+      } catch (error) {
+        console.log('Error inserting data:', error);
+        // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
+        return;
+      }
+});
+
+/**
+ * @swagger
+ * /calendar/deleteSchedule/{scheduleId}:
+ *   delete:
+ *     summary: Delete a schedule by ID
+ *     tags: [Calendar]
+ *     parameters:
+ *       - in: path
+ *         name: scheduleId
+ *         required: true
+ *         description: ID of the schedule to delete
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       201:
+ *         description: Schedule deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicates whether the deletion was successful
+ */
+router.delete('/deleteSchedule/:scheduleId',async (req, res) => {
+  // try{     
+      try {
+        let success = 0;
+        const {scheduleId} = req.params;
+        if (isNaN(parseInt(scheduleId))){
+          sendInternalServerError(res, "Schedule Id given is not an integer.");
+          return;
+        }
+        const isScheduleIdExist = await mysqlLogic.verifyScheduleIdExist(scheduleId);
+        if(!isScheduleIdExist){
+          console.log("isScheduleIdExist",isScheduleIdExist);
+          sendInternalServerError(res, "Schedule Id does not exist.");
+          return;
+        }
+
+        
+        success = await mysqlLogic.deleteSchedule(scheduleId);
+        res.status(201).json({'success': success});
+        return;
+
+      } catch (error) {
+        console.log('Error inserting data:', error);
+        // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
+        return;
+      }
+});
+
+/**
+ * @swagger
+ * /calendar/deleteTask/{taskId}:
+ *   delete:
+ *     summary: Delete a task by ID
+ *     tags: [Calendar]
+ *     parameters:
+ *       - in: path
+ *         name: taskId
+ *         required: true
+ *         description: ID of the task to delete
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       201:
+ *         description: Task deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicates whether the deletion was successful
+ */
+router.delete('/deleteTask/:taskId',async (req, res) => {
+  // try{     
+      try {
+        let success = 0;
+        const {taskId} = req.params;
+        if (isNaN(parseInt(taskId))){
+          sendInternalServerError(res, "Invalid Task Id.");
+          return;
+        }
+        const isTaskIdExist = await mysqlLogic.verifyTaskIdExist(taskId);
+        if(!isTaskIdExist){
+          console.log("isTaskIdExist",isTaskIdExist);
+          sendInternalServerError(res, "Task Id does not exist.");
+          return;
+        }
+
+        success = await mysqlLogic.deleteTask(taskId);
+        res.status(201).json({'success': success});
+        return;
+
+      } catch (error) {
+        console.log('Error inserting data:', error);
+        // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
+        return;
+      }
 });
 
 module.exports = router;
