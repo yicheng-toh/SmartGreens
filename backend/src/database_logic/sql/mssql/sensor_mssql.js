@@ -171,14 +171,16 @@ async function shouldUpdateExisingSensorReadings(micrcontrolleridPrefix, microco
         return shouldUpdate;
     }
     if (microcontrollerIdSuffix == 1 ){
-        if (rows.temperature == null){
+        if (!rows.temperature){
             shouldUpdate = true;
         }
+        console.log("rows.temperature is ", rows.temperature);
 
     }else if (microcontrollerIdSuffix == 2){
-        if (rows.pH == null){
+        if (!rows.pH){
             shouldUpdate = true;
         }
+        console.log("rows.pH is ", rows.pH);
     }
     return shouldUpdate;
 }

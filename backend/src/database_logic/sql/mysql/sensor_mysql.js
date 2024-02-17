@@ -35,10 +35,12 @@ async function shouldUpdateExisingSensorReadings(micrcontrolleridPrefix, microco
     `;
     const minutes = 5;
     const queryResult = await dbConnection.promise().query(getLatestMicroContollerSensorReadingQuery, [micrcontrolleridPrefix, minutes]);
+    console.log("queryResult is", queryResult);
     if (queryResult == undefined){
         return shouldUpdate;
     }
     let [rows] = queryResult[0];
+    console.log("rows is", rows);
     if (!rows){
         return shouldUpdate;
     }
@@ -46,11 +48,13 @@ async function shouldUpdateExisingSensorReadings(micrcontrolleridPrefix, microco
         if (rows.temperature == null){
             shouldUpdate = true;
         }
+        console.log("rows.temperature is", rows.temperature);
 
     }else if (microcontrollerIdSuffix == 2){
         if (rows.pH == null){
             shouldUpdate = true;
         }
+        console.log("rows.pH is ", rows.pH);
     }
     return shouldUpdate;
 }
@@ -108,7 +112,9 @@ async function insertSensorValuesSuffix2(
   plantBatch,
   pH, CO2, EC, TDS
 ) {
-   let shouldUpdate = shouldUpdateExisingSensorReadings(microcontrollerIdPrefix, microcontrollerIdSuffix);
+  console.log("Currently in insertSensorValuesSuffix2");
+   let shouldUpdate = await shouldUpdateExisingSensorReadings(microcontrollerIdPrefix, microcontrollerIdSuffix);
+   console.log("should update", shouldUpdate);
    if (shouldUpdate){
     await dbConnection.execute(
         `
