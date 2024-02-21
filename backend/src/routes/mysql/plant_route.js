@@ -516,7 +516,7 @@ router.get("/retrieveData", async (req, res) => {
  */
 router.get("/plantSeedsInventory", async (req, res) => {
   try {
-    const [rows] = await mysqlLogic.getAllPlantSeedInventory();
+    const rows = await mysqlLogic.getAllPlantSeedInventory();
     res.status(200).json({ success: 1, result: rows });
   } catch (error) {
     console.log("Error retrieving data:", error);
@@ -542,7 +542,7 @@ router.get("/plantSeedsInventory", async (req, res) => {
 router.get("/plantData", async (req, res) => {
   try {
     let success = 0;
-    const [rows] = await mysqlLogic.getAllPlantInfo();
+    const rows = await mysqlLogic.getAllPlantInfo();
     success = 1;
     res.status(200).json({ success: success, result: rows });
   } catch (error) {
@@ -577,7 +577,7 @@ router.get("/plantYield", async (req, res) => {
   try {
     let success = 0;
     // console.log(mysqlLogic.getAllPlantYieldRate);
-    const [rows] = await mysqlLogic.getAllPlantYieldRate();
+    const rows = await mysqlLogic.getAllPlantYieldRate();
     console.log(rows);
     success = 1;
     res.status(200).json({ success: success, result: rows });
@@ -613,7 +613,7 @@ router.get("/plantYield", async (req, res) => {
 router.get("/plantBatchInfoAndYield", async (req, res) => {
   try {
     let success = 0;
-    const [rows] = await mysqlLogic.getAllPlantBatchInfoAndYield();
+    const rows = await mysqlLogic.getAllPlantBatchInfoAndYield();
     console.log(rows);
     success = 1;
     res.status(200).json({ success: success, result: rows });
