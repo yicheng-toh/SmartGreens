@@ -26,8 +26,8 @@ describe("Inventory Route Integration Tests", () => {
     mysqlLogic.initialiseMySQL();
     mysqlLogic.initialiseMySQL();
     await mysqlLogic.initialiseMySQL();
-    await mysqlLogic.insertNewInventoryObject("HCL", 10, "litres", 1);
-    await mysqlLogic.insertNewInventoryObject("HCL2", 30, "litres", 1);
+    await mysqlLogic.insertNewInventoryObject("HCL", 10, "litres", "1");
+    await mysqlLogic.insertNewInventoryObject("HCL2", 30, "litres", "1");
     //insert any initial data as necessary
   },100000);
 
@@ -70,8 +70,7 @@ describe("Inventory Route Integration Tests", () => {
         inventoryName: "Acidic Solutiona",
         quantity: 50,
         units: "liters",
-        location: 3,
-      });
+        location: "3" });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(1);
