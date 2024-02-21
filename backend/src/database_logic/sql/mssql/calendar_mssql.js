@@ -12,7 +12,7 @@ async function getAllSchedules(){
 //insertReminder
 async function insertSchedule(description, datetime, status){
     const dbConnection = await createDbConnection();
-    // await dbConnection.execute('INSERT INTO Reminders (Task, Datetime, Status) VALUES (?,?,?)',
+    // await dbConnection.execute('INSERT INTO Schedule (Task, Datetime, Status) VALUES (?,?,?)',
     //     [task, datetime, status]);
     const request = await dbConnection.connect();
     await request
@@ -112,12 +112,12 @@ async function verifyTaskIdExist(taskId){
     return taskIdList.recordset.length;
 }
 
-async function deleteReminder(reminderId){
+async function deleteAlert(alertId){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     await request
-    .input('reminderId', sql.Int, reminderId)
-    .query('DELETE FROM Reminder WHERE ReminderID = @reminderId');
+    .input('alertId', sql.Int, alertId)
+    .query('DELETE FROM Alert WHERE AlertID = @alertId');
     dbConnection.disconnect();
     return 1;
 }
@@ -142,15 +142,15 @@ async function deleteTask(TaskId){
 
 module.exports = {
     getAllAlerts,
-    getAllReminders: getAllSchedules,
+    getAllSchedules,
     getAllTasks,
     insertAlert,
-    insertReminder: insertSchedule,
+    insertSchedule,
     insertTask,
     verifyAlertIdExist,
     verifyScheduleIdExist,
     verifyTaskIdExist,
-    deleteReminder,
+    deleteAlert,
     deleteSchedule,
     deleteTask,
 
