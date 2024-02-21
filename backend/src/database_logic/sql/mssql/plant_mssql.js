@@ -74,7 +74,7 @@ async function getAllPlantSeedInventory() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   queryResult = await request.query(
-    "SELECT CurrentSeedInventory FROM PlantInfo"
+    "SELECT PlantId, PlantName, CurrentSeedInventory FROM PlantInfo"
   );
   await dbConnection.disconnect();
   return queryResult.recordset;

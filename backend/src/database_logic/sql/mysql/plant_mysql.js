@@ -156,7 +156,7 @@ async function growPlant(
   const originalQuantityResultList = await dbConnection
     .promise()
     .query(
-      "SELECT CurrentSeedInventory FROM PlantInfo WHERE PlantId = ?",
+      "SELECT PlantId, PlantName, CurrentSeedInventory FROM PlantInfo WHERE PlantId = ?",
       plantId
     );
   // console.log(originalQuantityResultList);
