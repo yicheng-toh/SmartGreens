@@ -5,21 +5,27 @@ const sql = require("mssql");
 async function getAllSchedules(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    queryResult = await request.query('SELECT * FROM Schedule');
+    queryResult = await request.query('SELECT * FROM Schedule2');
+    console.log("schedules result", queryResult);
     dbConnection.disconnect();
     return queryResult.recordset;
 }
 //insertReminder
-async function insertSchedule(description, datetime, status){
+async function insertSchedule(type, content, task){
     const dbConnection = await createDbConnection();
     // await dbConnection.execute('INSERT INTO Schedule (Task, Datetime, Status) VALUES (?,?,?)',
     //     [task, datetime, status]);
     const request = await dbConnection.connect();
+    // await request
+    //     .input('description', sql.VarChar, description)
+    //     .input('datetime', sql.DateTime, datetime)
+    //     .input('status', sql.Bit, !!status)
+    //     .query('INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (@description, @datetime, @status)');
     await request
-        .input('description', sql.VarChar, description)
-        .input('datetime', sql.DateTime, datetime)
-        .input('status', sql.Bit, !!status)
-        .query('INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (@description, @datetime, @status)');
+        .input('type', sql.VarChar, type)
+        .input('content', sql.DateTime, content)
+        .input('task', sql.VarChar, task)
+        .query('INSERT INTO Schedule2 (Type, Content, Task) VALUES (@type, @content, @task)');
     dbConnection.disconnect();
     return 1;
 }
@@ -93,7 +99,7 @@ async function verifyScheduleIdExist(scheduleId){
     console.log("verifying id....");
     const scheduleIdList = await request
         .input('scheduleId', sql.Int, scheduleId)
-        .query('SELECT * FROM Schedule WHERE ScheduleId = @scheduleId');
+        .query('SELECT * FROM Schedule2 WHERE ScheduleId = @scheduleId');
     console.log("schedule id list is", scheduleIdList);
     dbConnection.disconnect();
     return scheduleIdList.recordset.length;

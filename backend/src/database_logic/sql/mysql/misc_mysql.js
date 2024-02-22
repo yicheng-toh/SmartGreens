@@ -209,6 +209,29 @@ const {dbConnection} = require("./mysql.js");
           TotalHarvestDiscarded INT DEFAULT 0
       );
     `
+    const createPlantSensorInfoTable = `
+      CREATE TABLE IF NOT EXISTS PlantSensorInfo (
+          PlantId INT PRIMARY KEY,
+          Humidity_min FLOAT,
+          Humidity_max FLOAT,
+          Humidity_optimal FLOAT,
+          Brightness_min FLOAT,
+          Brightness_max FLOAT,
+          Brightness_optimal FLOAT,
+          pH_min FLOAT,
+          pH_max FLOAT,
+          pH_optimal FLOAT,
+          CO2_min FLOAT,
+          CO2_max FLOAT,
+          CO2_optimal FLOAT,
+          EC_min FLOAT,
+          EC_max FLOAT,
+          EC_optimal FLOAT,
+          TDS_min FLOAT,
+          TDS_max FLOAT,
+          TDS_optimal FLOAT
+      );
+    `
     const createTaskTable = `
       CREATE TABLE IF NOT EXISTS Task (
           TaskId INT PRIMARY KEY AUTO_INCREMENT,
@@ -234,6 +257,14 @@ const {dbConnection} = require("./mysql.js");
           Status BOOLEAN
       );
     `
+    const createScheduleTable = `
+        CREATE TABLE IF NOT EXISTS schedule2 (
+          scheduleid INT PRIMARY KEY AUTO_INCREMENT,
+          type VARCHAR(255) DEFAULT 'manual',
+          content DATETIME,
+          task VARCHAR(255)
+      );
+    `
     
   
       await dbConnection.execute(createSensorReadingsTable);
@@ -243,9 +274,11 @@ const {dbConnection} = require("./mysql.js");
       // await dbConnection.execute(createPlantSeedInventoryTable);
       // await dbConnection.execute(createPlantHarverstTable);
       await dbConnection.execute(createPlantInfoTable);
+      await dbConnection.execute(createPlantSensorInfoTable);
       await dbConnection.execute(createTaskTable);
       await dbConnection.execute(createAlertSentTable);
       await dbConnection.execute(createRemindersTable);
+      await dbConnection.execute(createScheduleTable);
       // await dbConnection.execute(createMicrocontrollerLocationTable);
       // await dbConnection.execute(createPlantBatchTable);
       // console.log("Tables created or already exists.");

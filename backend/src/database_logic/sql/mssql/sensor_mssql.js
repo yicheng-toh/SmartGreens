@@ -138,7 +138,46 @@ async function insertSensorValuesSuffix2(
 async function getAllSensorData() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
-  const queryResult = await request.query("SELECT * FROM SensorReadings");
+  // const queryResult = await request.query("SELECT * FROM SensorReadings");
+  const sqlQuery = `
+  SELECT 
+      sr.Datetime,
+      sr.MicrocontrollerID,
+      sr.PlantBatchId,
+      sr.Temperature,
+      sr.Humidity,
+      sr.Brightness,
+      sr.pH,
+      sr.CO2,
+      sr.EC,
+      sr.TDS,
+      psi.PlantId,
+      psi.Humidity_min,
+      psi.Humidity_max,
+      psi.Humidity_optimal,
+      psi.Brightness_min,
+      psi.Brightness_max,
+      psi.Brightness_optimal,
+      psi.pH_min,
+      psi.pH_max,
+      psi.pH_optimal,
+      psi.CO2_min,
+      psi.CO2_max,
+      psi.CO2_optimal,
+      psi.EC_min,
+      psi.EC_max,
+      psi.EC_optimal,
+      psi.TDS_min,
+      psi.TDS_max,
+      psi.TDS_optimal
+  FROM 
+      SensorReadings sr
+  LEFT JOIN 
+      PlantBatch pb ON sr.PlantBatchId = pb.PlantBatchId
+  LEFT JOIN 
+      PlantSensorInfo psi ON pb.PlantId = psi.PlantId;
+`;
+  const queryResult = await request.query(sqlQuery);
   await dbConnection.disconnect();
   return queryResult.recordset;
 }

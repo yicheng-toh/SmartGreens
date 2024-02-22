@@ -3,15 +3,20 @@ const { dbConnection } = require("./mysql.js");
 //reminder
 //getAllReminders
 async function getAllSchedules() {
-  queryResult = await dbConnection.promise().query("SELECT * FROM Schedule");
+  queryResult = await dbConnection.promise().query("SELECT * FROM Schedule2");
+  console.log(queryResult[0]);
   return queryResult[0];
 }
 //insertReminder
-async function insertSchedule(description, datetime, status) {
+async function insertSchedule(type, content, task) {
   try {
+    // await dbConnection.execute(
+    //   "INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (?,?,?)",
+    //   [description, datetime, status]
+    // );
     await dbConnection.execute(
-      "INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (?,?,?)",
-      [description, datetime, status]
+      "INSERT INTO Schedule2 (type, content, task) VALUES (?,?,?)",
+      [type, content, task]
     );
   } catch (error) {
     console.log("Error in getAllAlerts:", error);
@@ -78,7 +83,7 @@ async function verifyAlertIdExist(alertId) {
 async function verifyScheduleIdExist(scheduleId) {
   const scheduleIdList = await dbConnection
     .promise()
-    .query("SELECT * FROM Schedule WHERE ScheduleId = ?", scheduleId);
+    .query("SELECT * FROM Schedule2 WHERE ScheduleId = ?", scheduleId);
   // console.log(inventoryIdList);
   return scheduleIdList[0].length;
 }
@@ -113,7 +118,7 @@ module.exports = {
   getAllSchedules,
   getAllTasks,
   insertAlert,
-  insertReminder: insertSchedule,
+  insertSchedule,
   insertTask,
   verifyAlertIdExist,
   verifyScheduleIdExist,

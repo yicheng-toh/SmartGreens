@@ -686,6 +686,31 @@ async function createTablesIfNotExistVersion5() {
             );
         END;
 
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantSensorInfo')
+        BEGIN
+            CREATE TABLE PlantSensorInfo (
+                PlantId INT PRIMARY KEY IDENTITY(1,1),
+                Humidity_min FLOAT,
+                Humidity_max FLOAT,
+                Humidity_optimal FLOAT,
+                Brightness_min FLOAT,
+                Brightness_max FLOAT,
+                Brightness_optimal FLOAT,
+                pH_min FLOAT,
+                pH_max FLOAT,
+                pH_optimal FLOAT,
+                CO2_min FLOAT,
+                CO2_max FLOAT,
+                CO2_optimal FLOAT,
+                EC_min FLOAT,
+                EC_max FLOAT,
+                EC_optimal FLOAT,
+                TDS_min FLOAT,
+                TDS_max FLOAT,
+                TDS_optimal FLOAT
+            );
+        END;
+
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Task')
         BEGIN
             CREATE TABLE Task (
@@ -714,6 +739,16 @@ async function createTablesIfNotExistVersion5() {
                 ScheduleDescription VARCHAR(255) NOT NULL,
                 Datetime DATETIME NOT NULL,
                 Status BIT
+            );
+        END;
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Schedule2')
+        BEGIN
+            CREATE TABLE Schedule2(
+                ScheduleId INT PRIMARY KEY IDENTITY(1,1),
+                Type VARCHAR(255) DEFAULT 'manual',
+                Content DATETIME,
+                Task VARCHAR(255)
             );
         END;
     `;
