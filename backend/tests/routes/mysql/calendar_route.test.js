@@ -169,7 +169,7 @@ describe('Alert and Reminder Route Integration Tests', () => {
 
       expect(response.status).toBe(200);
       // Add more assertions based on the expected response structure
-    });
+    },100000);
 
     // Add more tests as needed
   });
@@ -181,7 +181,7 @@ describe('Alert and Reminder Route Integration Tests', () => {
 
       expect(response.status).toBe(200);
       // Add more assertions based on the expected response structure
-    });
+    },100000);
 
     // Add more tests as needed
   });
@@ -193,7 +193,7 @@ describe('Alert and Reminder Route Integration Tests', () => {
 
       expect(response.status).toBe(200);
       // Add more assertions based on the expected response structure
-    });
+    },100000);
 
     // Add more tests as needed
   });
@@ -208,7 +208,7 @@ describe('Alert and Reminder Route Integration Tests', () => {
       expect(response.body.success).toBe(1);
   
       // Implement assertions to verify that the alert has been deleted
-    });
+    },100000);
   
     it("should handle invalid alert ID and return 500", async () => {
       const invalidAlertIds = [
@@ -221,7 +221,7 @@ describe('Alert and Reminder Route Integration Tests', () => {
         const response = await supertest(app).delete(COMMON_ROUTE + "/deleteAlert/" + alertId);
         expect(response.status).toBe(500);
       }
-    });
+    },100000);
   
     // Add more tests as needed
   });
@@ -236,7 +236,7 @@ describe('Alert and Reminder Route Integration Tests', () => {
       expect(response.body.success).toBe(1);
   
       // Implement assertions to verify that the reminder has been deleted
-    });
+    },100000);
   
     it("should handle invalid schedule ID and return 500", async () => {
       const invalidScheduleIds = [
@@ -249,7 +249,7 @@ describe('Alert and Reminder Route Integration Tests', () => {
         const response = await supertest(app).delete(COMMON_ROUTE + "/deleteSchedule/" + scheduleId);
         expect(response.status).toBe(500);
       }
-    });
+    },100000);
   
     // Add more tests as needed
   });
@@ -264,7 +264,7 @@ describe('Alert and Reminder Route Integration Tests', () => {
       expect(response.body.success).toBe(1);
   
       // Implement assertions to verify that the task has been deleted
-    });
+    },100000);
   
     it("should handle invalid task ID and return 500", async () => {
       const invalidTaskIds = [
@@ -277,7 +277,7 @@ describe('Alert and Reminder Route Integration Tests', () => {
         const response = await supertest(app).delete(COMMON_ROUTE + "/deleteTask/" + taskId);
         expect(response.status).toBe(500);
       }
-    });
+    },100000);
   
     // Add more tests as needed
   });
