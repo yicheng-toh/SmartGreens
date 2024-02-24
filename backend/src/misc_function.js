@@ -7,9 +7,9 @@ function convertTime12HourTo24Hour(timeStr) {
     console.log("hour", hour, "minute", minute)
 
     // Adjust hour for PM time
-    if (timeStr.endsWith('pm') && hour < 12) {
+    if (timeStr.toLowerCase().endsWith('pm') && hour < 12) {
         hour += 12;
-    } else if (timeStr.endsWith('am') && hour === 12) {
+    } else if (timeStr.toLowerCase().endsWith('am') && hour === 12) {
         hour = 0; // Adjust hour to 0 for 12:00am
     }
 
@@ -21,6 +21,7 @@ function convertTime12HourTo24Hour(timeStr) {
 }
 
 function formatDateTimeOutput(content) {
+    console.log("format date time output content", content);
     const dateTime = new Date(content);
     
     // Get individual date components
@@ -31,9 +32,10 @@ function formatDateTimeOutput(content) {
     // Get individual time components
     let hours = dateTime.getHours();
     const minutes = dateTime.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
+    let ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12;
     hours = hours ? hours : 12; // Handle midnight (0 hours)
+    // ampm = content.slice(-2);
 
     // Format date and time
     const formattedDate = `${day} ${month} ${year}`;
