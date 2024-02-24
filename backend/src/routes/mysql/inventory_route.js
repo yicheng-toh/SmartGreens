@@ -212,7 +212,7 @@ router.post('/updateInventoryUnit', async (req, res) => {
 router.get('/retrieveAllInventoryData', async(req, res) => {
     try {
       //need to double check this with mssql. currently works on mysql
-        const [rows] = await mysqlLogic.getAllInventoryData();
+        const rows = await mysqlLogic.getAllInventoryData();
         res.status(200).send({'success': 1, 'result': rows});
         return;
     } catch (error) {
