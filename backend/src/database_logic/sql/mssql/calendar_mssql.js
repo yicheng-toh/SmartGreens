@@ -132,7 +132,7 @@ async function deleteSchedule(scheduleId){
     const request = await dbConnection.connect();
     await request
     .input('scheduleId', sql.Int, scheduleId)
-    .query('DELETE FROM Schedule WHERE ScheduleID = @scheduleId');
+    .query('DELETE FROM Schedule2 WHERE ScheduleID = @scheduleId');
     dbConnection.disconnect();
     return 1;
 }

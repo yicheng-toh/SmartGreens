@@ -102,7 +102,7 @@ async function deleteAlert(alertId) {
 }
 
 async function deleteSchedule(scheduleId) {
-  await dbConnection.execute("DELETE FROM Schedule WHERE ScheduleId = ?", [
+  await dbConnection.execute("DELETE FROM Schedule2 WHERE ScheduleId = ?", [
     scheduleId,
   ]);
   return 1;
