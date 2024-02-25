@@ -44,7 +44,27 @@ function formatDateTimeOutput(content) {
     return `${formattedDate} ${formattedTime}`;
 }
 
+function groupSensorDataByPlantType(data) {
+    let res = {};
+    for (let entry of data) {
+      console.log("entry is", entry);
+      if (!(entry.PlantName in res)) {
+        res[entry.PlantName] = {};
+      }
+  
+      for (let key in entry) {
+        // console.log("entry key is", key);
+        if (!(key in res[entry.PlantName])) {
+          res[entry.PlantName][key] = [];
+        }
+        res[entry.PlantName][key].push(entry[key]);
+      }
+    }
+    return res;
+  }
+
 module.exports = {
     convertTime12HourTo24Hour,
-    formatDateTimeOutput
+    formatDateTimeOutput,
+    groupSensorDataByPlantType,
 }
