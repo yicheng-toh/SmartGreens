@@ -63,8 +63,54 @@ function groupSensorDataByPlantType(data) {
     return res;
   }
 
+  function appendStatusToLatestSensorReadings(dataList){
+    //if there is no violation, then the status is healthy.
+    //if there is 1 violation, then it is attention
+    // if there are greater than 1 violation then it is critical.
+    //will be coded with hard coded values.
+    console.log("datalsit is ",dataList);
+    for(let [key,data] of Object.entries(dataList)){
+      console.log("data is", data);
+      const parameters = ['Temperature', 'Humidity', 'Brightness', 'pH', 'CO2', 'TDS'];
+      let counter = 0;
+      try {
+          parameters.forEach(parameter => {
+              try {
+                  const value = data[parameter][0];
+                  const min = data[`${parameter}_min`][0];
+                  const max = data[`${parameter}_max`][0];
+
+                  if (min !== null && value < min && value !== null) {
+                      counter++;
+                  } else if (max !== null && value > max && value !== null) {
+                      counter++;
+                  }
+              } catch (error) {
+                  console.error(`Error comparing ${parameter}:`, error.message);
+              }
+          });
+      } catch (error) {
+          console.error('Error occurred:', error.message);
+      }
+
+      let status;
+      if (counter <= 0) {
+          status = 'healthy';
+      } else if (counter === 1) {
+          status = 'attention';
+      } else if (counter >= 1){
+          status = 'critical';
+      }
+      data.status = status;
+    }
+    return dataList;
+    // return { status, counter };
+
+  }
+
 module.exports = {
     convertTime12HourTo24Hour,
     formatDateTimeOutput,
     groupSensorDataByPlantType,
+    appendStatusToLatestSensorReadings,
 }
