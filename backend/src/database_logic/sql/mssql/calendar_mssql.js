@@ -11,7 +11,7 @@ async function getAllSchedules(){
     return queryResult.recordset;
 }
 //insertReminder
-async function insertSchedule(type, content, task){
+async function insertSchedule(type, content, task, id = null){
     const dbConnection = await createDbConnection();
     // await dbConnection.execute('INSERT INTO Schedule (Task, Datetime, Status) VALUES (?,?,?)',
     //     [task, datetime, status]);
@@ -21,11 +21,20 @@ async function insertSchedule(type, content, task){
     //     .input('datetime', sql.DateTime, datetime)
     //     .input('status', sql.Bit, !!status)
     //     .query('INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (@description, @datetime, @status)');
-    await request
-        .input('type', sql.VarChar, type)
-        .input('content', sql.DateTime, content)
-        .input('task', sql.VarChar, task)
-        .query('INSERT INTO Schedule2 (Type, Content, Task) VALUES (@type, @content, @task)');
+    if(!id){
+        await request
+            .input('type', sql.VarChar, type)
+            .input('content', sql.DateTime, content)
+            .input('task', sql.VarChar, task)
+            .query('INSERT INTO Schedule2 (Type, Content, Task) VALUES (@type, @content, @task)');
+    }else{
+        await request
+            .input('id', sql.Int, id)
+            .input('type', sql.VarChar, type)
+            .input('content', sql.DateTime, content)
+            .input('task', sql.VarChar, task)
+            .query('INSERT INTO Schedule2 (Type, Content, Task, ScheduleId) VALUES (@type, @content, @task, @id)');
+    }
     dbConnection.disconnect();
     return 1;
 }
