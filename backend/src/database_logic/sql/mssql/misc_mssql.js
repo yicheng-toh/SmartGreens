@@ -627,8 +627,8 @@ async function createTablesIfNotExistVersion5() {
                 MicrocontrollerID VARCHAR(20) NOT NULL,
                 PlantBatchId INT,
                 Temperature FLOAT,
-                Humidity INT,
-                Brightness INT,
+                Humidity FLOAT,
+                Brightness FLOAT,
                 pH FLOAT,
                 CO2 FLOAT,
                 EC FLOAT,
@@ -672,6 +672,17 @@ async function createTablesIfNotExistVersion5() {
             );
         END;
 
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Inventory2')
+        BEGIN
+            CREATE TABLE Inventory2 (
+                id INT IDENTITY(1,1) PRIMARY KEY,
+                item VARCHAR(255),
+                quantity FLOAT,
+                units VARCHAR(50),
+                location VARCHAR(255)
+            );
+        END;
+
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantInfo')
         BEGIN
             CREATE TABLE PlantInfo (
@@ -689,7 +700,10 @@ async function createTablesIfNotExistVersion5() {
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantSensorInfo')
         BEGIN
             CREATE TABLE PlantSensorInfo (
-                PlantId INT PRIMARY KEY IDENTITY(1,1),
+                PlantId INT PRIMARY KEY,
+                Temperature_min FLOAT,
+                Temperature_max FLOAT,
+                Temperature_optimal FLOAT,
                 Humidity_min FLOAT,
                 Humidity_max FLOAT,
                 Humidity_optimal FLOAT,
@@ -735,7 +749,7 @@ async function createTablesIfNotExistVersion5() {
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Schedule')
         BEGIN
             CREATE TABLE Schedule (
-                ScheduleId INT PRIMARY KEY IDENTITY(1,1),
+                ScheduleId INT PRIMARY KEY,
                 ScheduleDescription VARCHAR(255) NOT NULL,
                 Datetime DATETIME NOT NULL,
                 Status BIT
@@ -745,7 +759,7 @@ async function createTablesIfNotExistVersion5() {
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Schedule2')
         BEGIN
             CREATE TABLE Schedule2(
-                ScheduleId INT PRIMARY KEY IDENTITY(1,1),
+                ScheduleId INT IDENTITY(1,1) PRIMARY KEY,
                 Type VARCHAR(255) DEFAULT 'manual',
                 Content DATETIME,
                 Task VARCHAR(255)
