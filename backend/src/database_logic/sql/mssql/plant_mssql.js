@@ -199,7 +199,7 @@ async function growPlant(
 
   const result = await request
     // .input("plantID", sql.Int, plantId)
-    .input("plantLocation", sql.Int, plantLocation)
+    .input("plantLocation", sql.VarChar, plantLocation)
     .input("quantityPlanted", sql.Int, quantityDecrement)
     .input("datePlanted", sql.DateTime, datePlanted)
     .query(
@@ -421,6 +421,33 @@ async function updatePlantSensorInfo(data) {
   }
 }
 
+async function getAllPlantBatchInfo() {
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  queryResult = await request
+    .query(
+      `SELECT 
+        PlantBatch.PlantBatchId,
+        PlantBatch.PlantId,
+        PlantBatch.PlantLocation,
+        PlantBatch.QuantityPlanted,
+        PlantBatch.QuantityHarvested,
+        PlantBatch.DatePlanted,
+        PlantBatch.DateHarvested,
+        PlantInfo.PlantName,
+        PlantInfo.PlantPicture,
+        PlantInfo.SensorsRanges,
+        PlantInfo.DaysToMature,
+        PlantInfo.CurrentSeedInventory,
+        PlantInfo.TotalHarvestSold,
+        PlantInfo.TotalHarvestDiscarded
+       FROM PlantBatch 
+      LEFT JOIN 
+        PlantInfo ON PlantInfo.PlantID = PlantBatch.PlantID`
+    );
+  return queryResult.recordset;
+}
+
 //need to rethink on how to write the functions......write them based on sql queries... or....
 //there is no harvest plant info. i.e. no logic to harvest plant.
 
@@ -428,6 +455,7 @@ module.exports = {
   getAllPlantHarvestData,
   // updatePlantHarvestData,
   getAllPlantBatchInfoAndYield,
+  getAllPlantBatchInfo,
   getAllPlantInfo,
   getAllPlantYieldRate,
   insertNewPlant,

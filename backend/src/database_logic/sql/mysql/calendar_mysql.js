@@ -8,16 +8,23 @@ async function getAllSchedules() {
   return queryResult[0];
 }
 //insertReminder
-async function insertSchedule(type, content, task) {
+async function insertSchedule(type, content, task, id = null) {
   try {
     // await dbConnection.execute(
     //   "INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (?,?,?)",
     //   [description, datetime, status]
     // );
-    await dbConnection.execute(
-      "INSERT INTO Schedule2 (type, content, task) VALUES (?,?,?)",
-      [type, content, task]
-    );
+    if (!id) {
+      await dbConnection.execute(
+        "INSERT INTO Schedule2 (type, content, task) VALUES (?,?,?)",
+        [type, content, task]
+      );
+    } else {
+      await dbConnection.execute(
+        "INSERT INTO Schedule2 (type, content, task, ScheduleId) VALUES (?,?,?,?)",
+        [type, content, task, id]
+      );
+    }
   } catch (error) {
     console.log("Error in getAllAlerts:", error);
     throw error; // Optionally rethrow the error

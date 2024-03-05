@@ -35,7 +35,6 @@ async function getAllPlantSeedInventory() {
 }
 
 async function getAllPlantBatchInfoAndYield() {
- 
   const plantBatchQuery = `
   WITH PlantBatchSummary AS (
     SELECT 
@@ -68,10 +67,10 @@ JOIN
 JOIN
     PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId;
 
-  `
-    queryResult = await dbConnection.promise().query(plantBatchQuery);
-    console.log(queryResult);
-    return queryResult[0];    
+  `;
+  queryResult = await dbConnection.promise().query(plantBatchQuery);
+  console.log(queryResult);
+  return queryResult[0];
 }
 
 async function getAllPlantYieldRate() {
@@ -231,87 +230,97 @@ async function verifyPlantExists(plantId) {
 
 async function updatePlantSensorInfo(data) {
   try {
-      // Check if the PlantId exists
-      const plantSensorEntry = await dbConnection.promise().query(
-          "SELECT * FROM PlantSensorInfo WHERE PlantId = ?",
-          [data.plantId]
+    // Check if the PlantId exists
+    const plantSensorEntry = await dbConnection
+      .promise()
+      .query("SELECT * FROM PlantSensorInfo WHERE PlantId = ?", [data.plantId]);
+    // console.log("existingRows",plantSensorEntry);
+
+    if (plantSensorEntry[0].length <= 0) {
+      // If PlantId does not exist, insert a new row
+      await dbConnection.execute(
+        "INSERT INTO PlantSensorInfo (PlantId, Temperature_min, Temperature_max, Temperature_optimal, Humidity_min, Humidity_max, Humidity_optimal, Brightness_min, Brightness_max, Brightness_optimal, pH_min, pH_max, pH_optimal, CO2_min, CO2_max, CO2_optimal, EC_min, EC_max, EC_optimal, TDS_min, TDS_max, TDS_optimal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          data.plantId,
+          data.temperature_min,
+          data.temperature_max,
+          data.temperature_optimal,
+          data.humidity_min,
+          data.humidity_max,
+          data.humidity_optimal,
+          data.brightness_min,
+          data.brightness_max,
+          data.brightness_optimal,
+          data.pH_min,
+          data.pH_max,
+          data.pH_optimal,
+          data.CO2_min,
+          data.CO2_max,
+          data.CO2_optimal,
+          data.EC_min,
+          data.EC_max,
+          data.EC_optimal,
+          data.TDS_min,
+          data.TDS_max,
+          data.TDS_optimal,
+        ]
       );
-      // console.log("existingRows",plantSensorEntry);
+    } else {
+      // If PlantId exists, update the existing row
+      await dbConnection.execute(
+        "UPDATE PlantSensorInfo SET Temperature_min = ?, Temperature_max = ?, Temperature_optimal = ?, Humidity_min = ?, Humidity_max = ?, Humidity_optimal = ?, Brightness_min = ?, Brightness_max = ?, Brightness_optimal = ?, pH_min = ?, pH_max = ?, pH_optimal = ?, CO2_min = ?, CO2_max = ?, CO2_optimal = ?, EC_min = ?, EC_max = ?, EC_optimal = ?, TDS_min = ?, TDS_max = ?, TDS_optimal = ? WHERE PlantId = ?",
+        [
+          data.temperature_min,
+          data.temperature_max,
+          data.temperature_optimal,
+          data.humidity_min,
+          data.humidity_max,
+          data.humidity_optimal,
+          data.brightness_min,
+          data.brightness_max,
+          data.brightness_optimal,
+          data.pH_min,
+          data.pH_max,
+          data.pH_optimal,
+          data.CO2_min,
+          data.CO2_max,
+          data.CO2_optimal,
+          data.EC_min,
+          data.EC_max,
+          data.EC_optimal,
+          data.TDS_min,
+          data.TDS_max,
+          data.TDS_optimal,
+          data.plantId,
+        ]
+      );
+    }
 
-      if (plantSensorEntry[0].length <= 0) {
-          // If PlantId does not exist, insert a new row
-          await dbConnection.execute(
-              "INSERT INTO PlantSensorInfo (PlantId, Temperature_min, Temperature_max, Temperature_optimal, Humidity_min, Humidity_max, Humidity_optimal, Brightness_min, Brightness_max, Brightness_optimal, pH_min, pH_max, pH_optimal, CO2_min, CO2_max, CO2_optimal, EC_min, EC_max, EC_optimal, TDS_min, TDS_max, TDS_optimal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-              [
-                  data.plantId,
-                  data.temperature_min,
-                  data.temperature_max,
-                  data.temperature_optimal,
-                  data.humidity_min,
-                  data.humidity_max,
-                  data.humidity_optimal,
-                  data.brightness_min,
-                  data.brightness_max,
-                  data.brightness_optimal,
-                  data.pH_min,
-                  data.pH_max,
-                  data.pH_optimal,
-                  data.CO2_min,
-                  data.CO2_max,
-                  data.CO2_optimal,
-                  data.EC_min,
-                  data.EC_max,
-                  data.EC_optimal,
-                  data.TDS_min,
-                  data.TDS_max,
-                  data.TDS_optimal
-              ]
-          );
-      } else {
-          // If PlantId exists, update the existing row
-          await dbConnection.execute(
-              "UPDATE PlantSensorInfo SET Temperature_min = ?, Temperature_max = ?, Temperature_optimal = ?, Humidity_min = ?, Humidity_max = ?, Humidity_optimal = ?, Brightness_min = ?, Brightness_max = ?, Brightness_optimal = ?, pH_min = ?, pH_max = ?, pH_optimal = ?, CO2_min = ?, CO2_max = ?, CO2_optimal = ?, EC_min = ?, EC_max = ?, EC_optimal = ?, TDS_min = ?, TDS_max = ?, TDS_optimal = ? WHERE PlantId = ?",
-              [
-                  data.temperature_min,
-                  data.temperature_max,
-                  data.temperature_optimal,
-                  data.humidity_min,
-                  data.humidity_max,
-                  data.humidity_optimal,
-                  data.brightness_min,
-                  data.brightness_max,
-                  data.brightness_optimal,
-                  data.pH_min,
-                  data.pH_max,
-                  data.pH_optimal,
-                  data.CO2_min,
-                  data.CO2_max,
-                  data.CO2_optimal,
-                  data.EC_min,
-                  data.EC_max,
-                  data.EC_optimal,
-                  data.TDS_min,
-                  data.TDS_max,
-                  data.TDS_optimal,
-                  data.plantId
-              ]
-          );
-      }
-
-      // Return true indicating successful update
-      return true;
+    // Return true indicating successful update
+    return true;
   } catch (error) {
-      console.error("Error updating PlantSensorInfo:", error);
-      return false; // Return false indicating update failure
+    console.error("Error updating PlantSensorInfo:", error);
+    return false; // Return false indicating update failure
   }
 }
 
+async function getAllPlantBatchInfo() {
+  queryResult = await dbConnection
+    .promise()
+    .query(
+      `SELECT * FROM PlantBatch 
+      LEFT JOIN 
+        PlantInfo ON PlantInfo.PlantID = PlantBatch.PlantID`
+    );
+  return queryResult[0];
+}
 
 module.exports = {
   getAllPlantHarvestData,
   // updatePlantHarvestData,
   getAllPlantInfo,
   insertNewPlant,
+  getAllPlantBatchInfo,
   getAllPlantBatchInfoAndYield,
   getAllPlantSeedInventory,
   getAllPlantYieldRate,

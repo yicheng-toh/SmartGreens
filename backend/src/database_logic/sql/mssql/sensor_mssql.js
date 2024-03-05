@@ -23,9 +23,14 @@ async function getPlantBatchIdGivenMicrocontrollerPrefix(
 //   console.log(queryResult[0]);
   if (queryResult.recordset.length) {
     console.log(queryResult);
-    return queryResult.recordset[0];
+    console.log(queryResult.recordset);
+    console.log(queryResult.recordset[0]);
+    console.log(queryResult.recordset[0].PlantBatchId);
+    return queryResult.recordset[0].PlantBatchId;
   }
-  return -1;
+  // return -1;
+  //to edit it back next time
+  return 1;
 }
 
 async function insertSensorValuesSuffix1(
@@ -144,6 +149,7 @@ async function getAllSensorData() {
       sr.Datetime,
       sr.MicrocontrollerID,
       sr.PlantBatchId,
+      pi.PlantName,
       sr.Temperature,
       sr.Humidity,
       sr.Brightness,
@@ -151,7 +157,10 @@ async function getAllSensorData() {
       sr.CO2,
       sr.EC,
       sr.TDS,
-      psi.PlantId,
+      pb.PlantId,
+      psi.Temperature_min,
+      psi.Temperature_max,
+      psi.Temperature_optimal,
       psi.Humidity_min,
       psi.Humidity_max,
       psi.Humidity_optimal,
@@ -175,10 +184,13 @@ async function getAllSensorData() {
   LEFT JOIN 
       PlantBatch pb ON sr.PlantBatchId = pb.PlantBatchId
   LEFT JOIN 
-      PlantSensorInfo psi ON pb.PlantId = psi.PlantId;
+      PlantSensorInfo psi ON pb.PlantId = psi.PlantId
+  LEFT JOIN
+      PlantInfo pi ON pb.PlantId = pi.PlantId
 `;
   const queryResult = await request.query(sqlQuery);
   await dbConnection.disconnect();
+  console.log("sensor data recordset",queryResult.recordset);
   return queryResult.recordset;
 }
 
@@ -195,38 +207,252 @@ async function shouldUpdateExisingSensorReadings(micrcontrolleridPrefix, microco
     OFFSET 0 ROWS
     FETCH NEXT 1 ROWS ONLY;
     `;
-    const minutes = 5;
+    const minutes = 25;
     const queryResult = await request
       .input('microcontrollerId', sql.VarChar(20), micrcontrolleridPrefix)
       .input('minutes', sql.Int, minutes)
       .query(getLatestMicroControllerSensorReadingQuery);
     await dbConnection.disconnect();
-    console.log("should uupdate funtion recrodset",queryResult.recordset)
+    console.log("should update funtion recrodset",queryResult.recordset)
     if (!queryResult.recordset.length){
         return shouldUpdate;
     }
-    let rows = queryResult.recordset;
+    let rows = queryResult.recordset[0];
     if (!rows){
         return shouldUpdate;
     }
     if (microcontrollerIdSuffix == 1 ){
-        if (!rows.temperature){
+        if (rows.Temperature === null && rows.pH !== null){
             shouldUpdate = true;
         }
-        console.log("rows.temperature is ", rows.temperature);
+        console.log("rows.temperature is ", rows.Temperature, "rows.pH is ", rows.pH);
+        // console.log("rows.pH is ", rows.pH);
 
     }else if (microcontrollerIdSuffix == 2){
-        if (!rows.pH){
+        if (rows.pH === null && rows.Temperature !== null){
             shouldUpdate = true;
         }
-        console.log("rows.pH is ", rows.pH);
+        console.log("rows.temperature is ", rows.Temperature, "rows.pH is ", rows.pH);
+        // console.log("rows.temperature is ", rows.temperature);
+        // console.log("rows.pH is ", rows.pH);
     }
     return shouldUpdate;
 }
+
+
+async function getActivePlantBatchSensorData() {
+  const sqlQuery = `
+    SELECT 
+      sr.Datetime,
+      sr.MicrocontrollerID,
+      sr.PlantBatchId,
+      pi.PlantName,
+      sr.Temperature,
+      sr.Humidity,
+      sr.Brightness,
+      sr.pH,
+      sr.CO2,
+      sr.EC,
+      sr.TDS,
+      pb.PlantId,
+      psi.Temperature_min,
+      psi.Temperature_max,
+      psi.Temperature_optimal,
+      psi.Humidity_min,
+      psi.Humidity_max,
+      psi.Humidity_optimal,
+      psi.Brightness_min,
+      psi.Brightness_max,
+      psi.Brightness_optimal,
+      psi.pH_min,
+      psi.pH_max,
+      psi.pH_optimal,
+      psi.CO2_min,
+      psi.CO2_max,
+      psi.CO2_optimal,
+      psi.EC_min,
+      psi.EC_max,
+      psi.EC_optimal,
+      psi.TDS_min,
+      psi.TDS_max,
+      psi.TDS_optimal
+    FROM 
+      SensorReadings sr
+    LEFT JOIN 
+      PlantBatch pb ON sr.PlantBatchId = pb.PlantBatchId
+    LEFT JOIN 
+      PlantSensorInfo psi ON pb.PlantId = psi.PlantId
+    LEFT JOIN
+      PlantInfo pi ON pb.PlantId = pi.PlantId
+    WHERE 
+      pb.DatePlanted IS NOT NULL AND pb.DateHarvested IS NULL;
+  `;
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  const queryResult = await request.query(sqlQuery);
+  return queryResult.recordset;
+}
+
+async function getActivePlantBatchSensorDataXDaysAgo(x) {
+  const sqlQuery = `
+    SELECT 
+      sr.Datetime,
+      sr.MicrocontrollerID,
+      sr.PlantBatchId,
+      pi.PlantName,
+      sr.Temperature,
+      sr.Humidity,
+      sr.Brightness,
+      sr.pH,
+      sr.CO2,
+      sr.EC,
+      sr.TDS,
+      pb.PlantId,
+      psi.Temperature_min,
+      psi.Temperature_max,
+      psi.Temperature_optimal,
+      psi.Humidity_min,
+      psi.Humidity_max,
+      psi.Humidity_optimal,
+      psi.Brightness_min,
+      psi.Brightness_max,
+      psi.Brightness_optimal,
+      psi.pH_min,
+      psi.pH_max,
+      psi.pH_optimal,
+      psi.CO2_min,
+      psi.CO2_max,
+      psi.CO2_optimal,
+      psi.EC_min,
+      psi.EC_max,
+      psi.EC_optimal,
+      psi.TDS_min,
+      psi.TDS_max,
+      psi.TDS_optimal
+    FROM 
+      SensorReadings sr
+    LEFT JOIN 
+      PlantBatch pb ON sr.PlantBatchId = pb.PlantBatchId
+    LEFT JOIN 
+      PlantSensorInfo psi ON pb.PlantId = psi.PlantId
+    LEFT JOIN
+      PlantInfo pi ON pb.PlantId = pi.PlantId
+    WHERE 
+      pb.DatePlanted IS NOT NULL 
+      AND pb.DateHarvested IS NULL
+      AND sr.Datetime >= DATEADD(day, -@days, GETDATE());
+  `;
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  const queryResult = await request.input('days', x).query(sqlQuery);
+  return queryResult.recordset;
+}
+
+async function getLatestActivePlantBatchSensorData(){
+  const sqlQuery = `
+  WITH LatestEntries AS (
+    SELECT 
+        sr.Datetime,
+        sr.MicrocontrollerID,
+        sr.PlantBatchId,
+        pi.PlantName,
+        sr.Temperature,
+        sr.Humidity,
+        sr.Brightness,
+        sr.pH,
+        sr.CO2,
+        sr.EC,
+        sr.TDS,
+        pb.PlantId,
+        psi.Temperature_min,
+        psi.Temperature_max,
+        psi.Temperature_optimal,
+        psi.Humidity_min,
+        psi.Humidity_max,
+        psi.Humidity_optimal,
+        psi.Brightness_min,
+        psi.Brightness_max,
+        psi.Brightness_optimal,
+        psi.pH_min,
+        psi.pH_max,
+        psi.pH_optimal,
+        psi.CO2_min,
+        psi.CO2_max,
+        psi.CO2_optimal,
+        psi.EC_min,
+        psi.EC_max,
+        psi.EC_optimal,
+        psi.TDS_min,
+        psi.TDS_max,
+        psi.TDS_optimal,
+        ROW_NUMBER() OVER (PARTITION BY pb.PlantBatchId ORDER BY sr.Datetime DESC) AS RowNum
+    FROM 
+        SensorReadings sr
+    LEFT JOIN 
+        PlantBatch pb ON sr.PlantBatchId = pb.PlantBatchId
+    LEFT JOIN 
+        PlantSensorInfo psi ON pb.PlantId = psi.PlantId
+    LEFT JOIN
+        PlantInfo pi ON pb.PlantId = pi.PlantId
+    WHERE 
+        pb.DatePlanted IS NOT NULL AND pb.DateHarvested IS NULL
+)
+SELECT 
+    Datetime,
+    MicrocontrollerID,
+    PlantBatchId,
+    PlantName,
+    Temperature,
+    Humidity,
+    Brightness,
+    pH,
+    CO2,
+    EC,
+    TDS,
+    PlantId,
+    Temperature_min,
+    Temperature_max,
+    Temperature_optimal,
+    Humidity_min,
+    Humidity_max,
+    Humidity_optimal,
+    Brightness_min,
+    Brightness_max,
+    Brightness_optimal,
+    pH_min,
+    pH_max,
+    pH_optimal,
+    CO2_min,
+    CO2_max,
+    CO2_optimal,
+    EC_min,
+    EC_max,
+    EC_optimal,
+    TDS_min,
+    TDS_max,
+    TDS_optimal
+FROM 
+    LatestEntries
+WHERE 
+    RowNum = 1;
+
+  `;
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  const queryResult = await request.query(sqlQuery);
+  return queryResult.recordset;
+
+
+
+}
+
 
 module.exports = {
   getAllSensorData,
   getPlantBatchIdGivenMicrocontrollerPrefix,
   insertSensorValuesSuffix1,
   insertSensorValuesSuffix2,
+  getActivePlantBatchSensorData,
+  getActivePlantBatchSensorDataXDaysAgo,
+  getLatestActivePlantBatchSensorData,
 };

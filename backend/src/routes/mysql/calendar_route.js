@@ -141,7 +141,7 @@ router.post("/insertAlert", async (req, res) => {
 router.post("/insertSchedule", async (req, res) => {
   try {
     let success = 0;
-    let { type, content, task } = req.body;
+    let { type, content, task} = req.body;
     if (task === undefined || !task.trim()) {
       sendInternalServerError(res, "Task is invalid.");
       return;
@@ -156,6 +156,7 @@ router.post("/insertSchedule", async (req, res) => {
     content = content.trim();
     let contentDate = content.slice(0, -8);
     let contentTime = content.slice(-8);
+    console.log("contentDate", contentDate, "contentTime", contentTime);
     processedContentDateTime = new Date(
       contentDate + convertTime12HourTo24Hour(contentTime)
     )
@@ -304,7 +305,7 @@ router.get("/retrieveSchedules", async (req, res) => {
     const rows = await mysqlLogic.getAllSchedules();
     console.log("retrieve schedules rows", rows);
     rows.forEach((item) => {
-      item.content = formatDateTimeOutput(item.Content);
+      item.content = item.Content ? formatDateTimeOutput(item.Content): formatDateTimeOutput(item.content);
     });
     if (rows) {
       res.status(200).json({ success: 1, result: rows });

@@ -6,6 +6,7 @@ const {
   sendInternalServerError,
 } = require("../request_error_messages.js");
 const mysqlLogic = require("../../database_logic/sql/sql.js");
+const { groupSensorDataByPlantType, appendStatusToLatestSensorReadings } = require("../../misc_function.js");
 /**
  * @swagger
  * tags:
@@ -65,7 +66,11 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
       //Afterwards, check if the corresponding microcontroller have sent a reading prior.
       //if yes and the entries to be updated is still null, update it, else creaste a new entry
       const { microcontrollerId } = req.params;
-      if (microcontrollerId === undefined || microcontrollerId.length < 2 || microcontrollerId.length > 20) {
+      if (
+        microcontrollerId === undefined ||
+        microcontrollerId.length < 2 ||
+        microcontrollerId.length > 20
+      ) {
         sendBadRequestResponse(res, "Invalid microcontroller Id.");
         return;
       }
@@ -93,25 +98,27 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
       const dateTime = formattedDateTime.toString();
       const microcontrollerIdPrefix = microcontrollerId.slice(0, -1);
       const microcontrollerIdSuffix = microcontrollerId.slice(-1);
-      plantBatchId =
-        await mysqlLogic.getPlantBatchIdGivenMicrocontrollerPrefix(
-          microcontrollerIdPrefix
-        );
+      plantBatchId = await mysqlLogic.getPlantBatchIdGivenMicrocontrollerPrefix(
+        microcontrollerIdPrefix
+      );
       console.log("plantBatchId", plantBatchId);
       if (microcontrollerIdSuffix == 1) {
         ({ temperature, humidity, brightness } = req.body);
         if (temperature === undefined || isNaN(parseFloat(temperature))) {
           // console.log("fail at temperature");
-          sendInternalServerError(res, "Invalid Temperature Reading.");
-          return;
+          // sendInternalServerError(res, "Invalid Temperature Reading.");
+          // return;
+          temperature = null;
         } else if (brightness === undefined || isNaN(parseFloat(brightness))) {
           // console.log("fail at brightness");
-          sendInternalServerError(res, "Invalid Brightness Reading.");
-          return;
+          // sendInternalServerError(res, "Invalid Brightness Reading.");
+          // return;
+          brightness = null;
         } else if (humidity === undefined || isNaN(parseFloat(humidity))) {
           // console.log("fail at humidity");
-          sendInternalServerError(res, "Invalid Humidity Reading.");
-          return;
+          // sendInternalServerError(res, "Invalid Humidity Reading.");
+          // return;
+          humidity = null;
         }
         partnerMicrocontrollerId = microcontrollerIdPrefix + "2";
         console.log(temperature, humidity, brightness);
@@ -127,17 +134,21 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
       } else if (microcontrollerIdSuffix == 2) {
         ({ pH, TDS, EC, CO2 } = req.body);
         if (pH === undefined || isNaN(parseFloat(pH))) {
-          sendInternalServerError(res, "Invalid pH Reading.");
-          return;
+          // sendInternalServerError(res, "Invalid pH Reading.");
+          // return;
+          pH = null;
         } else if (TDS === undefined || isNaN(parseFloat(TDS))) {
-          sendInternalServerError(res, "Invalid TDS Reading.");
-          return;
+          // sendInternalServerError(res, "Invalid TDS Reading.");
+          // return;
+          TDS = null;
         } else if (EC === undefined || isNaN(parseFloat(EC))) {
-          sendInternalServerError(res, "Invalid EC Reading.");
-          return;
+          // sendInternalServerError(res, "Invalid EC Reading.");
+          // return;
+          EC = null;
         } else if (CO2 === undefined || isNaN(parseFloat(CO2))) {
-          sendInternalServerError(res, "Invalid CO2 Reading.");
-          return;
+          // sendInternalServerError(res, "Invalid CO2 Reading.");
+          // return;
+          CO2 = null;
         }
         partnerMicrocontrollerId = microcontrollerIdPrefix + "1";
         console.log(pH, CO2, EC, TDS);
@@ -146,7 +157,10 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
           microcontrollerIdPrefix,
           microcontrollerIdSuffix,
           plantBatchId,
-          pH, CO2, EC, TDS
+          pH,
+          CO2,
+          EC,
+          TDS
         );
       } else {
         sendBadRequestResponse(res, "Invalid Microcontroller Reading.");
@@ -225,7 +239,10 @@ router.post("/createPlant", async (req, res) => {
           .status(201)
           .json({ success: success, message: "Data inserted successfully" });
       } else {
-        sendInternalServerError(res, "Error encountered when trying to insert data.");
+        sendInternalServerError(
+          res,
+          "Error encountered when trying to insert data."
+        );
       }
     } catch (error) {
       console.log("Error inserting data:", error);
@@ -301,7 +318,6 @@ router.post("/editSeedQuantity", async (req, res) => {
     sendBadRequestResponse(res, error);
   }
 });
-
 
 //This function is not done yet...
 /**
@@ -458,129 +474,174 @@ router.post("/editSeedQuantity", async (req, res) => {
 router.post("/updatePlantSensorInfo", async (req, res) => {
   try {
     try {
-
       // Extracting data from req.body
-      const { 
-        plantId, 
-        temperature_min, temperature_max, temperature_optimal,
-        humidity_min, humidity_max, humidity_optimal,
-        brightness_min, brightness_max, brightness_optimal,
-        pH_min, pH_max, pH_optimal,
-        CO2_min, CO2_max, CO2_optimal,
-        EC_min, EC_max, EC_optimal,
-        TDS_min, TDS_max, TDS_optimal,
-        
+      const {
+        plantId,
+        temperature_min,
+        temperature_max,
+        temperature_optimal,
+        humidity_min,
+        humidity_max,
+        humidity_optimal,
+        brightness_min,
+        brightness_max,
+        brightness_optimal,
+        pH_min,
+        pH_max,
+        pH_optimal,
+        CO2_min,
+        CO2_max,
+        CO2_optimal,
+        EC_min,
+        EC_max,
+        EC_optimal,
+        TDS_min,
+        TDS_max,
+        TDS_optimal,
       } = req.body;
 
       let success = 0;
 
       // Validation for PlantId (INT)
-      if (typeof plantId === 'undefined' || isNaN(parseInt(plantId))) {
-          return sendInternalServerError(res, "Invalid Plant Id");
+      if (typeof plantId === "undefined" || isNaN(parseInt(plantId))) {
+        return sendInternalServerError(res, "Invalid Plant Id");
       }
-       // Validation for Temperature_min (FLOAT)
-       if (typeof temperature_min === 'undefined' || isNaN(parseFloat(temperature_min))) {
-          return sendInternalServerError(res, "Invalid Temperature_min");
+      // Validation for Temperature_min (FLOAT)
+      if (
+        typeof temperature_min === "undefined" ||
+        isNaN(parseFloat(temperature_min))
+      ) {
+        return sendInternalServerError(res, "Invalid Temperature_min");
       }
 
       // Validation for Temperature_max (FLOAT)
-      if (typeof temperature_max === 'undefined' || isNaN(parseFloat(temperature_max))) {
-          return sendInternalServerError(res, "Invalid Temperature_max");
+      if (
+        typeof temperature_max === "undefined" ||
+        isNaN(parseFloat(temperature_max))
+      ) {
+        return sendInternalServerError(res, "Invalid Temperature_max");
       }
 
       // Validation for Temperature_optimal (FLOAT)
-      if (typeof temperature_optimal === 'undefined' || isNaN(parseFloat(temperature_optimal))) {
-          return sendInternalServerError(res, "Invalid Temperature_optimal");
+      if (
+        typeof temperature_optimal === "undefined" ||
+        isNaN(parseFloat(temperature_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid Temperature_optimal");
       }
 
       // Validation for Humidity_min (FLOAT)
-      if (typeof humidity_min === 'undefined' || isNaN(parseFloat(humidity_min))) {
-          return sendInternalServerError(res, "Invalid Humidity_min");
+      if (
+        typeof humidity_min === "undefined" ||
+        isNaN(parseFloat(humidity_min))
+      ) {
+        return sendInternalServerError(res, "Invalid Humidity_min");
       }
 
       // Validation for Humidity_max (FLOAT)
-      if (typeof humidity_max === 'undefined' || isNaN(parseFloat(humidity_max))) {
-          return sendInternalServerError(res, "Invalid Humidity_max");
+      if (
+        typeof humidity_max === "undefined" ||
+        isNaN(parseFloat(humidity_max))
+      ) {
+        return sendInternalServerError(res, "Invalid Humidity_max");
       }
 
       // Validation for Humidity_optimal (FLOAT)
-      if (typeof humidity_optimal === 'undefined' || isNaN(parseFloat(humidity_optimal))) {
-          return sendInternalServerError(res, "Invalid Humidity_optimal");
+      if (
+        typeof humidity_optimal === "undefined" ||
+        isNaN(parseFloat(humidity_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid Humidity_optimal");
       }
 
       // Validation for Brightness_min (FLOAT)
-      if (typeof brightness_min === 'undefined' || isNaN(parseFloat(brightness_min))) {
-          return sendInternalServerError(res, "Invalid Brightness_min");
+      if (
+        typeof brightness_min === "undefined" ||
+        isNaN(parseFloat(brightness_min))
+      ) {
+        return sendInternalServerError(res, "Invalid Brightness_min");
       }
 
       // Validation for Brightness_max (FLOAT)
-      if (typeof brightness_max === 'undefined' || isNaN(parseFloat(brightness_max))) {
-          return sendInternalServerError(res, "Invalid Brightness_max");
+      if (
+        typeof brightness_max === "undefined" ||
+        isNaN(parseFloat(brightness_max))
+      ) {
+        return sendInternalServerError(res, "Invalid Brightness_max");
       }
 
       // Validation for Brightness_optimal (FLOAT)
-      if (typeof brightness_optimal === 'undefined' || isNaN(parseFloat(brightness_optimal))) {
-          return sendInternalServerError(res, "Invalid Brightness_optimal");
+      if (
+        typeof brightness_optimal === "undefined" ||
+        isNaN(parseFloat(brightness_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid Brightness_optimal");
       }
 
       // Validation for pH_min (FLOAT)
-      if (typeof pH_min === 'undefined' || isNaN(parseFloat(pH_min))) {
-          return sendInternalServerError(res, "Invalid pH_min");
+      if (typeof pH_min === "undefined" || isNaN(parseFloat(pH_min))) {
+        return sendInternalServerError(res, "Invalid pH_min");
       }
 
       // Validation for pH_max (FLOAT)
-      if (typeof pH_max === 'undefined' || isNaN(parseFloat(pH_max))) {
-          return sendInternalServerError(res, "Invalid pH_max");
+      if (typeof pH_max === "undefined" || isNaN(parseFloat(pH_max))) {
+        return sendInternalServerError(res, "Invalid pH_max");
       }
 
       // Validation for pH_optimal (FLOAT)
-      if (typeof pH_optimal === 'undefined' || isNaN(parseFloat(pH_optimal))) {
-          return sendInternalServerError(res, "Invalid pH_optimal");
+      if (typeof pH_optimal === "undefined" || isNaN(parseFloat(pH_optimal))) {
+        return sendInternalServerError(res, "Invalid pH_optimal");
       }
 
       // Validation for CO2_min (FLOAT)
-      if (typeof CO2_min === 'undefined' || isNaN(parseFloat(CO2_min))) {
-          return sendInternalServerError(res, "Invalid CO2_min");
+      if (typeof CO2_min === "undefined" || isNaN(parseFloat(CO2_min))) {
+        return sendInternalServerError(res, "Invalid CO2_min");
       }
 
       // Validation for CO2_max (FLOAT)
-      if (typeof CO2_max === 'undefined' || isNaN(parseFloat(CO2_max))) {
-          return sendInternalServerError(res, "Invalid CO2_max");
+      if (typeof CO2_max === "undefined" || isNaN(parseFloat(CO2_max))) {
+        return sendInternalServerError(res, "Invalid CO2_max");
       }
 
       // Validation for CO2_optimal (FLOAT)
-      if (typeof CO2_optimal === 'undefined' || isNaN(parseFloat(CO2_optimal))) {
-          return sendInternalServerError(res, "Invalid CO2_optimal");
+      if (
+        typeof CO2_optimal === "undefined" ||
+        isNaN(parseFloat(CO2_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid CO2_optimal");
       }
 
       // Validation for EC_min (FLOAT)
-      if (typeof EC_min === 'undefined' || isNaN(parseFloat(EC_min))) {
-          return sendInternalServerError(res, "Invalid EC_min");
+      if (typeof EC_min === "undefined" || isNaN(parseFloat(EC_min))) {
+        return sendInternalServerError(res, "Invalid EC_min");
       }
 
       // Validation for EC_max (FLOAT)
-      if (typeof EC_max === 'undefined' || isNaN(parseFloat(EC_max))) {
-          return sendInternalServerError(res, "Invalid EC_max");
+      if (typeof EC_max === "undefined" || isNaN(parseFloat(EC_max))) {
+        return sendInternalServerError(res, "Invalid EC_max");
       }
 
       // Validation for EC_optimal (FLOAT)
-      if (typeof EC_optimal === 'undefined' || isNaN(parseFloat(EC_optimal))) {
-          return sendInternalServerError(res, "Invalid EC_optimal");
+      if (typeof EC_optimal === "undefined" || isNaN(parseFloat(EC_optimal))) {
+        return sendInternalServerError(res, "Invalid EC_optimal");
       }
 
       // Validation for TDS_min (FLOAT)
-      if (typeof TDS_min === 'undefined' || isNaN(parseFloat(TDS_min))) {
-          return sendInternalServerError(res, "Invalid TDS_min");
+      if (typeof TDS_min === "undefined" || isNaN(parseFloat(TDS_min))) {
+        return sendInternalServerError(res, "Invalid TDS_min");
       }
 
       // Validation for TDS_max (FLOAT)
-      if (typeof TDS_max === 'undefined' || isNaN(parseFloat(TDS_max))) {
-          return sendInternalServerError(res, "Invalid TDS_max");
+      if (typeof TDS_max === "undefined" || isNaN(parseFloat(TDS_max))) {
+        return sendInternalServerError(res, "Invalid TDS_max");
       }
 
       // Validation for TDS_optimal (FLOAT)
-      if (typeof TDS_optimal === 'undefined' || isNaN(parseFloat(TDS_optimal))) {
-          return sendInternalServerError(res, "Invalid TDS_optimal");
+      if (
+        typeof TDS_optimal === "undefined" ||
+        isNaN(parseFloat(TDS_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid TDS_optimal");
       }
       //Since all the test passed, then I will need to update the plant seed info.
       success = await mysqlLogic.updatePlantSensorInfo({
@@ -605,9 +666,9 @@ router.post("/updatePlantSensorInfo", async (req, res) => {
         TDS_optimal: parseFloat(TDS_optimal),
         temperature_min: parseFloat(temperature_min),
         temperature_max: parseFloat(temperature_max),
-        temperature_optimal: parseFloat(temperature_optimal)
-    });
-      
+        temperature_optimal: parseFloat(temperature_optimal),
+      });
+
       if (success) {
         res
           .status(201)
@@ -681,10 +742,7 @@ router.post("/growPlant", async (req, res) => {
         // console.log("fail at plantId");
         sendInternalServerError(res, "Invalid Plant Id.");
         return;
-      } else if (
-        plantLocation === undefined ||
-        isNaN(parseInt(plantLocation))
-      ) {
+      } else if (plantLocation === undefined) {
         // console.log('fail at plantLocation');
         sendInternalServerError(res, "Invalid Plant Location.");
         return;
@@ -808,8 +866,11 @@ router.get("/retrieveData", async (req, res) => {
   try {
     // const [rows] = await mysqlLogic.getAllSensorData();
     // const [rows]  = await mysqlLogic.getAllSensorData();
-    const rows = await mysqlLogic.getAllSensorData();
+    let rows = await mysqlLogic.getAllSensorData();
+    console.log(rows);
     if (rows) {
+      console.log(rows);
+      rows = groupSensorDataByPlantType(rows);
       res.status(200).json({ success: 1, result: rows });
     } else {
       res.json({ success: 1, message: "No sensor data available" });
@@ -819,6 +880,323 @@ router.get("/retrieveData", async (req, res) => {
     sendInternalServerError(res, error);
   }
 });
+
+/**
+ * @swagger
+ * /plant/retrieveActivePlantBatchSensorData:
+ *   get:
+ *     tags: [Plant]
+ *     description: Retrieve active plant batch sensor data
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   Datetime:
+ *                     type: string
+ *                     format: date-time
+ *                   MicrocontrollerID:
+ *                     type: string
+ *                   PlantBatchId:
+ *                     type: integer
+ *                   Temperature:
+ *                     type: number
+ *                   Humidity:
+ *                     type: integer
+ *                   Brightness:
+ *                     type: integer
+ *                   pH:
+ *                     type: number
+ *                   CO2:
+ *                     type: number
+ *                   EC:
+ *                     type: number
+ *                   TDS:
+ *                     type: number
+ *                   PlantId:
+ *                     type: integer
+ *                   Temperature_min:
+ *                     type: number
+ *                   Temperature_max:
+ *                     type: number
+ *                   Temperature_optimal:
+ *                     type: number
+ *                   Humidity_min:
+ *                     type: integer
+ *                   Humidity_max:
+ *                     type: integer
+ *                   Humidity_optimal:
+ *                     type: integer
+ *                   Brightness_min:
+ *                     type: integer
+ *                   Brightness_max:
+ *                     type: integer
+ *                   Brightness_optimal:
+ *                     type: integer
+ *                   pH_min:
+ *                     type: number
+ *                   pH_max:
+ *                     type: number
+ *                   pH_optimal:
+ *                     type: number
+ *                   CO2_min:
+ *                     type: number
+ *                   CO2_max:
+ *                     type: number
+ *                   CO2_optimal:
+ *                     type: number
+ *                   EC_min:
+ *                     type: number
+ *                   EC_max:
+ *                     type: number
+ *                   EC_optimal:
+ *                     type: number
+ *                   TDS_min:
+ *                     type: number
+ *                   TDS_max:
+ *                     type: number
+ *                   TDS_optimal:
+ *                     type: number
+ */
+router.get("/retrieveActivePlantBatchSensorData", async (req, res) => {
+  try {
+    let rows = await mysqlLogic.getActivePlantBatchSensorData();
+    console.log(rows);
+    if (rows) {
+      console.log(rows);
+      rows = groupSensorDataByPlantType(rows);
+      res.status(200).json({ success: 1, result: rows });
+    } else {
+      res.json({ success: 1, message: "No sensor data available" });
+    }
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res, error);
+  }
+});
+
+/**
+ * @swagger
+ * /plant/retrieveLatestActivePlantBatchSensorData:
+ *   get:
+ *     tags: [Plant]
+ *     description: Retrieve active plant batch sensor data
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   Datetime:
+ *                     type: string
+ *                     format: date-time
+ *                   MicrocontrollerID:
+ *                     type: string
+ *                   PlantBatchId:
+ *                     type: integer
+ *                   Temperature:
+ *                     type: number
+ *                   Humidity:
+ *                     type: integer
+ *                   Brightness:
+ *                     type: integer
+ *                   pH:
+ *                     type: number
+ *                   CO2:
+ *                     type: number
+ *                   EC:
+ *                     type: number
+ *                   TDS:
+ *                     type: number
+ *                   PlantId:
+ *                     type: integer
+ *                   Temperature_min:
+ *                     type: number
+ *                   Temperature_max:
+ *                     type: number
+ *                   Temperature_optimal:
+ *                     type: number
+ *                   Humidity_min:
+ *                     type: integer
+ *                   Humidity_max:
+ *                     type: integer
+ *                   Humidity_optimal:
+ *                     type: integer
+ *                   Brightness_min:
+ *                     type: integer
+ *                   Brightness_max:
+ *                     type: integer
+ *                   Brightness_optimal:
+ *                     type: integer
+ *                   pH_min:
+ *                     type: number
+ *                   pH_max:
+ *                     type: number
+ *                   pH_optimal:
+ *                     type: number
+ *                   CO2_min:
+ *                     type: number
+ *                   CO2_max:
+ *                     type: number
+ *                   CO2_optimal:
+ *                     type: number
+ *                   EC_min:
+ *                     type: number
+ *                   EC_max:
+ *                     type: number
+ *                   EC_optimal:
+ *                     type: number
+ *                   TDS_min:
+ *                     type: number
+ *                   TDS_max:
+ *                     type: number
+ *                   TDS_optimal:
+ *                     type: number
+ */
+router.get("/retrieveLatestActivePlantBatchSensorData", async (req, res) => {
+  try {
+    let rows = await mysqlLogic.getLatestActivePlantBatchSensorData();
+    console.log(rows);
+    if (rows) {
+      // console.log(rows);
+      rows = groupSensorDataByPlantType(rows);
+      // console.log(rows);
+      rows = appendStatusToLatestSensorReadings(rows);
+      // console.log(rows)
+      res.status(200).json({ success: 1, result: rows });
+    } else {
+      res.json({ success: 1, message: "No sensor data available" });
+    }
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res, error);
+  }
+});
+
+/**
+ * @swagger
+ * /plant/retrieveActivePlantBatchSensorData/{numDaysAgo}:
+ *   get:
+ *     tags: [Plant]
+ *     description: Retrieve active plant batch sensor data for the past {numDaysAgo} days
+ *     parameters:
+ *       - in: path
+ *         name: numDaysAgo
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Number of days to retrieve data for
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   Datetime:
+ *                     type: string
+ *                     format: date-time
+ *                   MicrocontrollerID:
+ *                     type: string
+ *                   PlantBatchId:
+ *                     type: integer
+ *                   Temperature:
+ *                     type: number
+ *                   Humidity:
+ *                     type: integer
+ *                   Brightness:
+ *                     type: integer
+ *                   pH:
+ *                     type: number
+ *                   CO2:
+ *                     type: number
+ *                   EC:
+ *                     type: number
+ *                   TDS:
+ *                     type: number
+ *                   PlantId:
+ *                     type: integer
+ *                   Temperature_min:
+ *                     type: number
+ *                   Temperature_max:
+ *                     type: number
+ *                   Temperature_optimal:
+ *                     type: number
+ *                   Humidity_min:
+ *                     type: integer
+ *                   Humidity_max:
+ *                     type: integer
+ *                   Humidity_optimal:
+ *                     type: integer
+ *                   Brightness_min:
+ *                     type: integer
+ *                   Brightness_max:
+ *                     type: integer
+ *                   Brightness_optimal:
+ *                     type: integer
+ *                   pH_min:
+ *                     type: number
+ *                   pH_max:
+ *                     type: number
+ *                   pH_optimal:
+ *                     type: number
+ *                   CO2_min:
+ *                     type: number
+ *                   CO2_max:
+ *                     type: number
+ *                   CO2_optimal:
+ *                     type: number
+ *                   EC_min:
+ *                     type: number
+ *                   EC_max:
+ *                     type: number
+ *                   EC_optimal:
+ *                     type: number
+ *                   TDS_min:
+ *                     type: number
+ *                   TDS_max:
+ *                     type: number
+ *                   TDS_optimal:
+ *                     type: number
+ */
+router.get(
+  "/retrieveActivePlantBatchSensorData/:numDaysAgo",
+  async (req, res) => {
+    try {
+      let { numDaysAgo } = req.params;
+      numDaysAgo = parseInt(numDaysAgo);
+      if (!numDaysAgo) {
+        sendInternalServerError(res, "numDaysAgo is not valid!");
+      }
+      let rows = await mysqlLogic.getActivePlantBatchSensorDataXDaysAgo(
+        numDaysAgo
+      );
+      console.log(rows);
+      if (rows) {
+        console.log(rows);
+        rows = groupSensorDataByPlantType(rows);
+        res.status(200).json({ success: 1, result: rows });
+      } else {
+        res.json({ success: 1, message: "No sensor data available" });
+      }
+    } catch (error) {
+      console.log("Error retrieving data:", error);
+      sendInternalServerError(res, error);
+    }
+  }
+);
 
 /**
  * @swagger
@@ -908,7 +1286,6 @@ router.get("/plantYield", async (req, res) => {
   }
 });
 
-
 /**
  * @swagger
  * /plant/plantBatchInfoAndYield:
@@ -935,6 +1312,99 @@ router.get("/plantBatchInfoAndYield", async (req, res) => {
   try {
     let success = 0;
     const rows = await mysqlLogic.getAllPlantBatchInfoAndYield();
+    console.log(rows);
+    success = 1;
+    res.status(200).json({ success: success, result: rows });
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res, error);
+  }
+});
+
+/**
+ * @swagger
+ * /plant/allPlantBatchInfo:
+ *   get:
+ *     summary: Retrieve all plant batch information
+ *     description: Retrieve all plant batch information including joined plant information from the database.
+ *     tags: [Plant]
+ *     responses:
+ *       200:
+ *         description: Successful response with plant batch information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicates the success status of the request (0 for failure, 1 for success).
+ *                 result:
+ *                   type: array
+ *                   description: Array containing plant batch information retrieved from the database.
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       PlantBatchId:
+ *                         type: integer
+ *                         description: ID of the plant batch.
+ *                       PlantId:
+ *                         type: integer
+ *                         description: ID of the plant associated with the batch.
+ *                       PlantLocation:
+ *                         type: string
+ *                         description: Location where the plant batch is planted.
+ *                       QuantityPlanted:
+ *                         type: integer
+ *                         description: Quantity of plants planted in the batch.
+ *                       QuantityHarvested:
+ *                         type: integer
+ *                         description: Quantity of plants harvested from the batch.
+ *                       DatePlanted:
+ *                         type: string
+ *                         format: date-time
+ *                         description: Date when the plants were planted in the batch.
+ *                       DateHarvested:
+ *                         type: string
+ *                         format: date-time
+ *                         description: Date when the plants were harvested from the batch.
+ *                       PlantName:
+ *                         type: string
+ *                         description: Name of the plant associated with the batch.
+ *                       PlantPicture:
+ *                         type: string
+ *                         format: binary
+ *                         description: Picture of the plant associated with the batch (in binary format).
+ *                       SensorsRanges:
+ *                         type: integer
+ *                         description: Number indicating the range of sensors used for monitoring the plant.
+ *                       DaysToMature:
+ *                         type: integer
+ *                         description: Number of days required for the plant to mature.
+ *                       CurrentSeedInventory:
+ *                         type: integer
+ *                         description: Current inventory of seeds for the plant.
+ *                       TotalHarvestSold:
+ *                         type: integer
+ *                         description: Total quantity of harvested plants sold.
+ *                       TotalHarvestDiscarded:
+ *                         type: integer
+ *                         description: Total quantity of harvested plants discarded.
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message indicating the reason for the internal server error.
+ */
+router.get("/allPlantBatchInfo", async (req, res) => {
+  try {
+    let success = 0;
+    const rows = await mysqlLogic.getAllPlantBatchInfo();
     console.log(rows);
     success = 1;
     res.status(200).json({ success: success, result: rows });
