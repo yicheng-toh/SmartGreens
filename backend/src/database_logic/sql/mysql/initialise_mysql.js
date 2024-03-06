@@ -277,6 +277,15 @@ const {dbConnection} = require("./mysql.js");
           task VARCHAR(255)
       );
     `
+
+    const createEnergyConsumingDevicesTable = `
+    CREATE TABLE IF NOT EXISTS EnergyConsumingDevice (
+      DeviceId INT AUTO_INCREMENT PRIMARY KEY,
+      DeviceName VARCHAR(255) DEFAULT 'manual',
+      Quantity INT,
+      EnergyConsumption FLOAT
+  );
+`
     
   
       await dbConnection.execute(createSensorReadingsTable);
@@ -292,6 +301,7 @@ const {dbConnection} = require("./mysql.js");
       await dbConnection.execute(createAlertSentTable);
       await dbConnection.execute(createRemindersTable);
       await dbConnection.execute(createScheduleTable);
+      await dbConnection.execute(createEnergyConsumingDevicesTable);
       // await dbConnection.execute(createMicrocontrollerLocationTable);
       // await dbConnection.execute(createPlantBatchTable);
       // console.log("Tables created or already exists.");

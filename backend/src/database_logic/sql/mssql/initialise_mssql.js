@@ -765,6 +765,16 @@ async function createTablesIfNotExistVersion5() {
                 Task VARCHAR(255)
             );
         END;
+        
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'EnergyConsumingDevice')
+        BEGIN
+            CREATE TABLE EnergyConsumingDevice (
+                DeviceId INT PRIMARY KEY IDENTITY(1,1),
+                DeviceName VARCHAR(255) not NULL,
+                Quantity INT DEFAULT 0 CHECK (Quantity >= 0),
+                EnergyConsumption FLOAT DEFAULT 0
+            );
+        END;
     `;
 
         // Execute the entire script

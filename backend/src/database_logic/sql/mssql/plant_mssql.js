@@ -421,6 +421,111 @@ async function updatePlantSensorInfo(data) {
   }
 }
 
+async function updatePlantInfo(data) {
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try {
+      // Check if the PlantId should already exist.
+      const result = await request
+      .input('plantId', data.plantId)
+      .query("SELECT * FROM PlantInfo WHERE PlantId = @plantId");
+      console.log("plant sensor info result is", result);
+      console.log("plant sensor info result is", result.recordset);
+      console.log("plant sensor info result is", result.recordset[0]);
+      console.log("plant sensor info result is", result.recordset.length);
+      if (result.recordset.length === 0) {
+          // If PlantId does not exist, insert a new row
+          await request
+              // .input('plantId', data.plantId)
+              .input('temperature_min', data.temperature_min)
+              .input('temperature_max', data.temperature_max)
+              .input('temperature_optimal', data.temperature_optimal)
+              .input('humidity_min', data.humidity_min)
+              .input('humidity_max', data.humidity_max)
+              .input('humidity_optimal', data.humidity_optimal)
+              .input('brightness_min', data.brightness_min)
+              .input('brightness_max', data.brightness_max)
+              .input('brightness_optimal', data.brightness_optimal)
+              .input('pH_min', data.pH_min)
+              .input('pH_max', data.pH_max)
+              .input('pH_optimal', data.pH_optimal)
+              .input('CO2_min', data.CO2_min)
+              .input('CO2_max', data.CO2_max)
+              .input('CO2_optimal', data.CO2_optimal)
+              .input('EC_min', data.EC_min)
+              .input('EC_max', data.EC_max)
+              .input('EC_optimal', data.EC_optimal)
+              .input('TDS_min', data.TDS_min)
+              .input('TDS_max', data.TDS_max)
+              .input('TDS_optimal', data.TDS_optimal)
+              .query(`
+                  INSERT INTO PlantSensorInfo (
+                      PlantId, 
+                      Temperature_min, Temperature_max, Temperature_optimal,
+                      Humidity_min, Humidity_max, Humidity_optimal,
+                      Brightness_min, Brightness_max, Brightness_optimal,
+                      pH_min, pH_max, pH_optimal,
+                      CO2_min, CO2_max, CO2_optimal,
+                      EC_min, EC_max, EC_optimal,
+                      TDS_min, TDS_max, TDS_optimal
+                  ) 
+                  VALUES (
+                      @plantId, 
+                      @temperature_min, @temperature_max, @temperature_optimal,
+                      @humidity_min, @humidity_max, @humidity_optimal,
+                      @brightness_min, @brightness_max, @brightness_optimal,
+                      @pH_min, @pH_max, @pH_optimal,
+                      @CO2_min, @CO2_max, @CO2_optimal,
+                      @EC_min, @EC_max, @EC_optimal,
+                      @TDS_min, @TDS_max, @TDS_optimal
+                  );
+              `);
+      } else {
+          // If PlantId exists, update the existing row
+          await request
+              .input('temperature_min', data.temperature_min)
+              .input('temperature_max', data.temperature_max)
+              .input('temperature_optimal', data.temperature_optimal)
+              .input('humidity_min', data.humidity_min)
+              .input('humidity_max', data.humidity_max)
+              .input('humidity_optimal', data.humidity_optimal)
+              .input('brightness_min', data.brightness_min)
+              .input('brightness_max', data.brightness_max)
+              .input('brightness_optimal', data.brightness_optimal)
+              .input('pH_min', data.pH_min)
+              .input('pH_max', data.pH_max)
+              .input('pH_optimal', data.pH_optimal)
+              .input('CO2_min', data.CO2_min)
+              .input('CO2_max', data.CO2_max)
+              .input('CO2_optimal', data.CO2_optimal)
+              .input('EC_min', data.EC_min)
+              .input('EC_max', data.EC_max)
+              .input('EC_optimal', data.EC_optimal)
+              .input('TDS_min', data.TDS_min)
+              .input('TDS_max', data.TDS_max)
+              .input('TDS_optimal', data.TDS_optimal)
+              // .input('plantId', data.plantId)
+              .query(`
+                  UPDATE PlantSensorInfo SET 
+                      Temperature_min = @temperature_min, Temperature_max = @temperature_max, Temperature_optimal = @temperature_optimal,
+                      Humidity_min = @humidity_min, Humidity_max = @humidity_max, Humidity_optimal = @humidity_optimal,
+                      Brightness_min = @brightness_min, Brightness_max = @brightness_max, Brightness_optimal = @brightness_optimal,
+                      pH_min = @pH_min, pH_max = @pH_max, pH_optimal = @pH_optimal,
+                      CO2_min = @CO2_min, CO2_max = @CO2_max, CO2_optimal = @CO2_optimal,
+                      EC_min = @EC_min, EC_max = @EC_max, EC_optimal = @EC_optimal,
+                      TDS_min = @TDS_min, TDS_max = @TDS_max, TDS_optimal = @TDS_optimal
+                  WHERE PlantId = @plantId;
+              `);
+      }
+
+      // Return true indicating successful update
+      return true;
+  } catch (error) {
+      console.error("Error updating PlantSensorInfo:", error);
+      return false; // Return false indicating update failure
+  }
+}
+
 async function getAllPlantBatchInfo() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();

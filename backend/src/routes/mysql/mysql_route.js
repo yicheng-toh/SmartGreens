@@ -139,7 +139,7 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
   const calendarRouter = require('./calendar_route.js');
   router.use("/calendar", calendarRouter);
   
-  const miscRouter = require('./misc_route.js');
-  router.use("/misc", miscRouter);
+  const energyConsumptionRouter = require('./energy_consumption_route.js');
+  router.use("/energyConsumption", energyConsumptionRouter);
 
 module.exports = router;

@@ -685,6 +685,224 @@ router.post("/updatePlantSensorInfo", async (req, res) => {
   }
 });
 
+router.post("/updatePlantInfo", async (req, res) => {
+  try {
+    try {
+      // Extracting data from req.body
+      const {
+        plantId,
+        plantName,
+        plantPicture,
+        daysToMature,
+        currentSeedInventory,
+        temperature_min,
+        temperature_max,
+        temperature_optimal,
+        humidity_min,
+        humidity_max,
+        humidity_optimal,
+        brightness_min,
+        brightness_max,
+        brightness_optimal,
+        pH_min,
+        pH_max,
+        pH_optimal,
+        CO2_min,
+        CO2_max,
+        CO2_optimal,
+        EC_min,
+        EC_max,
+        EC_optimal,
+        TDS_min,
+        TDS_max,
+        TDS_optimal,
+      } = req.body;
+
+      let success = 0;
+
+      // Validation for PlantId (INT)
+      if (typeof plantId === "undefined" || isNaN(parseInt(plantId))) {
+        return sendInternalServerError(res, "Invalid Plant Id");
+      }
+      // Validation for Temperature_min (FLOAT)
+      if (
+        typeof temperature_min === "undefined" ||
+        isNaN(parseFloat(temperature_min))
+      ) {
+        return sendInternalServerError(res, "Invalid Temperature_min");
+      }
+
+      // Validation for Temperature_max (FLOAT)
+      if (
+        typeof temperature_max === "undefined" ||
+        isNaN(parseFloat(temperature_max))
+      ) {
+        return sendInternalServerError(res, "Invalid Temperature_max");
+      }
+
+      // Validation for Temperature_optimal (FLOAT)
+      if (
+        typeof temperature_optimal === "undefined" ||
+        isNaN(parseFloat(temperature_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid Temperature_optimal");
+      }
+
+      // Validation for Humidity_min (FLOAT)
+      if (
+        typeof humidity_min === "undefined" ||
+        isNaN(parseFloat(humidity_min))
+      ) {
+        return sendInternalServerError(res, "Invalid Humidity_min");
+      }
+
+      // Validation for Humidity_max (FLOAT)
+      if (
+        typeof humidity_max === "undefined" ||
+        isNaN(parseFloat(humidity_max))
+      ) {
+        return sendInternalServerError(res, "Invalid Humidity_max");
+      }
+
+      // Validation for Humidity_optimal (FLOAT)
+      if (
+        typeof humidity_optimal === "undefined" ||
+        isNaN(parseFloat(humidity_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid Humidity_optimal");
+      }
+
+      // Validation for Brightness_min (FLOAT)
+      if (
+        typeof brightness_min === "undefined" ||
+        isNaN(parseFloat(brightness_min))
+      ) {
+        return sendInternalServerError(res, "Invalid Brightness_min");
+      }
+
+      // Validation for Brightness_max (FLOAT)
+      if (
+        typeof brightness_max === "undefined" ||
+        isNaN(parseFloat(brightness_max))
+      ) {
+        return sendInternalServerError(res, "Invalid Brightness_max");
+      }
+
+      // Validation for Brightness_optimal (FLOAT)
+      if (
+        typeof brightness_optimal === "undefined" ||
+        isNaN(parseFloat(brightness_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid Brightness_optimal");
+      }
+
+      // Validation for pH_min (FLOAT)
+      if (typeof pH_min === "undefined" || isNaN(parseFloat(pH_min))) {
+        return sendInternalServerError(res, "Invalid pH_min");
+      }
+
+      // Validation for pH_max (FLOAT)
+      if (typeof pH_max === "undefined" || isNaN(parseFloat(pH_max))) {
+        return sendInternalServerError(res, "Invalid pH_max");
+      }
+
+      // Validation for pH_optimal (FLOAT)
+      if (typeof pH_optimal === "undefined" || isNaN(parseFloat(pH_optimal))) {
+        return sendInternalServerError(res, "Invalid pH_optimal");
+      }
+
+      // Validation for CO2_min (FLOAT)
+      if (typeof CO2_min === "undefined" || isNaN(parseFloat(CO2_min))) {
+        return sendInternalServerError(res, "Invalid CO2_min");
+      }
+
+      // Validation for CO2_max (FLOAT)
+      if (typeof CO2_max === "undefined" || isNaN(parseFloat(CO2_max))) {
+        return sendInternalServerError(res, "Invalid CO2_max");
+      }
+
+      // Validation for CO2_optimal (FLOAT)
+      if (
+        typeof CO2_optimal === "undefined" ||
+        isNaN(parseFloat(CO2_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid CO2_optimal");
+      }
+
+      // Validation for EC_min (FLOAT)
+      if (typeof EC_min === "undefined" || isNaN(parseFloat(EC_min))) {
+        return sendInternalServerError(res, "Invalid EC_min");
+      }
+
+      // Validation for EC_max (FLOAT)
+      if (typeof EC_max === "undefined" || isNaN(parseFloat(EC_max))) {
+        return sendInternalServerError(res, "Invalid EC_max");
+      }
+
+      // Validation for EC_optimal (FLOAT)
+      if (typeof EC_optimal === "undefined" || isNaN(parseFloat(EC_optimal))) {
+        return sendInternalServerError(res, "Invalid EC_optimal");
+      }
+
+      // Validation for TDS_min (FLOAT)
+      if (typeof TDS_min === "undefined" || isNaN(parseFloat(TDS_min))) {
+        return sendInternalServerError(res, "Invalid TDS_min");
+      }
+
+      // Validation for TDS_max (FLOAT)
+      if (typeof TDS_max === "undefined" || isNaN(parseFloat(TDS_max))) {
+        return sendInternalServerError(res, "Invalid TDS_max");
+      }
+
+      // Validation for TDS_optimal (FLOAT)
+      if (
+        typeof TDS_optimal === "undefined" ||
+        isNaN(parseFloat(TDS_optimal))
+      ) {
+        return sendInternalServerError(res, "Invalid TDS_optimal");
+      }
+      //Since all the test passed, then I will need to update the plant seed info.
+      success = await mysqlLogic.updatePlantSensorInfo({
+        plantId: parseInt(plantId),
+        humidity_min: parseFloat(humidity_min),
+        humidity_max: parseFloat(humidity_max),
+        humidity_optimal: parseFloat(humidity_optimal),
+        brightness_min: parseFloat(brightness_min),
+        brightness_max: parseFloat(brightness_max),
+        brightness_optimal: parseFloat(brightness_optimal),
+        pH_min: parseFloat(pH_min),
+        pH_max: parseFloat(pH_max),
+        pH_optimal: parseFloat(pH_optimal),
+        CO2_min: parseFloat(CO2_min),
+        CO2_max: parseFloat(CO2_max),
+        CO2_optimal: parseFloat(CO2_optimal),
+        EC_min: parseFloat(EC_min),
+        EC_max: parseFloat(EC_max),
+        EC_optimal: parseFloat(EC_optimal),
+        TDS_min: parseFloat(TDS_min),
+        TDS_max: parseFloat(TDS_max),
+        TDS_optimal: parseFloat(TDS_optimal),
+        temperature_min: parseFloat(temperature_min),
+        temperature_max: parseFloat(temperature_max),
+        temperature_optimal: parseFloat(temperature_optimal),
+      });
+
+      if (success) {
+        res
+          .status(201)
+          .json({ success: success, message: "Data inserted successfully" });
+      } else {
+        sendInternalServerError(res, "Data insertion failed.");
+      }
+    } catch (error) {
+      console.log("Error inserting data:", error);
+      sendInternalServerError(res, error);
+    }
+  } catch (error) {
+    sendBadRequestResponse(res, error);
+  }
+});
+
 /**
  * @swagger
  * /plant/growPlant:
