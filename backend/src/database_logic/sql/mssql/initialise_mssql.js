@@ -641,7 +641,7 @@ async function createTablesIfNotExistVersion5() {
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'MicrocontrollerPlantBatchPair')
         BEGIN
             CREATE TABLE MicrocontrollerPlantBatchPair (
-                MicrocontrollerId VARCHAR(20),
+                MicrocontrollerId VARCHAR(20) UNIQUE,
                 PlantBatchId INT
             );
         END;

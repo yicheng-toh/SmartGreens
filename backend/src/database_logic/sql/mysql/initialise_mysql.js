@@ -172,7 +172,7 @@ const {dbConnection} = require("./mysql.js");
         // Create Microcontroller Plant Pair Table
       const createMicrocontrollerPlantPairTable = `
           CREATE TABLE IF NOT EXISTS MicrocontrollerPlantBatchPair (
-          MicrocontrollerId VARCHAR(20),
+          MicrocontrollerId VARCHAR(20) UNIQUE,
           PlantBatchId INT
           )
        `

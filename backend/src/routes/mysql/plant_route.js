@@ -179,6 +179,8 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
   }
 });
 
+
+
 /**
  * @swagger
  * /plant/createPlant:
@@ -1623,6 +1625,60 @@ router.get("/allPlantBatchInfo", async (req, res) => {
   try {
     let success = 0;
     const rows = await mysqlLogic.getAllPlantBatchInfo();
+    console.log(rows);
+    success = 1;
+    res.status(200).json({ success: success, result: rows });
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res, error);
+  }
+});
+
+/**
+ * @swagger
+ * /plant/availableExisitingMicrocontroller:
+ *   get:
+ *     summary: Get available existing microcontroller IDs
+ *     tags: [Microcontrollers]
+ *     description: Retrieve microcontroller IDs where the associated plant batch ID is not null.
+ *     responses:
+ *       200:
+ *         description: Successful response with available microcontroller IDs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicates if the operation was successful (1) or not (0).
+ *                   example: 1
+ *                 result:
+ *                   type: array
+ *                   description: An array of microcontroller IDs where the associated plant batch ID is not null.
+ *                   items:
+ *                     type: string
+ *                   example: ["microcontroller1", "microcontroller2"]
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicates if the operation was successful (1) or not (0).
+ *                   example: 0
+ *                 message:
+ *                   type: string
+ *                   description: Error message describing the encountered issue.
+ *                   example: Internal Server Error
+ */
+router.get("/availableExisitingMicrocontroller", async (req, res) => {
+  try {
+    let success = 0;
+    const rows = await mysqlLogic.getAvailableExisitingMicrocontroller();
     console.log(rows);
     success = 1;
     res.status(200).json({ success: success, result: rows });

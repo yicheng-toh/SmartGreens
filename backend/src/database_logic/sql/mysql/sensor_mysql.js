@@ -496,6 +496,15 @@ WHERE
 
 }
 
+async function getAvailableExisitingMicrocontroller(){
+  sqlQuery = `
+  SELECT MicrocontrollerId 
+  FROM MicrocontrollerPlantBatchPair 
+  WHERE PlantBatchId IS NULL;
+  `
+  const queryResult = await dbConnection.promise().query(sqlQuery);
+  return queryResult[0];
+}
 
 module.exports = {
   getAllSensorData: getAllSensorData, //getAllSensorData2 does not work.
@@ -505,4 +514,5 @@ module.exports = {
   getActivePlantBatchSensorData,
   getActivePlantBatchSensorDataXDaysAgo,
   getLatestActivePlantBatchSensorData,
+  getAvailableExisitingMicrocontroller,
 };

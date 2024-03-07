@@ -236,6 +236,7 @@ async function shouldUpdateExisingSensorReadings(micrcontrolleridPrefix, microco
         // console.log("rows.temperature is ", rows.temperature);
         // console.log("rows.pH is ", rows.pH);
     }
+    await dbConnection.disconnect();
     return shouldUpdate;
 }
 
@@ -290,6 +291,7 @@ async function getActivePlantBatchSensorData() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   const queryResult = await request.query(sqlQuery);
+  await dbConnection.disconnect();
   return queryResult.recordset;
 }
 
@@ -345,6 +347,7 @@ async function getActivePlantBatchSensorDataXDaysAgo(x) {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   const queryResult = await request.input('days', x).query(sqlQuery);
+  await dbConnection.disconnect();
   return queryResult.recordset;
 }
 
@@ -440,10 +443,28 @@ WHERE
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   const queryResult = await request.query(sqlQuery);
+  await dbConnection.disconnect();
   return queryResult.recordset;
 
 
 
+}
+
+async function getAvailableExisitingMicrocontroller() {
+  try {
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+    const result = await request.query(`
+      SELECT MicrocontrollerId 
+      FROM MicrocontrollerPlantBatchPair 
+      WHERE PlantBatchId IS NULL;
+    `);
+    await dbConnection.disconnect();
+    return result.recordset;
+  } catch (error) {
+    console.error('Error executing query:', error);
+    throw error;
+  }
 }
 
 
@@ -455,4 +476,5 @@ module.exports = {
   getActivePlantBatchSensorData,
   getActivePlantBatchSensorDataXDaysAgo,
   getLatestActivePlantBatchSensorData,
+  getAvailableExisitingMicrocontroller,
 };
