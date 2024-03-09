@@ -142,4 +142,10 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
   const energyConsumptionRouter = require('./energy_consumption_route.js');
   router.use("/energyConsumption", energyConsumptionRouter);
 
+  const hardwareRouter = require('./hardware_route.js')
+  router.use("/plant", hardwareRouter);
+
+  const plantBatchRouter = require("./plant_batch_route.js");
+  router.use("/plant", plantBatchRouter)
+
 module.exports = router;
