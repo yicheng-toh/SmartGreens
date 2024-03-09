@@ -1,11 +1,155 @@
 const { json } = require("express");
 const express = require("express");
 const router = express.Router();
-const {sendBadRequestResponse, sendInternalServerError} = require("../request_error_messages.js")
-const mysqlLogic = require("../../database_logic/sql/sql.js")
+const {
+  sendBadRequestResponse,
+  sendInternalServerError,
+} = require("../request_error_messages.js");
+const mysqlLogic = require("../../database_logic/sql/sql.js");
 const errorCode = require("./error_code.js");
 
 router.use(json());
+/**
+ * @swagger
+ * tags:
+ *   name: PlantBatch
+ *   description: Routes for plant-related data
+ */
+
+/**
+ * @swagger
+ * /plant/editPlantBatchDetails:
+ *   post:
+ *     summary: Edit plant batch details
+ *     tags: [PlantBatch]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               plantBatchId:
+ *                 example: 1
+ *                 type: integer
+ *               datePlanted:
+ *                 type: string
+ *                 format: date-time
+ *               quantityPlanted:
+ *                 type: integer
+ *               quantityHarvested:
+ *                 type: integer
+ *               dateHarvested:
+ *                 type: string
+ *                 format: date-time
+ *     responses:
+ *       '200':
+ *         description: Success response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *       '500':
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+router.post("/editPlantBatchDetails", async (req, res) => {
+  try {
+    let success = 0;
+    let {
+      plantBatchId,
+      datePlanted,
+      quantityPlanted,
+      quantityHarvested,
+      dateHarvested,
+    } = req.body;
+    if (plantBatchId === undefined || isNaN(parseInt(plantBatchId))) {
+      sendInternalServerError(res, "Plant Batch Id is invalid.");
+      return;
+    }
+    if (quantityPlanted === undefined || isNaN(parseInt(quantityPlanted))) {
+      sendInternalServerError(res, "Quantity Planted is invalid.");
+      return;
+    }
+    if (datePlanted === undefined) {
+      // const plantBatchId = -1;
+      datePlanted = new Date();
+      // console.log(currentUTCDateTime);
+      datePlanted.setHours(datePlanted.getHours() + 8); //GMT + 8
+      datePlanted = datePlanted.toISOString;
+    }
+    let formattedDateTimePlanted = datePlanted.slice(0, 19).replace("T", " ");
+
+    let isPlantBatchGrowing =
+      await mysqlLogic.verifyPlantBatchIsGrowing(plantBatchId);
+      console.log("isPlantBatchGrowing", isPlantBatchGrowing);
+    if (isPlantBatchGrowing) {
+        console.log("plantbatch", plantBatchId, "is growing");
+      //edit the entries' date planted and quantity plamted
+      success = await mysqlLogic.updateGrowingPlantBatchDetails(
+        plantBatchId,
+        formattedDateTimePlanted,
+        quantityPlanted
+      );
+    } else {
+        console.log("plantbatch", plantBatchId, "is harvested");
+      //check the edit entries
+      if (
+        quantityHarvested === undefined ||
+        isNaN(parseInt(quantityHarvested))
+      ) {
+        sendInternalServerError(res, "Quantity Harvested is invalid.");
+        return;
+      }
+      if (dateHarvested === undefined) {
+        dateHarvested = new Date();
+        // console.log(currentUTCDateTime);
+        dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
+        dateHarvested = dateHarvested.toISOString;
+      }
+
+      let formattedDateTimeHarvested = dateHarvested
+        .slice(0, 19)
+        .replace("T", " ");
+      if (
+        new Date(formattedDateTimeHarvested) <
+        new Date(formattedDateTimePlanted)
+      ) {
+        sendInternalServerError(
+          res,
+          "Date harvested cannot be earlier than date planted"
+        );
+        return;
+      }
+      //get the date planted time.
+      let success = await mysqlLogic.updateHarvestedPlantBatchDetails(
+        plantBatchId,
+        formattedDateTimePlanted,
+        quantityPlanted,
+        formattedDateTimeHarvested,
+        quantityHarvested
+      );
+    }
+    success = 1;
+    res
+      .status(200)
+      .json({ success: success, message: "Data inserted successfully" });
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res, error);
+  }
+});
 
 /**
  * @swagger
@@ -13,7 +157,7 @@ router.use(json());
  *   get:
  *     summary: Retrieve all plant batch information
  *     description: Retrieve all plant batch information including joined plant information from the database.
- *     tags: [Plant]
+ *     tags: [PlantBatch]
  *     responses:
  *       200:
  *         description: Successful response with plant batch information
@@ -88,25 +232,24 @@ router.use(json());
  *                   description: Error message indicating the reason for the internal server error.
  */
 router.get("/allPlantBatchInfo", async (req, res) => {
-    try {
-      let success = 0;
-      const rows = await mysqlLogic.getAllPlantBatchInfo();
-      console.log(rows);
-      success = 1;
-      res.status(200).json({ success: success, result: rows });
-    } catch (error) {
-      console.log("Error retrieving data:", error);
-      sendInternalServerError(res, error);
-    }
-  });
-
+  try {
+    let success = 0;
+    const rows = await mysqlLogic.getAllPlantBatchInfo();
+    console.log(rows);
+    success = 1;
+    res.status(200).json({ success: success, result: rows });
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res, error);
+  }
+});
 
 /**
  * @swagger
  * /plant/plantBatchInfoAndYield:
  *   get:
  *     summary: Get information about plant batches and their yields.
- *     tags: [Plant]
+ *     tags: [PlantBatch]
  *     responses:
  *       200:
  *         description: Successful response. Returns plant batch info and yield data.
@@ -124,16 +267,16 @@ router.get("/allPlantBatchInfo", async (req, res) => {
  *                   YieldRate: 0.75
  */
 router.get("/plantBatchInfoAndYield", async (req, res) => {
-    try {
-      let success = 0;
-      const rows = await mysqlLogic.getAllPlantBatchInfoAndYield();
-      console.log(rows);
-      success = 1;
-      res.status(200).json({ success: success, result: rows });
-    } catch (error) {
-      console.log("Error retrieving data:", error);
-      sendInternalServerError(res, error);
-    }
-  });
- 
+  try {
+    let success = 0;
+    const rows = await mysqlLogic.getAllPlantBatchInfoAndYield();
+    console.log(rows);
+    success = 1;
+    res.status(200).json({ success: success, result: rows });
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res, error);
+  }
+});
+
 module.exports = router;

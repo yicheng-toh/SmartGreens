@@ -102,7 +102,7 @@ async function insertNewPlant(plantName, SensorsRanges, DaysToMature) {
 }
 
 //This function may need to be broken up in the routes for error catching.
-async function harvestPlant(plantBatchId, quantityHarvested) {
+async function harvestPlant(plantBatchId, dateHarvested, quantityHarvested) {
   //check if quantity harvested is greater than the quantity planted.
   const quantityPlantedResultList = await dbConnection
     .promise()
@@ -114,11 +114,11 @@ async function harvestPlant(plantBatchId, quantityHarvested) {
   if (quantityHarvested > quantityPlanted) {
     return 0;
   }
-  const currentDate = new Date(); // Assuming you are using JavaScript to get the current date and time
+  // const currentDate = new Date(); // Assuming you are using JavaScript to get the current date and time
 
   await dbConnection.execute(
     "UPDATE PlantBatch SET quantityHarvested = ?, DateHarvested = ? WHERE plantBatchId = ?;",
-    [quantityHarvested, currentDate, plantBatchId]
+    [quantityHarvested, dateHarvested, plantBatchId]
   );
 
   //   await dbConnection.execute(
@@ -315,6 +315,71 @@ async function getAllPlantBatchInfo() {
   return queryResult[0];
 }
 
+async function verifyPlantBatchIsGrowing(plantBatchId){
+  try {
+    let queryResult = await dbConnection.promise().query(`SELECT * FROM PlantBatch WHERE PlantBatchId = ?`, [plantBatchId]);
+    console.log("verifyPlantBatchIsGrowing", queryResult);
+    console.log("verifyPlantBatchIsGrowing", queryResult[0]);
+    console.log("verifyPlantBatchIsGrowing", queryResult[0][0]);
+    console.log("verifyPlantBatchIsGrowing", queryResult[0][0].DateHarvested);
+    if (!queryResult[0][0].DatePlanted) {
+      return 0;
+    }
+    if (queryResult[0][0].DateHarvested !== null) {
+      console.log("verifyPlantBatchIsGrowing", queryResult[0][0].DateHarvested)
+      return 0;
+    }
+    return 1;
+  } catch (error) {
+    console.error("Error verifying plant batch:", error);
+    return 0;
+  }
+}
+
+async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted) {
+  try {
+    const sqlQuery = `
+      UPDATE PlantBatch
+      SET DatePlanted = ?, QuantityPlanted = ?
+      WHERE PlantBatchId = ?
+    `;
+    const result = await dbConnection.execute(sqlQuery, [datePlanted, quantityPlanted, plantBatchId]);
+    console.log("updateGrowingPlantBatchDetails", result);
+    console.log("updateGrowingPlantBatchDetails", result[0]);
+  } catch (error) {
+    console.error("Error updating growing plant batch details:", error);
+    return 0; // Return 0 to indicate failure
+  }
+}
+
+async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, quantityHarvested) {
+  try {
+    const sqlQuery = `
+      UPDATE PlantBatch
+      SET DatePlanted = ?, QuantityPlanted = ?, DateHarvested = ?, QuantityHarvested = ?
+      WHERE PlantBatchId = ?
+    `;
+    const result = await dbConnection.execute(sqlQuery, [datePlanted, quantityPlanted, dateHarvested, quantityHarvested, plantBatchId]);
+    console.log("updateHarvestedPlantBatchDetails","result[0]",result[0]);
+    return 1; // Successful update
+
+  } catch (error) {
+    console.error("Error updating growing plant batch details:", error);
+    return 0; // Return 0 to indicate failure
+  }
+}
+
+async function getPlantBatchDatePlanted(plantBatchId) {
+  const sqlQuery = `SELECT DatePlanted FROM PlantBatch WHERE PlantBatchId = ?`;
+  try {
+    let result = await dbConnection.promise().query(sqlQuery, [plantBatchId]);
+    return result[0].DatePlanted;
+  } catch (error) {
+    console.error("Error getting plant batch DatePlanted:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   getAllPlantHarvestData,
   // updatePlantHarvestData,
@@ -324,9 +389,13 @@ module.exports = {
   getAllPlantBatchInfoAndYield,
   getAllPlantSeedInventory,
   getAllPlantYieldRate,
+  getPlantBatchDatePlanted,
   growPlant,
   harvestPlant,
+  updateGrowingPlantBatchDetails,
+  updateHarvestedPlantBatchDetails,
   updatePlantSeedInventory,
   updatePlantSensorInfo,
   verifyPlantExists,
+  verifyPlantBatchIsGrowing,
 };

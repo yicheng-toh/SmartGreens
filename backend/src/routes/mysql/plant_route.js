@@ -10,22 +10,18 @@ const { groupSensorDataByPlantType, appendStatusToLatestSensorReadings } = requi
 /**
  * @swagger
  * tags:
- *   name: Hardware
+ *   name: Plant
  *   description: Routes for plant-related data
  */
 
 router.use(json());
-
-
-
-
 
 /**
  * @swagger
  * /plant/createPlant:
  *   post:
  *     summary: Create a new plant species
- *     tags: [Hardware]
+ *     tags: [Plant]
  *     requestBody:
  *       required: true
  *       content:
@@ -890,8 +886,21 @@ router.post("/harvestPlant", async (req, res) => {
       return;
     }
     plantBatchId = parseInt(plantBatchId);
+    //need to check if the plant batch is grown and not harvseted.
+    let isPlantBatchGrowing = await mysqlLogic.verifyPlantBatchIsGrowing(plantBatchId);
+    if(!isPlantBatchGrowing){
+      sendInternalServerError(res, "Plant Batch is not growing!");
+      return;
+    }
     quantityHarvested = parseInt(quantityHarvested);
-    success = await mysqlLogic.harvestPlant(plantBatchId, quantityHarvested);
+    dateHarvested = new Date();
+    dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
+    dateHarvested = dateHarvested.toISOString();
+    // console.log("dateHarvested is", dateHarvested);
+    let formattedDateTimeHarvested = dateHarvested
+      .slice(0, 19)
+      .replace("T", " ");
+    success = await mysqlLogic.harvestPlant(plantBatchId, dateHarvested, quantityHarvested);
     if (success) {
       res
         .status(201)
@@ -992,12 +1001,6 @@ router.get("/plantYield", async (req, res) => {
     sendInternalServerError(res, error);
   }
 });
-
-
-
-
-
-
 
 
 module.exports = router;

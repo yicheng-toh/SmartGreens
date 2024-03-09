@@ -119,7 +119,7 @@ async function insertNewPlant(plantName, SensorsRanges, DaysToMature) {
 
 //This function may need to be broken up in the routes for error catching.
 //Todo 22 jan: to update the microcontroller batch pair table too.
-async function harvestPlant(plantBatchId, quantityHarvested) {
+async function harvestPlant(plantBatchId, dateHarvested, quantityHarvested) {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   //need to check the number of seeds planted.
@@ -138,9 +138,9 @@ async function harvestPlant(plantBatchId, quantityHarvested) {
   }
   await request
     .input("quantityHarvested", sql.Int, quantityHarvested)
-    // .input("plantBatchId", sql.Int, plantBatchId)
+    .input("dateHarvested", sql.DateTime, dateHarvested)
     .query(
-      "UPDATE PlantBatch SET QuantityHarvested = @quantityHarvested WHERE PlantBatchId = @plantBatchId"
+      "UPDATE PlantBatch SET QuantityHarvested = @quantityHarvested, DateHarvested = @dateHarvested WHERE PlantBatchId = @plantBatchId"
     );
 
   // const plantIdResultList = await request.query('SELECT plantId FROM PlantBatch WHERE plantBatch = @plantBatch');
@@ -414,6 +414,7 @@ async function updatePlantSensorInfo(data) {
       }
 
       // Return true indicating successful update
+      await dbConnection.disconnect();
       return true;
   } catch (error) {
       console.error("Error updating PlantSensorInfo:", error);
@@ -519,6 +520,7 @@ async function updatePlantInfo(data) {
       }
 
       // Return true indicating successful update
+      await dbConnection.disconnect();
       return true;
   } catch (error) {
       console.error("Error updating PlantSensorInfo:", error);
@@ -550,11 +552,80 @@ async function getAllPlantBatchInfo() {
       LEFT JOIN 
         PlantInfo ON PlantInfo.PlantID = PlantBatch.PlantID`
     );
+  await dbConnection.disconnect();
   return queryResult.recordset;
 }
 
-//need to rethink on how to write the functions......write them based on sql queries... or....
-//there is no harvest plant info. i.e. no logic to harvest plant.
+
+async function verifyPlantBatchIsGrowing(plantBatchId) {
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try {
+    
+    let result = await request
+      .input('plantBatchId', sql.Int, plantBatchId)
+      .query('SELECT * FROM PlantBatch WHERE PlantBatchId = @plantBatchId');
+    console.log("verifyPlantBatchIsGrowing", result.recordset);
+    console.log("verifyPlantBatchIsGrowing", result.recordset[0]);
+    console.log("verifyPlantBatchIsGrowing", result.recordset[0].DateHarvested);
+    if (!result.recordset[0].DatePlanted) {
+      await dbConnection.disconnect();
+      return 0;
+    }
+    if (result.recordset[0].DateHarvested !== null) {
+      console.log("verifyPlantBatchIsGrowing", result.recordset[0].DateHarvested)
+      await dbConnection.disconnect();
+      return 0;
+    }
+    await dbConnection.disconnect();
+    return 1;
+  } catch (error) {
+    console.error("Error verifying plant batch:", error);
+    await dbConnection.disconnect();
+    return 0;
+  }
+}
+
+async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted) {
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+  try {
+    const result = await request
+      .input('datePlanted', sql.DateTime, datePlanted)
+      .input('quantityPlanted', sql.Int, quantityPlanted)
+      .input('plantBatchId', sql.Int, plantBatchId)
+      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted WHERE PlantBatchId = @plantBatchId');
+    console.log("updateGrowingPlantBatchDetails", result.rowsAffected);
+    await dbConnection.disconnect();
+    return 1;
+  } catch (error) {
+    console.error("Error updating growing plant batch details:", error);
+    await dbConnection.disconnect();
+    return 0; // Return 0 to indicate failure
+  }
+}
+
+async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, quantityHarvested) {
+  try {
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+    const result = await request
+      .input('datePlanted', sql.DateTime, datePlanted)
+      .input('quantityPlanted', sql.Int, quantityPlanted)
+      .input('dateHarvested', sql.DateTime, dateHarvested)
+      .input('quantityHarvested', sql.Int, quantityHarvested)
+      .input('plantBatchId', sql.Int, plantBatchId)
+      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, DateHarvested = @dateHarvested, QuantityHarvested = @quantityHarvested WHERE PlantBatchId = @plantBatchId');
+    console.log("updateHarvestedPlantBatchDetails", result.rowsAffected);
+    await dbConnection.disconnect();
+    return 1; // Successful update
+  } catch (error) {
+    console.error("Error updating growing plant batch details:", error);
+    await dbConnection.disconnect();
+    return 0; // Return 0 to indicate failure
+  }
+}
+
 
 module.exports = {
   getAllPlantHarvestData,
@@ -569,5 +640,8 @@ module.exports = {
   harvestPlant,
   updatePlantSensorInfo,
   updatePlantSeedInventory,
+  updateGrowingPlantBatchDetails,
+  updateHarvestedPlantBatchDetails,
+  verifyPlantBatchIsGrowing,
   verifyPlantExists,
 };

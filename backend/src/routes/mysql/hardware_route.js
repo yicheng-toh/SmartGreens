@@ -6,13 +6,19 @@ const mysqlLogic = require("../../database_logic/sql/sql.js")
 const errorCode = require("./error_code.js");
 
 router.use(json());
+/**
+ * @swagger
+ * tags:
+ *   name: Hardware
+ *   description: Routes for plant-related data
+ */
 
 /**
  * @swagger
  * /plant/insertData/{microcontrollerId}:
  *   post:
  *     summary: Insert sensor data for a plant
- *     tags: [Plant]
+ *     tags: [Hardware]
  *     parameters:
  *       - in: path
  *         name: microcontrollerId
@@ -173,7 +179,7 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
  * /plant/availableExisitingMicrocontroller:
  *   get:
  *     summary: Get available existing microcontroller IDs
- *     tags: [Microcontrollers]
+ *     tags: [Hardware]
  *     description: Retrieve microcontroller IDs where the associated plant batch ID is not null.
  *     responses:
  *       200:
@@ -227,7 +233,7 @@ router.get("/availableExisitingMicrocontroller", async (req, res) => {
  * /plant/retrieveData:
  *   get:
  *     summary: Retrieve sensor data for all plants
- *     tags: [Plant]
+ *     tags: [Hardware]
  *     responses:
  *       200:
  *         description: Successful operation
@@ -260,7 +266,7 @@ router.get("/retrieveData", async (req, res) => {
  * @swagger
  * /plant/retrieveActivePlantBatchSensorData:
  *   get:
- *     tags: [Plant]
+ *     tags: [Hardware]
  *     description: Retrieve active plant batch sensor data
  *     responses:
  *       200:
@@ -359,7 +365,7 @@ try {
  * @swagger
  * /plant/retrieveLatestActivePlantBatchSensorData:
  *   get:
- *     tags: [Plant]
+ *     tags: [Hardware]
  *     description: Retrieve active plant batch sensor data
  *     responses:
  *       200:
