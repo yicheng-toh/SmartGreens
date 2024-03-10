@@ -522,38 +522,67 @@ router.post("/updatePlantSensorInfo", async (req, res) => {
   }
 });
 
-//This function is not done yet...
+/**
+ * @swagger
+ * /plant/updatePlantInfo:
+ *   post:
+ *     summary: Update plant information
+ *     tags: [Plant]
+ *     description: Update plant information in the database.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               plantId:
+ *                 type: integer
+ *                 description: Numeric ID of the plant.
+ *                 example: 1
+ *               plantName:
+ *                 type: string
+ *                 description: Name of the plant.
+ *                 example: "Tomato4"
+ *               plantPicture:
+ *                 type: string
+ *                 description: URL or base64-encoded image of the plant picture.
+ *                 example: null
+ *               daysToMature:
+ *                 type: integer
+ *                 description: Number of days for the plant to mature.
+ *                 example: 90
+ *               currentSeedInventory:
+ *                 type: integer
+ *                 description: Current inventory count of seeds for the plant.
+ *                 example: 950
+ *     responses:
+ *       201:
+ *         description: Success message indicating the data was updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicates whether the update was successful (1) or not (0).
+ *                 message:
+ *                   type: string
+ *                   description: Message indicating the outcome of the operation.
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/updatePlantInfo", async (req, res) => {
   try {
     try {
       // Extracting data from req.body
-      const {
+      let {
         plantId,
         plantName,
         plantPicture,
         daysToMature,
         currentSeedInventory,
-        temperature_min,
-        temperature_max,
-        temperature_optimal,
-        humidity_min,
-        humidity_max,
-        humidity_optimal,
-        brightness_min,
-        brightness_max,
-        brightness_optimal,
-        pH_min,
-        pH_max,
-        pH_optimal,
-        CO2_min,
-        CO2_max,
-        CO2_optimal,
-        EC_min,
-        EC_max,
-        EC_optimal,
-        TDS_min,
-        TDS_max,
-        TDS_optimal,
       } = req.body;
 
       let success = 0;
@@ -562,168 +591,25 @@ router.post("/updatePlantInfo", async (req, res) => {
       if (typeof plantId === "undefined" || isNaN(parseInt(plantId))) {
         return sendInternalServerError(res, "Invalid Plant Id");
       }
-      // Validation for Temperature_min (FLOAT)
-      if (
-        typeof temperature_min === "undefined" ||
-        isNaN(parseFloat(temperature_min))
-      ) {
-        return sendInternalServerError(res, "Invalid Temperature_min");
+      if (plantName === undefined || !plantName.trim().length){
+        sendInternalServerError(res, "Invalid Plant Name");
+        return;
+      }
+      if (daysToMature === undefined || isNaN(parseInt(daysToMature)) || parseInt(daysToMature) <= 0){
+        sendInternalServerError(res, "Invalid value for daysToMature");
+        return;
       }
 
-      // Validation for Temperature_max (FLOAT)
-      if (
-        typeof temperature_max === "undefined" ||
-        isNaN(parseFloat(temperature_max))
-      ) {
-        return sendInternalServerError(res, "Invalid Temperature_max");
+      if (currentSeedInventory === undefined || isNaN(parseInt(currentSeedInventory)) || parseInt(currentSeedInventory) < 0){
+        sendInternalServerError(res, "Invalid value for current seed inventory.");
+        return;
       }
-
-      // Validation for Temperature_optimal (FLOAT)
-      if (
-        typeof temperature_optimal === "undefined" ||
-        isNaN(parseFloat(temperature_optimal))
-      ) {
-        return sendInternalServerError(res, "Invalid Temperature_optimal");
+      if (plantPicture == undefined){
+        plantPicture = null;
       }
-
-      // Validation for Humidity_min (FLOAT)
-      if (
-        typeof humidity_min === "undefined" ||
-        isNaN(parseFloat(humidity_min))
-      ) {
-        return sendInternalServerError(res, "Invalid Humidity_min");
-      }
-
-      // Validation for Humidity_max (FLOAT)
-      if (
-        typeof humidity_max === "undefined" ||
-        isNaN(parseFloat(humidity_max))
-      ) {
-        return sendInternalServerError(res, "Invalid Humidity_max");
-      }
-
-      // Validation for Humidity_optimal (FLOAT)
-      if (
-        typeof humidity_optimal === "undefined" ||
-        isNaN(parseFloat(humidity_optimal))
-      ) {
-        return sendInternalServerError(res, "Invalid Humidity_optimal");
-      }
-
-      // Validation for Brightness_min (FLOAT)
-      if (
-        typeof brightness_min === "undefined" ||
-        isNaN(parseFloat(brightness_min))
-      ) {
-        return sendInternalServerError(res, "Invalid Brightness_min");
-      }
-
-      // Validation for Brightness_max (FLOAT)
-      if (
-        typeof brightness_max === "undefined" ||
-        isNaN(parseFloat(brightness_max))
-      ) {
-        return sendInternalServerError(res, "Invalid Brightness_max");
-      }
-
-      // Validation for Brightness_optimal (FLOAT)
-      if (
-        typeof brightness_optimal === "undefined" ||
-        isNaN(parseFloat(brightness_optimal))
-      ) {
-        return sendInternalServerError(res, "Invalid Brightness_optimal");
-      }
-
-      // Validation for pH_min (FLOAT)
-      if (typeof pH_min === "undefined" || isNaN(parseFloat(pH_min))) {
-        return sendInternalServerError(res, "Invalid pH_min");
-      }
-
-      // Validation for pH_max (FLOAT)
-      if (typeof pH_max === "undefined" || isNaN(parseFloat(pH_max))) {
-        return sendInternalServerError(res, "Invalid pH_max");
-      }
-
-      // Validation for pH_optimal (FLOAT)
-      if (typeof pH_optimal === "undefined" || isNaN(parseFloat(pH_optimal))) {
-        return sendInternalServerError(res, "Invalid pH_optimal");
-      }
-
-      // Validation for CO2_min (FLOAT)
-      if (typeof CO2_min === "undefined" || isNaN(parseFloat(CO2_min))) {
-        return sendInternalServerError(res, "Invalid CO2_min");
-      }
-
-      // Validation for CO2_max (FLOAT)
-      if (typeof CO2_max === "undefined" || isNaN(parseFloat(CO2_max))) {
-        return sendInternalServerError(res, "Invalid CO2_max");
-      }
-
-      // Validation for CO2_optimal (FLOAT)
-      if (
-        typeof CO2_optimal === "undefined" ||
-        isNaN(parseFloat(CO2_optimal))
-      ) {
-        return sendInternalServerError(res, "Invalid CO2_optimal");
-      }
-
-      // Validation for EC_min (FLOAT)
-      if (typeof EC_min === "undefined" || isNaN(parseFloat(EC_min))) {
-        return sendInternalServerError(res, "Invalid EC_min");
-      }
-
-      // Validation for EC_max (FLOAT)
-      if (typeof EC_max === "undefined" || isNaN(parseFloat(EC_max))) {
-        return sendInternalServerError(res, "Invalid EC_max");
-      }
-
-      // Validation for EC_optimal (FLOAT)
-      if (typeof EC_optimal === "undefined" || isNaN(parseFloat(EC_optimal))) {
-        return sendInternalServerError(res, "Invalid EC_optimal");
-      }
-
-      // Validation for TDS_min (FLOAT)
-      if (typeof TDS_min === "undefined" || isNaN(parseFloat(TDS_min))) {
-        return sendInternalServerError(res, "Invalid TDS_min");
-      }
-
-      // Validation for TDS_max (FLOAT)
-      if (typeof TDS_max === "undefined" || isNaN(parseFloat(TDS_max))) {
-        return sendInternalServerError(res, "Invalid TDS_max");
-      }
-
-      // Validation for TDS_optimal (FLOAT)
-      if (
-        typeof TDS_optimal === "undefined" ||
-        isNaN(parseFloat(TDS_optimal))
-      ) {
-        return sendInternalServerError(res, "Invalid TDS_optimal");
-      }
-      //Since all the test passed, then I will need to update the plant seed info.
-      success = await mysqlLogic.updatePlantSensorInfo({
-        plantId: parseInt(plantId),
-        humidity_min: parseFloat(humidity_min),
-        humidity_max: parseFloat(humidity_max),
-        humidity_optimal: parseFloat(humidity_optimal),
-        brightness_min: parseFloat(brightness_min),
-        brightness_max: parseFloat(brightness_max),
-        brightness_optimal: parseFloat(brightness_optimal),
-        pH_min: parseFloat(pH_min),
-        pH_max: parseFloat(pH_max),
-        pH_optimal: parseFloat(pH_optimal),
-        CO2_min: parseFloat(CO2_min),
-        CO2_max: parseFloat(CO2_max),
-        CO2_optimal: parseFloat(CO2_optimal),
-        EC_min: parseFloat(EC_min),
-        EC_max: parseFloat(EC_max),
-        EC_optimal: parseFloat(EC_optimal),
-        TDS_min: parseFloat(TDS_min),
-        TDS_max: parseFloat(TDS_max),
-        TDS_optimal: parseFloat(TDS_optimal),
-        temperature_min: parseFloat(temperature_min),
-        temperature_max: parseFloat(temperature_max),
-        temperature_optimal: parseFloat(temperature_optimal),
-      });
+      
+      //update plant sensor info.
+      success = await mysqlLogic.updatePlantInfo(plantId, plantName, plantPicture, daysToMature, currentSeedInventory);
 
       if (success) {
         res
@@ -781,8 +667,6 @@ router.post("/updatePlantInfo", async (req, res) => {
  *       "application/json":
  *         success: true
  */
-//Todo: this route is not completed yet. TODO CLARIFICATION REQUIRED
-//High difficulty route.
 router.post("/growPlant", async (req, res) => {
   try {
     try {

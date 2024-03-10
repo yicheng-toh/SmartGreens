@@ -103,6 +103,7 @@ async function getAllPlantYieldRate() {
   return queryResult.recordset;
 }
 
+//may be required to insert images in the future.
 async function insertNewPlant(plantName, SensorsRanges, DaysToMature) {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
@@ -657,6 +658,37 @@ async function deletePlantBatch(plantBatchId) {
   }
 }
 
+async function updatePlantInfo(
+  plantId,
+  plantName,
+  plantPicture,
+  daysToMature,
+  currentSeedInventory
+) {
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try {
+    const sqlQuery = `
+      UPDATE PlantInfo
+      SET PlantName = @plantName, PlantPicture = @plantPicture, DaysToMature = @daysToMature, CurrentSeedInventory = @currentSeedInventory
+      WHERE PlantId = @plantId
+    `;
+    await request
+      .input('plantName', sql.NVarChar, plantName)
+      .input('plantPicture', sql.VarBinary(sql.MAX), plantPicture)
+      .input('daysToMature', sql.Int, daysToMature)
+      .input('currentSeedInventory', sql.Int, currentSeedInventory)
+      .input('plantId', sql.Int, plantId)
+      .query(sqlQuery);
+    
+    return 1;
+  } catch (error) {
+    console.error("Error updating data: ", error);
+    throw error;
+  }
+}
+
+
 
 module.exports = {
   deletePlantBatch,
@@ -671,6 +703,7 @@ module.exports = {
   growPlant,
   harvestPlant,
   updatePlantSensorInfo,
+  updatePlantInfo,
   updatePlantSeedInventory,
   updateGrowingPlantBatchDetails,
   updateHarvestedPlantBatchDetails,

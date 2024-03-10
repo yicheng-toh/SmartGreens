@@ -186,15 +186,6 @@ async function growPlant(
   return 1;
 }
 
-// async function updatePlantHarvestData(plantId, quantityChange){
-//     const currentQuantity = await dbConnection.promise().query('SELECT quantity FROM PlantHarvest WHERE PlantId = ?', plantId);
-//     const newQuantity = currentQuantity[0].quantity + quantityChange;
-//     await dbConnection.execute('UPDATE plantHarvest SET quantity = ? WHERE plant_id = ?;', [newQuantity, plantId]);
-//     //remove from the microcontroller batch table.
-//     return 1;
-
-// }
-
 async function updatePlantSeedInventory(plantId, quantityChange) {
   const currentQuantityResultList = await dbConnection
     .promise()
@@ -304,20 +295,46 @@ async function updatePlantSensorInfo(data) {
   }
 }
 
+async function updatePlantInfo(
+  plantId,
+  plantName,
+  plantPicture,
+  daysToMature,
+  currentSeedInventory
+) {
+  try {
+    sqlQuery = `
+  UPDATE PlantInfo
+  SET PlantName = ?, PlantPicture = ?, DaysToMature = ?, CurrentSeedInventory = ?
+  WHERE PlantId = ?`;
+    await dbConnection.execute(sqlQuery, [
+      plantName,
+      plantPicture,
+      daysToMature,
+      currentSeedInventory,
+      plantId,
+    ]);
+    return 1;
+  } catch (error) {
+    console.log("Error updating data: ", error);
+    throw error;
+  }
+}
+
 async function getAllPlantBatchInfo() {
-  queryResult = await dbConnection
-    .promise()
-    .query(
-      `SELECT * FROM PlantBatch 
+  queryResult = await dbConnection.promise().query(
+    `SELECT * FROM PlantBatch 
       LEFT JOIN 
         PlantInfo ON PlantInfo.PlantID = PlantBatch.PlantID`
-    );
+  );
   return queryResult[0];
 }
 
-async function verifyPlantBatchIsGrowing(plantBatchId){
+async function verifyPlantBatchIsGrowing(plantBatchId) {
   try {
-    let queryResult = await dbConnection.promise().query(`SELECT * FROM PlantBatch WHERE PlantBatchId = ?`, [plantBatchId]);
+    let queryResult = await dbConnection
+      .promise()
+      .query(`SELECT * FROM PlantBatch WHERE PlantBatchId = ?`, [plantBatchId]);
     console.log("verifyPlantBatchIsGrowing", queryResult);
     console.log("verifyPlantBatchIsGrowing", queryResult[0]);
     console.log("verifyPlantBatchIsGrowing", queryResult[0][0]);
@@ -326,7 +343,7 @@ async function verifyPlantBatchIsGrowing(plantBatchId){
       return 0;
     }
     if (queryResult[0][0].DateHarvested !== null) {
-      console.log("verifyPlantBatchIsGrowing", queryResult[0][0].DateHarvested)
+      console.log("verifyPlantBatchIsGrowing", queryResult[0][0].DateHarvested);
       return 0;
     }
     return 1;
@@ -336,14 +353,24 @@ async function verifyPlantBatchIsGrowing(plantBatchId){
   }
 }
 
-async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, location) {
+async function updateGrowingPlantBatchDetails(
+  plantBatchId,
+  datePlanted,
+  quantityPlanted,
+  location
+) {
   try {
     const sqlQuery = `
       UPDATE PlantBatch
       SET DatePlanted = ?, QuantityPlanted = ?, PlantLocation = ?
       WHERE PlantBatchId = ?
     `;
-    const result = await dbConnection.execute(sqlQuery, [datePlanted, quantityPlanted, location, plantBatchId]);
+    const result = await dbConnection.execute(sqlQuery, [
+      datePlanted,
+      quantityPlanted,
+      location,
+      plantBatchId,
+    ]);
     console.log("updateGrowingPlantBatchDetails", result);
     console.log("updateGrowingPlantBatchDetails", result[0]);
   } catch (error) {
@@ -352,17 +379,30 @@ async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantit
   }
 }
 
-async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, quantityHarvested, location) {
+async function updateHarvestedPlantBatchDetails(
+  plantBatchId,
+  datePlanted,
+  quantityPlanted,
+  dateHarvested,
+  quantityHarvested,
+  location
+) {
   try {
     const sqlQuery = `
       UPDATE PlantBatch
       SET DatePlanted = ?, QuantityPlanted = ?, DateHarvested = ?, QuantityHarvested = ?, PlantLocation = ?
       WHERE PlantBatchId = ?
     `;
-    const result = await dbConnection.execute(sqlQuery, [datePlanted, quantityPlanted, dateHarvested, quantityHarvested, location, plantBatchId]);
-    console.log("updateHarvestedPlantBatchDetails","result[0]",result[0]);
+    const result = await dbConnection.execute(sqlQuery, [
+      datePlanted,
+      quantityPlanted,
+      dateHarvested,
+      quantityHarvested,
+      location,
+      plantBatchId,
+    ]);
+    console.log("updateHarvestedPlantBatchDetails", "result[0]", result[0]);
     return 1; // Successful update
-
   } catch (error) {
     console.error("Error updating growing plant batch details:", error);
     return 0; // Return 0 to indicate failure
@@ -380,14 +420,20 @@ async function getPlantBatchDatePlanted(plantBatchId) {
   }
 }
 
-async function deletePlantBatch(plantBatchId){
-  try{
-  await dbConnection.execute('DELETE FROM SensorReadings WHERE PlantBatchId = ?',[plantBatchId]);
-  await dbConnection.execute('DELETE FROM PlantBatch WHERE PlantBatchId = ?',[plantBatchId]);
-  return 1;
-  }catch(error){
+async function deletePlantBatch(plantBatchId) {
+  try {
+    await dbConnection.execute(
+      "DELETE FROM SensorReadings WHERE PlantBatchId = ?",
+      [plantBatchId]
+    );
+    await dbConnection.execute(
+      "DELETE FROM PlantBatch WHERE PlantBatchId = ?",
+      [plantBatchId]
+    );
+    return 1;
+  } catch (error) {
     console.error("Error deleting plant batch data", error);
-    throw(error);
+    throw error;
   }
 }
 
@@ -407,6 +453,7 @@ module.exports = {
   updateHarvestedPlantBatchDetails,
   updatePlantSeedInventory,
   updatePlantSensorInfo,
+  updatePlantInfo,
   verifyPlantExists,
   verifyPlantBatchIsGrowing,
 };
