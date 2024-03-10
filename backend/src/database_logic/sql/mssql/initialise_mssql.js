@@ -627,8 +627,8 @@ async function createTablesIfNotExistVersion5() {
                 MicrocontrollerID VARCHAR(20) NOT NULL,
                 PlantBatchId INT,
                 Temperature FLOAT,
-                Humidity INT,
-                Brightness INT,
+                Humidity FLOAT,
+                Brightness FLOAT,
                 pH FLOAT,
                 CO2 FLOAT,
                 EC FLOAT,
@@ -641,7 +641,7 @@ async function createTablesIfNotExistVersion5() {
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'MicrocontrollerPlantBatchPair')
         BEGIN
             CREATE TABLE MicrocontrollerPlantBatchPair (
-                MicrocontrollerId VARCHAR(20),
+                MicrocontrollerId VARCHAR(20) UNIQUE,
                 PlantBatchId INT
             );
         END;
@@ -672,6 +672,17 @@ async function createTablesIfNotExistVersion5() {
             );
         END;
 
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Inventory2')
+        BEGIN
+            CREATE TABLE Inventory2 (
+                id INT IDENTITY(1,1) PRIMARY KEY,
+                item VARCHAR(255),
+                quantity FLOAT,
+                units VARCHAR(50),
+                location VARCHAR(255)
+            );
+        END;
+
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantInfo')
         BEGIN
             CREATE TABLE PlantInfo (
@@ -683,6 +694,34 @@ async function createTablesIfNotExistVersion5() {
                 CurrentSeedInventory INT DEFAULT 0,
                 TotalHarvestSold INT DEFAULT 0,
                 TotalHarvestDiscarded INT DEFAULT 0
+            );
+        END;
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantSensorInfo')
+        BEGIN
+            CREATE TABLE PlantSensorInfo (
+                PlantId INT PRIMARY KEY,
+                Temperature_min FLOAT,
+                Temperature_max FLOAT,
+                Temperature_optimal FLOAT,
+                Humidity_min FLOAT,
+                Humidity_max FLOAT,
+                Humidity_optimal FLOAT,
+                Brightness_min FLOAT,
+                Brightness_max FLOAT,
+                Brightness_optimal FLOAT,
+                pH_min FLOAT,
+                pH_max FLOAT,
+                pH_optimal FLOAT,
+                CO2_min FLOAT,
+                CO2_max FLOAT,
+                CO2_optimal FLOAT,
+                EC_min FLOAT,
+                EC_max FLOAT,
+                EC_optimal FLOAT,
+                TDS_min FLOAT,
+                TDS_max FLOAT,
+                TDS_optimal FLOAT
             );
         END;
 
@@ -710,10 +749,30 @@ async function createTablesIfNotExistVersion5() {
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Schedule')
         BEGIN
             CREATE TABLE Schedule (
-                ScheduleId INT PRIMARY KEY IDENTITY(1,1),
+                ScheduleId INT PRIMARY KEY,
                 ScheduleDescription VARCHAR(255) NOT NULL,
                 Datetime DATETIME NOT NULL,
                 Status BIT
+            );
+        END;
+
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Schedule2')
+        BEGIN
+            CREATE TABLE Schedule2(
+                ScheduleId INT IDENTITY(1,1) PRIMARY KEY,
+                Type VARCHAR(255) DEFAULT 'manual',
+                Content DATETIME,
+                Task VARCHAR(255)
+            );
+        END;
+        
+        IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'EnergyConsumingDevice')
+        BEGIN
+            CREATE TABLE EnergyConsumingDevice (
+                DeviceId INT PRIMARY KEY IDENTITY(1,1),
+                DeviceName VARCHAR(255) not NULL,
+                Quantity INT DEFAULT 0 CHECK (Quantity >= 0),
+                EnergyConsumption FLOAT DEFAULT 0
             );
         END;
     `;

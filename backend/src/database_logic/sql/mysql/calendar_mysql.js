@@ -3,20 +3,31 @@ const { dbConnection } = require("./mysql.js");
 //reminder
 //getAllReminders
 async function getAllSchedules() {
-  queryResult = await dbConnection.promise().query("SELECT * FROM Schedule");
+  queryResult = await dbConnection.promise().query("SELECT * FROM Schedule2");
+  console.log(queryResult[0]);
   return queryResult[0];
 }
 //insertReminder
-async function insertSchedule(description, datetime, status) {
+async function insertSchedule(type, content, task, id = null) {
   try {
-	await dbConnection.execute(
-	  "INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (?,?,?)",
-	  [description, datetime, status]
-	);
-	
+    // await dbConnection.execute(
+    //   "INSERT INTO Schedule (ScheduleDescription, Datetime, Status) VALUES (?,?,?)",
+    //   [description, datetime, status]
+    // );
+    if (!id) {
+      await dbConnection.execute(
+        "INSERT INTO Schedule2 (type, content, task) VALUES (?,?,?)",
+        [type, content, task]
+      );
+    } else {
+      await dbConnection.execute(
+        "INSERT INTO Schedule2 (type, content, task, ScheduleId) VALUES (?,?,?,?)",
+        [type, content, task, id]
+      );
+    }
   } catch (error) {
-	console.log("Error in getAllAlerts:", error);
-	throw error; // Optionally rethrow the error
+    console.log("Error in getAllAlerts:", error);
+    throw error; // Optionally rethrow the error
   }
   return 1;
 }
@@ -30,20 +41,20 @@ async function getAllAlerts() {
 //insertAlert
 async function insertAlert(issue, datetime, plantBatchId, severity) {
   try {
-	await dbConnection.execute(
-	  "INSERT INTO Alert (Issue, Datetime, PlantBatchId, Severity) VALUES (?,?,?,?)",
-	  [issue, datetime, plantBatchId, severity], (error) => {
-		if (error) {
-		  console.error("Error in insertAlert:", error);
-		  throw error; // Failure
-		
-		}}
-	);
-	
+    await dbConnection.execute(
+      "INSERT INTO Alert (Issue, Datetime, PlantBatchId, Severity) VALUES (?,?,?,?)",
+      [issue, datetime, plantBatchId, severity],
+      (error) => {
+        if (error) {
+          console.error("Error in insertAlert:", error);
+          throw error; // Failure
+        }
+      }
+    );
   } catch (error) {
-	console.log("Error in getAllAlerts:", error);
-	throw error; // Optionally rethrow the error
-	// return 0;
+    console.log("Error in getAllAlerts:", error);
+    throw error; // Optionally rethrow the error
+    // return 0;
   }
   return 1;
 }
@@ -57,22 +68,69 @@ async function getAllTasks() {
 //insertTask
 async function insertTask(action, datetime, status) {
   try {
-	await dbConnection.execute(
-	  "INSERT INTO Task (Action, Datetime, Status) VALUES (?,?,?)",
-	  [action, datetime, status]
-	);
-	return 1;
+    await dbConnection.execute(
+      "INSERT INTO Task (Action, Datetime, Status) VALUES (?,?,?)",
+      [action, datetime, status]
+    );
+    return 1;
   } catch (error) {
-	console.log("Error in getAllAlerts:", error);
-	throw error; // Optionally rethrow the error
+    console.log("Error in getAllAlerts:", error);
+    throw error; // Optionally rethrow the error
   }
+}
+
+async function verifyAlertIdExist(alertId) {
+  const alertIdList = await dbConnection
+    .promise()
+    .query("SELECT * FROM Alert WHERE AlertId = ?", alertId);
+  // console.log(inventoryIdList);
+  return alertIdList[0].length;
+}
+
+async function verifyScheduleIdExist(scheduleId) {
+  const scheduleIdList = await dbConnection
+    .promise()
+    .query("SELECT * FROM Schedule2 WHERE ScheduleId = ?", scheduleId);
+  // console.log(inventoryIdList);
+  return scheduleIdList[0].length;
+}
+
+async function verifyTaskIdExist(taskId) {
+  const taskIdList = await dbConnection
+    .promise()
+    .query("SELECT * FROM Task WHERE TaskId = ?", taskId);
+  // console.log(inventoryIdList);
+  return taskIdList[0].length;
+}
+
+async function deleteAlert(alertId) {
+  await dbConnection.execute("DELETE FROM Alert WHERE AlertId = ?", [alertId]);
+  return 1;
+}
+
+async function deleteSchedule(scheduleId) {
+  await dbConnection.execute("DELETE FROM Schedule2 WHERE ScheduleId = ?", [
+    scheduleId,
+  ]);
+  return 1;
+}
+
+async function deleteTask(taskId) {
+  await dbConnection.execute("DELETE FROM Task WHERE TaskId = ?", [taskId]);
+  return 1;
 }
 
 module.exports = {
   getAllAlerts,
-  getAllReminders: getAllSchedules,
+  getAllSchedules,
   getAllTasks,
   insertAlert,
-  insertReminder: insertSchedule,
+  insertSchedule,
   insertTask,
+  verifyAlertIdExist,
+  verifyScheduleIdExist,
+  verifyTaskIdExist,
+  deleteAlert,
+  deleteSchedule,
+  deleteTask,
 };

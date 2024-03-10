@@ -160,8 +160,8 @@ const {dbConnection} = require("./mysql.js");
           MicrocontrollerID VARCHAR(20),
           PlantBatchId INT,
           Temperature FLOAT,
-          Humidity INT,
-          Brightness INT,
+          Humidity FLOAT,
+          Brightness FLOAT,
           pH FLOAT,
           CO2 FLOAT,
           EC FLOAT,
@@ -172,7 +172,7 @@ const {dbConnection} = require("./mysql.js");
         // Create Microcontroller Plant Pair Table
       const createMicrocontrollerPlantPairTable = `
           CREATE TABLE IF NOT EXISTS MicrocontrollerPlantBatchPair (
-          MicrocontrollerId VARCHAR(20),
+          MicrocontrollerId VARCHAR(20) UNIQUE,
           PlantBatchId INT
           )
        `
@@ -196,6 +196,15 @@ const {dbConnection} = require("./mysql.js");
             Location VARCHAR(255)
       );
     `
+    const createInventoryTable2 = `
+        CREATE TABLE IF NOT EXISTS Inventory2 (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item VARCHAR(255),
+            quantity FLOAT,
+            units VARCHAR(50),
+            location VARCHAR(255)
+      );
+    `
     const createPlantInfoTable = `
       CREATE TABLE IF NOT EXISTS PlantInfo (
           PlantId INT AUTO_INCREMENT PRIMARY KEY,
@@ -207,6 +216,32 @@ const {dbConnection} = require("./mysql.js");
           TotalQuantityHarvested INT DEFAULT 0,
           TotalHarvestSold INT DEFAULT 0,
           TotalHarvestDiscarded INT DEFAULT 0
+      );
+    `
+    const createPlantSensorInfoTable = `
+      CREATE TABLE IF NOT EXISTS PlantSensorInfo (
+          PlantId INT PRIMARY KEY,
+          Temperature_min FLOAT,
+          Temperature_max FLOAT,
+          Temperature_optimal FLOAT,
+          Humidity_min FLOAT,
+          Humidity_max FLOAT,
+          Humidity_optimal FLOAT,
+          Brightness_min FLOAT,
+          Brightness_max FLOAT,
+          Brightness_optimal FLOAT,
+          pH_min FLOAT,
+          pH_max FLOAT,
+          pH_optimal FLOAT,
+          CO2_min FLOAT,
+          CO2_max FLOAT,
+          CO2_optimal FLOAT,
+          EC_min FLOAT,
+          EC_max FLOAT,
+          EC_optimal FLOAT,
+          TDS_min FLOAT,
+          TDS_max FLOAT,
+          TDS_optimal FLOAT
       );
     `
     const createTaskTable = `
@@ -234,18 +269,39 @@ const {dbConnection} = require("./mysql.js");
           Status BOOLEAN
       );
     `
+    const createScheduleTable = `
+        CREATE TABLE IF NOT EXISTS schedule2 (
+          ScheduleId INT AUTO_INCREMENT PRIMARY KEY,
+          type VARCHAR(255) DEFAULT 'manual',
+          content DATETIME,
+          task VARCHAR(255)
+      );
+    `
+
+    const createEnergyConsumingDevicesTable = `
+    CREATE TABLE IF NOT EXISTS EnergyConsumingDevice (
+      DeviceId INT AUTO_INCREMENT PRIMARY KEY,
+      DeviceName VARCHAR(255) DEFAULT 'manual',
+      Quantity INT,
+      EnergyConsumption FLOAT
+  );
+`
     
   
       await dbConnection.execute(createSensorReadingsTable);
       await dbConnection.execute(createMicrocontrollerPlantPairTable);
       await dbConnection.execute(createPlantBatchTable);
       await dbConnection.execute(createInventoryTable);
+      await dbConnection.execute(createInventoryTable2);
       // await dbConnection.execute(createPlantSeedInventoryTable);
       // await dbConnection.execute(createPlantHarverstTable);
       await dbConnection.execute(createPlantInfoTable);
+      await dbConnection.execute(createPlantSensorInfoTable);
       await dbConnection.execute(createTaskTable);
       await dbConnection.execute(createAlertSentTable);
       await dbConnection.execute(createRemindersTable);
+      await dbConnection.execute(createScheduleTable);
+      await dbConnection.execute(createEnergyConsumingDevicesTable);
       // await dbConnection.execute(createMicrocontrollerLocationTable);
       // await dbConnection.execute(createPlantBatchTable);
       // console.log("Tables created or already exists.");

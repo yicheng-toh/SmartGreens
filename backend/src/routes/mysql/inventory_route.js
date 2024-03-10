@@ -26,7 +26,7 @@ router.use(json());
  *           schema:
  *             type: object
  *             properties:
- *               inventoryName:
+ *               item:
  *                 type: string
  *                 example: "Product A"
  *               quantity:
@@ -49,9 +49,10 @@ router.use(json());
 router.post('/insertNewInventory', async (req, res) => {   
         try {
           let success = 0;
-          let {inventoryName, quantity, units, location} = req.body;
-          if (inventoryName === undefined || !inventoryName.trim()){
-            sendInternalServerError(res, errorCode.INSERT_NEW_INVENTORY_UNDEFINED_INVENTORY_NAME);
+          let {item, quantity, units, location} = req.body;
+          if (item === undefined || !item.trim()){
+            // sendInternalServerError(res, errorCode.INSERT_NEW_INVENTORY_UNDEFINED_INVENTORY_NAME);
+            sendInternalServerError(res, "Inventory name is invalid.");
             return;
           }else if (quantity === undefined){
             quantity = 0;
@@ -59,16 +60,21 @@ router.post('/insertNewInventory', async (req, res) => {
             quantity = parseFloat(quantity);
           }
           if(quantity < 0 || isNaN(quantity)){
-            sendInternalServerError(res, errorCode.INSERT_NEW_INVENTORY_UNDEFINED_INVENTORY_NAME);
+            // sendInternalServerError(res, errorCode.INSERT_NEW_INVENTORY_UNDEFINED_INVENTORY_NAME);
+            sendInternalServerError(res, "Quantity is invalid.");
             return;
           }
-          console.log(inventoryName,quantity, units, location);
-          success = await mysqlLogic.insertNewInventoryObject(inventoryName, quantity, units, location);
+          if(units === undefined){
+            units = null;
+          }
+          console.log(item,quantity, units, location);
+          success = await mysqlLogic.insertNewInventoryObject(item, quantity, units, location);
           res.status(201).json({"success": success, message:'Data inserted successfully'});
           return;
         } catch (error) {
           console.log('Error inserting data:', error);
-          sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
+          // sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
+          sendInternalServerError(res, error);
           return;
         }
 });
@@ -86,7 +92,7 @@ router.post('/insertNewInventory', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               currentInventoryId:
+ *               id:
  *                 type: integer
  *                 example: 1
  *               quantityChange:
@@ -104,8 +110,8 @@ router.post('/updateInventoryQuantity', async (req, res) => {
     try{     
         try {
           let success = 0;
-          let {currentInventoryId, quantityChange} = req.body;
-          if (currentInventoryId === undefined || isNaN(parseInt(currentInventoryId))){
+          let {id, quantityChange} = req.body;
+          if (id === undefined || isNaN(parseInt(id))){
             sendInternalServerError(res, errorCode.UPDATE_INVENTORY_QUANTITY_UNDEFINED_INVENTORY_ID);
             return;
           }else if (quantityChange === undefined || isNaN(parseFloat(quantityChange))){
@@ -113,9 +119,9 @@ router.post('/updateInventoryQuantity', async (req, res) => {
             return;
           }
           //check if the id is in the database
-          currentInventoryId = parseInt(currentInventoryId);
+          id = parseInt(id);
           quantityChange = parseFloat(quantityChange);
-          const isInventoryIdExist = await mysqlLogic.verifyInventoryIdExist(currentInventoryId);
+          const isInventoryIdExist = await mysqlLogic.verifyInventoryIdExist(id);
           if (!isInventoryIdExist){
             sendInternalServerError(res, errorCode.UPDATE_INVENTORY_QUANTITY_UNDEFINED_QUANTITY_CHANGE);
             return;
@@ -124,7 +130,7 @@ router.post('/updateInventoryQuantity', async (req, res) => {
           //   return;
           }
           console.log("inventory id exist");
-          success = await mysqlLogic.updateInventoryQuantity(currentInventoryId, quantityChange);
+          success = await mysqlLogic.updateInventoryQuantity(id, quantityChange);
           res.status(201).json({"success": success, message:'Data inserted successfully'});
         } catch (error) {
           console.log('Error inserting data:', error);
@@ -133,7 +139,7 @@ router.post('/updateInventoryQuantity', async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        sendBadRequestResponse(res);
+        sendBadRequestResponse(res, error);
         return;
     }
 });
@@ -151,10 +157,10 @@ router.post('/updateInventoryQuantity', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               currentInventoryId:
+ *               id:
  *                 type: integer
  *                 example: 1
- *               newUnit:
+ *               units:
  *                 type: string
  *                 example: "kg"
  *     responses:
@@ -168,26 +174,27 @@ router.post('/updateInventoryQuantity', async (req, res) => {
 router.post('/updateInventoryUnit', async (req, res) => { 
       try {
         let success = 0;
-        const {currentInventoryId, newUnit} = req.body;
+        const {id, units} = req.body;
 
-        if (currentInventoryId === undefined){
+        if (id === undefined){
           sendInternalServerError(res, errorCode.UPDATE_INVENTORY_UNIT_UNDEFINED_INVENTORY_ID);
           return;
         }
-        const isInventoryIdExist = await mysqlLogic.verifyInventoryIdExist(currentInventoryId);
+        const isInventoryIdExist = await mysqlLogic.verifyInventoryIdExist(id);
 
         if (!isInventoryIdExist){
           sendInternalServerError(res, errorCode.UPDATE_INVENTORY_UNIT_UNDEFINED_QUANTITY_CHANGE);
           return;
         }
 
-        success =  await mysqlLogic.updateInventoryUnit(currentInventoryId, newUnit);
+        success =  await mysqlLogic.updateInventoryUnit(id, units);
         res.status(201).json({"success": success, message:'Data inserted successfully'});
         return;
 
       } catch (error) {
         console.log('Error inserting data:', error);
-        sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
         return;
       }
 });
@@ -208,12 +215,13 @@ router.post('/updateInventoryUnit', async (req, res) => {
 router.get('/retrieveAllInventoryData', async(req, res) => {
     try {
       //need to double check this with mssql. currently works on mysql
-        const [rows] = await mysqlLogic.getAllInventoryData();
+        const rows = await mysqlLogic.getAllInventoryData();
         res.status(200).send({'success': 1, 'result': rows});
         return;
     } catch (error) {
         console.log('Error retrieving data:', error);
-        sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
+        // sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
         return;
     }
 });
@@ -251,7 +259,7 @@ router.delete('/deleteInventory/:currentInventoryId',async (req, res) => {
         const isInventoryIdExist = await mysqlLogic.verifyInventoryIdExist(currentInventoryId);
         if(!isInventoryIdExist){
           console.log("isInventoryIdExist",isInventoryIdExist);
-          sendInternalServerError(res);
+          sendInternalServerError(res, "Inventory Id does not exist.");
           return;
         }
 
@@ -262,7 +270,8 @@ router.delete('/deleteInventory/:currentInventoryId',async (req, res) => {
 
       } catch (error) {
         console.log('Error inserting data:', error);
-        sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
         return;
       }
 });
