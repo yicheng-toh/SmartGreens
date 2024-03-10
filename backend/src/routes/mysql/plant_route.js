@@ -758,8 +758,8 @@ router.post("/updatePlantInfo", async (req, res) => {
  *                 type: integer
  *                 example: 1
  *               plantLocation:
- *                 type: integer
- *                 example: 2
+ *                 type: String
+ *                 example: "2"
  *               microcontrollerId:
  *                 type: String
  *                 example: A1
@@ -900,7 +900,7 @@ router.post("/harvestPlant", async (req, res) => {
     let formattedDateTimeHarvested = dateHarvested
       .slice(0, 19)
       .replace("T", " ");
-    success = await mysqlLogic.harvestPlant(plantBatchId, dateHarvested, quantityHarvested);
+    success = await mysqlLogic.harvestPlant(plantBatchId, formattedDateTimeHarvested, quantityHarvested);
     if (success) {
       res
         .status(201)

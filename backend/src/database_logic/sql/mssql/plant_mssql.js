@@ -626,8 +626,38 @@ async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quant
   }
 }
 
+async function deletePlantBatch(plantBatchId) {
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try {
+
+    const deleteSensorReadingsQuery = `
+      DELETE FROM SensorReadings
+      WHERE PlantBatchId = @plantBatchId
+    `;
+    await request
+      .input('plantBatchId', sql.Int, plantBatchId)
+      .query(deleteSensorReadingsQuery);
+    
+    // Delete entry from PlantBatch table
+    const deletePlantBatchQuery = `
+      DELETE FROM PlantBatch
+      WHERE PlantBatchId = @plantBatchId
+    `;
+    await request
+      .query(deletePlantBatchQuery);
+      await dbConnection.disconnect();
+    return 1;
+  } catch (error) {
+    console.error("Error deleting plant batch data", error);
+    await dbConnection.disconnect();
+    throw error;
+  }
+}
+
 
 module.exports = {
+  deletePlantBatch,
   getAllPlantHarvestData,
   // updatePlantHarvestData,
   getAllPlantBatchInfoAndYield,

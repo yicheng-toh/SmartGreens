@@ -380,9 +380,23 @@ async function getPlantBatchDatePlanted(plantBatchId) {
   }
 }
 
+async function deletePlantBatch(plantBatchId){
+  try{
+  //delete from plantbatch table
+  await dbConnection.execute('DELETE FROM SensorReadings WHERE PlantBatchId = ?',[plantBatchId]);
+  await dbConnection.execute('DELETE FROM PlantBatch WHERE PlantBatchId = ?',[plantBatchId]);
+  return 1;
+  }catch(error){
+    console.error("Error deleting plant batch data", error);
+    throw(error);
+    return 0;
+  }
+  //delete from sensorreadingstable.
+}
+
 module.exports = {
+  deletePlantBatch,
   getAllPlantHarvestData,
-  // updatePlantHarvestData,
   getAllPlantInfo,
   insertNewPlant,
   getAllPlantBatchInfo,

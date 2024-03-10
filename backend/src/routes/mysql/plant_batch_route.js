@@ -153,6 +153,69 @@ router.post("/editPlantBatchDetails", async (req, res) => {
 
 /**
  * @swagger
+ * /plant/deletePlantBatch/{plantBatchId}:
+ *   delete:
+ *     summary: Delete a plant batch by ID
+ *     tags: [PlantBatch]
+ *     description: Delete a plant batch by its ID from the database.
+ *     parameters:
+ *       - in: path
+ *         name: plantBatchId
+ *         required: true
+ *         description: Numeric ID of the plant batch to delete
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       201:
+ *         description: Success message indicating the deletion was successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicates whether the deletion was successful (1) or not (0)
+ *       500:
+ *         description: Internal server error
+ */
+router.delete('/deletePlantBatch/:plantBatchId',async (req, res) => {
+    // try{     
+        try {
+          let success = 0;
+          const {plantBatchId} = req.params;
+          if (isNaN(parseInt(plantBatchId))){
+            sendInternalServerError(res, "Invalid Plant Batch Id.");
+            return;
+          }
+          const isPlantBatchGrowing = await mysqlLogic.verifyPlantBatchIsGrowing(plantBatchId);
+          if(isPlantBatchGrowing){
+            //Harvest the plant before deleting
+            dateHarvested = new Date();
+            dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
+            dateHarvested = dateHarvested.toISOString();
+            // console.log("dateHarvested is", dateHarvested);
+            let formattedDateTimeHarvested = dateHarvested
+            .slice(0, 19)
+            .replace("T", " ");
+            let quantityHarvested = 0;
+            success = await mysqlLogic.harvestPlant(plantBatchId, formattedDateTimeHarvested, quantityHarvested);
+          }
+         
+          success = await mysqlLogic.deletePlantBatch(plantBatchId);
+          res.status(201).json({'success': success});
+          return;
+  
+        } catch (error) {
+          console.log('Error inserting data:', error);
+          // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+          sendInternalServerError(res, error);
+          return;
+        }
+  });
+
+/**
+ * @swagger
  * /plant/allPlantBatchInfo:
  *   get:
  *     summary: Retrieve all plant batch information
