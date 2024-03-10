@@ -586,7 +586,7 @@ async function verifyPlantBatchIsGrowing(plantBatchId) {
   }
 }
 
-async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted) {
+async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, location) {
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
   try {
@@ -594,7 +594,8 @@ async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantit
       .input('datePlanted', sql.DateTime, datePlanted)
       .input('quantityPlanted', sql.Int, quantityPlanted)
       .input('plantBatchId', sql.Int, plantBatchId)
-      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted WHERE PlantBatchId = @plantBatchId');
+      .input('location', sql.VarChar, location)
+      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, PlantLocation = @location WHERE PlantBatchId = @plantBatchId');
     console.log("updateGrowingPlantBatchDetails", result.rowsAffected);
     await dbConnection.disconnect();
     return 1;
@@ -605,7 +606,7 @@ async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantit
   }
 }
 
-async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, quantityHarvested) {
+async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, quantityHarvested, location) {
   try {
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
@@ -615,7 +616,8 @@ async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quant
       .input('dateHarvested', sql.DateTime, dateHarvested)
       .input('quantityHarvested', sql.Int, quantityHarvested)
       .input('plantBatchId', sql.Int, plantBatchId)
-      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, DateHarvested = @dateHarvested, QuantityHarvested = @quantityHarvested WHERE PlantBatchId = @plantBatchId');
+      .input('location', sql.VarChar, location)
+      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, DateHarvested = @dateHarvested, QuantityHarvested = @quantityHarvested, PlantLocation = @location WHERE PlantBatchId = @plantBatchId');
     console.log("updateHarvestedPlantBatchDetails", result.rowsAffected);
     await dbConnection.disconnect();
     return 1; // Successful update

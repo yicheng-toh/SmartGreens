@@ -336,14 +336,14 @@ async function verifyPlantBatchIsGrowing(plantBatchId){
   }
 }
 
-async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted) {
+async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, location) {
   try {
     const sqlQuery = `
       UPDATE PlantBatch
-      SET DatePlanted = ?, QuantityPlanted = ?
+      SET DatePlanted = ?, QuantityPlanted = ?, PlantLocation = ?
       WHERE PlantBatchId = ?
     `;
-    const result = await dbConnection.execute(sqlQuery, [datePlanted, quantityPlanted, plantBatchId]);
+    const result = await dbConnection.execute(sqlQuery, [datePlanted, quantityPlanted, location, plantBatchId]);
     console.log("updateGrowingPlantBatchDetails", result);
     console.log("updateGrowingPlantBatchDetails", result[0]);
   } catch (error) {
@@ -352,14 +352,14 @@ async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantit
   }
 }
 
-async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, quantityHarvested) {
+async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, quantityHarvested, location) {
   try {
     const sqlQuery = `
       UPDATE PlantBatch
-      SET DatePlanted = ?, QuantityPlanted = ?, DateHarvested = ?, QuantityHarvested = ?
+      SET DatePlanted = ?, QuantityPlanted = ?, DateHarvested = ?, QuantityHarvested = ?, PlantLocation = ?
       WHERE PlantBatchId = ?
     `;
-    const result = await dbConnection.execute(sqlQuery, [datePlanted, quantityPlanted, dateHarvested, quantityHarvested, plantBatchId]);
+    const result = await dbConnection.execute(sqlQuery, [datePlanted, quantityPlanted, dateHarvested, quantityHarvested, location, plantBatchId]);
     console.log("updateHarvestedPlantBatchDetails","result[0]",result[0]);
     return 1; // Successful update
 
@@ -382,16 +382,13 @@ async function getPlantBatchDatePlanted(plantBatchId) {
 
 async function deletePlantBatch(plantBatchId){
   try{
-  //delete from plantbatch table
   await dbConnection.execute('DELETE FROM SensorReadings WHERE PlantBatchId = ?',[plantBatchId]);
   await dbConnection.execute('DELETE FROM PlantBatch WHERE PlantBatchId = ?',[plantBatchId]);
   return 1;
   }catch(error){
     console.error("Error deleting plant batch data", error);
     throw(error);
-    return 0;
   }
-  //delete from sensorreadingstable.
 }
 
 module.exports = {

@@ -42,6 +42,9 @@ router.use(json());
  *               dateHarvested:
  *                 type: string
  *                 format: date-time
+ *               location:
+ *                 type: string
+ *                 example: "shelf A"
  *     responses:
  *       '200':
  *         description: Success response
@@ -73,6 +76,7 @@ router.post("/editPlantBatchDetails", async (req, res) => {
       quantityPlanted,
       quantityHarvested,
       dateHarvested,
+      location
     } = req.body;
     if (plantBatchId === undefined || isNaN(parseInt(plantBatchId))) {
       sendInternalServerError(res, "Plant Batch Id is invalid.");
@@ -89,6 +93,10 @@ router.post("/editPlantBatchDetails", async (req, res) => {
       datePlanted.setHours(datePlanted.getHours() + 8); //GMT + 8
       datePlanted = datePlanted.toISOString;
     }
+    if (location === undefined || !location.trim().length){
+        sendInternalServerError(res, "Invalid Location");
+        return;
+    }
     let formattedDateTimePlanted = datePlanted.slice(0, 19).replace("T", " ");
 
     let isPlantBatchGrowing =
@@ -100,7 +108,8 @@ router.post("/editPlantBatchDetails", async (req, res) => {
       success = await mysqlLogic.updateGrowingPlantBatchDetails(
         plantBatchId,
         formattedDateTimePlanted,
-        quantityPlanted
+        quantityPlanted,
+        location
       );
     } else {
         console.log("plantbatch", plantBatchId, "is harvested");
@@ -138,7 +147,8 @@ router.post("/editPlantBatchDetails", async (req, res) => {
         formattedDateTimePlanted,
         quantityPlanted,
         formattedDateTimeHarvested,
-        quantityHarvested
+        quantityHarvested,
+        location
       );
     }
     success = 1;
