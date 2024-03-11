@@ -416,10 +416,10 @@ async function updatePlantSensorInfo(data) {
 
       // Return true indicating successful update
       await dbConnection.disconnect();
-      return true;
+      return 1;
   } catch (error) {
       console.error("Error updating PlantSensorInfo:", error);
-      return false; // Return false indicating update failure
+      return 0; // Return false indicating update failure
   }
 }
 

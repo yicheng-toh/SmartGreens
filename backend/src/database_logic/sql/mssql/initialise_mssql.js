@@ -700,7 +700,7 @@ async function createTablesIfNotExistVersion5() {
         IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'PlantSensorInfo')
         BEGIN
             CREATE TABLE PlantSensorInfo (
-                PlantId INT PRIMARY KEY,
+                PlantId INT UNIQUE,
                 Temperature_min FLOAT,
                 Temperature_max FLOAT,
                 Temperature_optimal FLOAT,
