@@ -47,7 +47,7 @@ const plantBatchQuery = `
         pb.DatePlanted,
         DATEADD(DAY, pi.DaysToMature, pb.DatePlanted) AS ExpectedHarvestDate,
         pb.QuantityPlanted,
-        pbs.YieldRate
+        pb.QuantityPlanted * pbs.YieldRate AS ExpectedYield
     FROM
         PlantBatch pb
     JOIN

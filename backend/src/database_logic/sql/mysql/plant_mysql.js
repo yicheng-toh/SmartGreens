@@ -58,8 +58,7 @@ SELECT
     pb.DatePlanted,
     DATE_ADD(pb.DatePlanted, INTERVAL pi.DaysToMature DAY) AS ExpectedHarvestDate,
     pb.QuantityPlanted,
-
-    pbs.YieldRate
+    pb.QuantityPlanted * pbs.YieldRate AS ExpectedYield
 FROM
     PlantBatch pb
 JOIN
@@ -144,6 +143,7 @@ async function growPlant(
   quantityDecrement,
   datePlanted
 ) {
+
   //update the seed inventory
   const result = await dbConnection.execute(
     "INSERT INTO PlantBatch (plantID, plantLocation, quantityPlanted, datePlanted) VALUES (?,?,?,?)",
