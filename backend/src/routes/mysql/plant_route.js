@@ -645,7 +645,7 @@ router.post("/updatePlantInfo", async (req, res) => {
  *                 example: 1
  *               plantLocation:
  *                 type: String
- *                 example: "2"
+ *                 example: "2A"
  *               microcontrollerId:
  *                 type: String
  *                 example: A1
@@ -697,6 +697,17 @@ router.post("/growPlant", async (req, res) => {
       ) {
         sendInternalServerError(res, "Invalid quantity of plants planted.");
         return;
+      }
+      plantLocation = plantLocation.toString();
+      if (datePlanted === undefined || datePlanted === null){
+        datePlanted = new Date();
+        datePlanted.setHours(datePlanted.getHours() + 8); //GMT + 8
+        datePlanted = datePlanted.toISOString();
+        console.log("datePlanted is", datePlanted);
+        datePlanted = datePlanted
+          .slice(0, 19)
+          .replace("T", " ");
+
       }
 
       //may need to disintegrate this logic....
