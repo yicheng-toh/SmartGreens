@@ -246,33 +246,68 @@ router.post("/insertNewMicrocontroller", async (req, res) => {
     }
   });
 
-//only deletes when there is no plant batch.
-// router.delete("/deleteMicrocontroller/:microcontrollerId", async (req, res) => {
-//     try {
-//         let {microcontrollerId} = req.params;
-//       try {
-//         if (
-//           microcontrollerId === undefined ||
-//           microcontrollerId.length < 1 ||
-//           microcontrollerId.length > 20
-//         ) {
-//           sendBadRequestResponse(res, "Invalid microcontroller Id.");
-//           return;
-//         }
-//         //
-//         //sql funciton here to insert microcontroller id into the table.
-//         success = await mysqlLogic.deleteMicrocontroller(microcontrollerId);
-//         res
-//           .status(201)
-//           .json({ success: success, message: "Data inserted successfully" });
-//       } catch (error) {
-//         console.log("Error inserting data:", error);
-//         sendInternalServerError(res, error);
-//       }
-//     } catch (error) {
-//       sendBadRequestResponse(res, error);
-//     }
-//   });
+
+/**
+ * @swagger
+ * /plant/deleteMicrocontroller/{microcontrollerId}:
+ *   delete:
+ *     summary: Delete a Microcontroller by ID
+ *     tags: [Hardware]
+ *     description: Delete a Microcontroller by ID from the database.
+ *     parameters:
+ *       - in: path
+ *         name: microcontrollerId
+ *         required: true
+ *         description: String ID of the Microcontroller to delete
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Success message indicating the deletion was successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicates whether the deletion was successful (1) or not (0)
+ *       400:
+ *          description: The Microcontroller is in use or not valid. Please check that it is available for deletion.
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/deleteMicrocontroller/:microcontrollerId", async (req, res) => {
+    try {
+        let {microcontrollerId} = req.params;
+      try {
+        if (
+          microcontrollerId === undefined ||
+          microcontrollerId.length < 1 ||
+          microcontrollerId.length > 20
+        ) {
+          sendBadRequestResponse(res, "Invalid microcontroller Id.");
+          return;
+        }
+        let isMicroncontrollerIdValid = await mysqlLogic.verifyMicrocontrollerIdValidForDeletion(microcontrollerId);
+        if(!isMicroncontrollerIdValid){
+          sendBadRequestResponse(res, "Microcontroller is in use or not present.");
+          return;
+        }
+        success = await mysqlLogic.deleteMicrocontroller(microcontrollerId);
+        res
+          .status(201)
+          .json({ success: success, message: "Microcontroller deleted successfully" });
+
+      } catch (error) {
+        console.log("Error inserting data:", error);
+        sendInternalServerError(res, error);
+      }
+    } catch (error) {
+      sendBadRequestResponse(res, error);
+    }
+  });
+
 
 
 /**
@@ -654,31 +689,31 @@ try {
  *                     type: number
  */
 router.get(
-    "/retrieveActivePlantBatchSensorData/:numDaysAgo",
-    async (req, res) => {
-      try {
-        let { numDaysAgo } = req.params;
-        numDaysAgo = parseInt(numDaysAgo);
-        if (!numDaysAgo) {
-          sendInternalServerError(res, "numDaysAgo is not valid!");
-        }
-        let rows = await mysqlLogic.getActivePlantBatchSensorDataXDaysAgo(
-          numDaysAgo
-        );
-        console.log(rows);
-        if (rows) {
-          console.log(rows);
-          rows = groupSensorDataByPlantType(rows);
-          res.status(200).json({ success: 1, result: rows });
-        } else {
-          res.json({ success: 1, message: "No sensor data available" });
-        }
-      } catch (error) {
-        console.log("Error retrieving data:", error);
-        sendInternalServerError(res, error);
+  "/retrieveActivePlantBatchSensorData/:numDaysAgo",
+  async (req, res) => {
+    try {
+      let { numDaysAgo } = req.params;
+      numDaysAgo = parseInt(numDaysAgo);
+      if (!numDaysAgo) {
+        sendInternalServerError(res, "numDaysAgo is not valid!");
       }
+      let rows = await mysqlLogic.getActivePlantBatchSensorDataXDaysAgo(
+        numDaysAgo
+      );
+      console.log(rows);
+      if (rows) {
+        console.log(rows);
+        rows = groupSensorDataByPlantType(rows);
+        res.status(200).json({ success: 1, result: rows });
+      } else {
+        res.json({ success: 1, message: "No sensor data available" });
+      }
+    } catch (error) {
+      console.log("Error retrieving data:", error);
+      sendInternalServerError(res, error);
     }
-  );  
+  }
+);  
 
 
 

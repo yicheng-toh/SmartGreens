@@ -485,15 +485,49 @@ async function insertNewMicrocontroller(microcontollerId){
   }
 }
 
+async function verifyMicrocontrollerIdValidForDeletion(microcontrollerId){
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  const result = await request
+    .input('microcontrollerId', sql.VarChar, microcontrollerId)
+    .query(`SELECT * FROM MicrocontrollerPlantBatchPair WHERE PlantBatchId is NULL AND MicrocontrollerId = @microcontrollerId;`);
+  console.log("Currently executing verifyMicrocontrollerIdValidForDeletion");
+  console.log("verifyMicrocontrollerIdValidForDeletion", result.recordset);
+  console.log("verifyMicrocontrollerIdValidForDeletion", result.recordset[0]);
+  if(!result.recordset[0]){
+    return 0;
+  }
+  await dbConnection.disconnect();
+  return 1;
+}
+
+async function deleteMicrocontroller(microcontrollerId){
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try{
+    await request
+      .input('microcontrollerId', sql.VarChar, microcontrollerId)
+      .query(`DELETE FROM MicrocontrollerPlantBatchPair WHERE MicrocontrollerId = @microcontrollerId;`);
+    await dbConnection.disconnect();
+    return 1;
+  }catch(error){
+    console.log("Error encountered when deleting microcontroller",error);
+    await dbConnection.disconnect();
+    throw error;
+  }
+}
+
 
 module.exports = {
+  deleteMicrocontroller,
   getAllSensorData,
   getPlantBatchIdGivenMicrocontrollerPrefix,
-  insertSensorValuesSuffix1,
-  insertSensorValuesSuffix2,
-  insertNewMicrocontroller,
   getActivePlantBatchSensorData,
   getActivePlantBatchSensorDataXDaysAgo,
   getLatestActivePlantBatchSensorData,
   getAvailableExisitingMicrocontroller,
+  insertSensorValuesSuffix1,
+  insertSensorValuesSuffix2,
+  insertNewMicrocontroller,
+  verifyMicrocontrollerIdValidForDeletion,
 };
