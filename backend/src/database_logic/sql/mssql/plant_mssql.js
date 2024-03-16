@@ -8,7 +8,7 @@ async function getAllPlantHarvestData() {
             SELECT
                 PlantInfo.PlantID,
                 PlantInfo.PlantName,
-                COALESCE(SUM(PlantBatch.QuantityHarvested), 0) AS TotalQuantityHavested
+                COALESCE(SUM(PlantBatch.WeightHarvested), 0) AS TotalWeightHavested
             FROM
                 PlantInfo
             LEFT JOIN
@@ -24,39 +24,111 @@ async function getAllPlantHarvestData() {
 async function getAllPlantBatchInfoAndYield() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
-const plantBatchQuery = `
-    WITH PlantBatchSummary AS (
-      SELECT 
-          pb.PlantId,
-          COALESCE(SUM(pb.QuantityHarvested), 0) AS TotalHarvested,
-          COALESCE(SUM(pb.QuantityPlanted), 0) AS TotalPlanted,
-          COALESCE(SUM(pb.QuantityHarvested) / NULLIF(SUM(pb.QuantityPlanted), 0), 0) AS YieldRate
-      FROM 
-          PlantBatch pb
-      WHERE 
-          pb.DatePlanted IS NOT NULL
-          AND pb.DateHarvested IS NOT NULL
-      GROUP BY 
-          pb.PlantId
-    )
+  const plantBatchQuery = `
+      WITH PlantBatchSummary AS (
+        SELECT 
+            pb.PlantId,
+            COALESCE(SUM(pb.WeightHarvested), 0) AS TotalHarvested,
+            COALESCE(SUM(pb.QuantityPlanted), 0) AS TotalPlanted,
+            COALESCE(SUM(pb.WeightHarvested) / NULLIF(SUM(pb.QuantityPlanted), 0), 0) AS YieldRate
+        FROM 
+            PlantBatch pb
+        WHERE 
+            pb.DatePlanted IS NOT NULL
+            AND pb.DateHarvested IS NOT NULL
+        GROUP BY 
+            pb.PlantId
+      )
 
-    SELECT
-        pb.PlantBatchId,
-        pbs.PlantId,
-        pi.PlantName,
-        pb.DatePlanted,
-        DATEADD(DAY, pi.DaysToMature, pb.DatePlanted) AS ExpectedHarvestDate,
-        pb.QuantityPlanted,
-        pb.QuantityPlanted * pbs.YieldRate AS ExpectedYield
-    FROM
-        PlantBatch pb
-    JOIN
-        PlantInfo pi ON pb.PlantId = pi.PlantId
-    JOIN
-        PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId;
-  `;  
+      SELECT
+          pb.PlantBatchId,
+          pbs.PlantId,
+          pi.PlantName,
+          pb.DatePlanted,
+          DATEADD(DAY, pi.DaysToMature, pb.DatePlanted) AS ExpectedHarvestDate,
+          pb.QuantityPlanted,
+          pb.QuantityPlanted * pbs.YieldRate AS ExpectedYield
+      FROM
+          PlantBatch pb
+      JOIN
+          PlantInfo pi ON pb.PlantId = pi.PlantId
+      JOIN
+          PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId;
+    `;  
 const queryResult = await request.query(plantBatchQuery);
-  console.log(queryResult);
+  console.log("getAllPlantBatchInfoAndYield",queryResult);
+  await dbConnection.disconnect();
+  return queryResult.recordset;
+}
+
+async function getActivePlantBatchInfoAndYield() {
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  const plantBatchQuery = `
+      WITH PlantBatchSummary AS (
+        SELECT 
+            pb.PlantId,
+            COALESCE(SUM(pb.WeightHarvested), 0) AS TotalHarvested,
+            COALESCE(SUM(pb.QuantityPlanted), 0) AS TotalPlanted,
+            COALESCE(SUM(pb.WeightHarvested) / NULLIF(SUM(pb.QuantityPlanted), 0), 0) AS YieldRate
+        FROM 
+            PlantBatch pb
+        WHERE 
+            pb.DatePlanted IS NOT NULL
+            AND pb.DateHarvested IS NOT NULL
+        GROUP BY 
+            pb.PlantId
+      )
+
+      SELECT
+          pb.PlantBatchId,
+          pb.PlantId,
+          pi.PlantName,
+          pb.DatePlanted,
+          DATEADD(DAY, pi.DaysToMature, pb.DatePlanted) AS ExpectedHarvestDate,
+          pb.QuantityPlanted,
+          pb.QuantityPlanted * pbs.YieldRate AS ExpectedYield
+      FROM
+          PlantBatch pb
+      JOIN
+          PlantInfo pi ON pb.PlantId = pi.PlantId
+      LEFT JOIN
+          PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId
+      WHERE
+          Pb.DateHarvested IS NULL;
+    `;  
+    // const plantBatchQuery = `
+    //   WITH PlantBatchSummary AS (
+    //     SELECT 
+    //         pb.PlantId,
+    //         COALESCE(SUM(pb.WeightHarvested), 0) AS TotalHarvested,
+    //         COALESCE(SUM(pb.QuantityPlanted), 0) AS TotalPlanted,
+    //         COALESCE(SUM(pb.WeightHarvested) / NULLIF(SUM(pb.QuantityPlanted), 0), 0) AS YieldRate
+    //     FROM 
+    //         PlantBatch pb
+    //     WHERE 
+    //         pb.DatePlanted IS NOT NULL
+    //         AND pb.DateHarvested IS NOT NULL
+    //     GROUP BY 
+    //         pb.PlantId
+    //   )
+
+    //   SELECT
+    //       pb.PlantBatchId,
+    //       pb.PlantId,
+    //       pi.PlantName,
+    //       pb.DatePlanted,
+    //       DATEADD(DAY, pi.DaysToMature, pb.DatePlanted) AS ExpectedHarvestDate,
+    //       pb.QuantityPlanted
+    //   FROM
+    //       PlantBatch pb
+    //   JOIN
+    //       PlantInfo pi ON pb.PlantId = pi.PlantId
+    //   WHERE
+    //       Pb.DateHarvested IS NULL;
+    // `;  
+const queryResult = await request.query(plantBatchQuery);
+  console.log("getActivePlantBatchInfoAndYield",queryResult);
   await dbConnection.disconnect();
   return queryResult.recordset;
 }
@@ -86,9 +158,9 @@ async function getAllPlantYieldRate() {
   const yieldRateQuery = `
     SELECT 
         PlantId,
-        COALESCE(SUM(QuantityHarvested), 0) AS TotalHarvested,
+        COALESCE(SUM(WeightHarvested), 0) AS TotalHarvested,
         COALESCE(SUM(QuantityPlanted), 0) AS TotalPlanted,
-        COALESCE(SUM(QuantityHarvested) / SUM(QuantityPlanted), 0) AS YieldRate
+        COALESCE(SUM(WeightHarvested) / SUM(QuantityPlanted), 0) AS YieldRate
     FROM 
         PlantBatch
     WHERE 
@@ -120,7 +192,7 @@ async function insertNewPlant(plantName, SensorsRanges, DaysToMature) {
 
 //This function may need to be broken up in the routes for error catching.
 //Todo 22 jan: to update the microcontroller batch pair table too.
-async function harvestPlant(plantBatchId, dateHarvested, quantityHarvested) {
+async function harvestPlant(plantBatchId, dateHarvested, weightHarvested) {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   //need to check the number of seeds planted.
@@ -134,21 +206,17 @@ async function harvestPlant(plantBatchId, dateHarvested, quantityHarvested) {
   }
   const quantitySeedPlanted =
     quantitySeedPlantedResultList.recordset[0].QuantityPlanted;
-  if (quantityHarvested > quantitySeedPlanted) {
+  if (weightHarvested < 0) {
     return 0;
   }
   await request
-    .input("quantityHarvested", sql.Int, quantityHarvested)
+    .input("weightHarvested", sql.Int, weightHarvested)
     .input("dateHarvested", sql.DateTime, dateHarvested)
     .query(
-      "UPDATE PlantBatch SET QuantityHarvested = @quantityHarvested, DateHarvested = @dateHarvested WHERE PlantBatchId = @plantBatchId"
+      "UPDATE PlantBatch SET WeightHarvested = @weightHarvested, DateHarvested = @dateHarvested WHERE PlantBatchId = @plantBatchId"
     );
 
-  // const plantIdResultList = await request.query('SELECT plantId FROM PlantBatch WHERE plantBatch = @plantBatch');
-
-  // const plantId = plantIdResultList[0].plantId;
-
-  // await updatePlantHarvestData(plantId, quantityHarvested);
+ 
   await request
     // .input("plantBatchId", sql.Int, plantBatchId)
     .query(
@@ -539,7 +607,7 @@ async function getAllPlantBatchInfo() {
         PlantBatch.PlantId,
         PlantBatch.PlantLocation,
         PlantBatch.QuantityPlanted,
-        PlantBatch.QuantityHarvested,
+        PlantBatch.WeightHarvested,
         PlantBatch.DatePlanted,
         PlantBatch.DateHarvested,
         PlantInfo.PlantName,
@@ -607,7 +675,7 @@ async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantit
   }
 }
 
-async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, quantityHarvested, location) {
+async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, weightHarvested, location) {
   try {
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
@@ -615,10 +683,10 @@ async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quant
       .input('datePlanted', sql.DateTime, datePlanted)
       .input('quantityPlanted', sql.Int, quantityPlanted)
       .input('dateHarvested', sql.DateTime, dateHarvested)
-      .input('quantityHarvested', sql.Int, quantityHarvested)
+      .input('weightHarvested', sql.Int, weightHarvested)
       .input('plantBatchId', sql.Int, plantBatchId)
       .input('location', sql.VarChar, location)
-      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, DateHarvested = @dateHarvested, QuantityHarvested = @quantityHarvested, PlantLocation = @location WHERE PlantBatchId = @plantBatchId');
+      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, DateHarvested = @dateHarvested, WeightHarvested = @weightHarvested, PlantLocation = @location WHERE PlantBatchId = @plantBatchId');
     console.log("updateHarvestedPlantBatchDetails", result.rowsAffected);
     await dbConnection.disconnect();
     return 1; // Successful update
@@ -695,6 +763,7 @@ module.exports = {
   getAllPlantHarvestData,
   // updatePlantHarvestData,
   getAllPlantBatchInfoAndYield,
+  getActivePlantBatchInfoAndYield,
   getAllPlantBatchInfo,
   getAllPlantInfo,
   getAllPlantYieldRate,

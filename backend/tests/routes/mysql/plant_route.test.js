@@ -339,7 +339,7 @@ describe("Plant Route Integration Tests", () => {
       it("should harvest plants successfully", async () => {
         const response = await supertest(app).post(COMMON_ROUTE + "/harvestPlant").send({
           plantBatchId: 1, // Replace 1 with an actual plantBatch
-          quantityHarvested: 3,
+          weightHarvested: 3,
         });
 
         expect(response.status).toBe(201);
@@ -348,7 +348,7 @@ describe("Plant Route Integration Tests", () => {
 
       it("should handle undefined data and return 500", async () => {
         const invalidTestData = [
-          { quantityHarvested: 3 },
+          { weightHarvested: 3 },
           { plantBatchId: 1 },
           // Add more invalid test cases as needed
         ];
@@ -363,9 +363,9 @@ describe("Plant Route Integration Tests", () => {
       });
       it("should handle invalid data and return 500", async () => {
         const invalidTestData = [
-          { plantBatchId: "invalid", quantityHarvested: 3 },
-          { plantBatchId: 1, quantityHarvested: "invalid" },
-          { plantBatchId: 1, quantityHarvested: 1000000 },
+          { plantBatchId: "invalid", weightHarvested: 3 },
+          { plantBatchId: 1, weightHarvested: "invalid" },
+          { plantBatchId: 1, weightHarvested: 1000000 },
           // Add more invalid test cases as needed
         ];
 

@@ -74,7 +74,7 @@ const {dbConnection} = require("./mysql.js");
 //             plantID INT,
 //             plantLocation INT,
 //             quantityPlanted INT,
-//             quantityHarvested INT
+//             weightHarvested INT
 //             )
 //        `
 //       const createInventoryTable = `
@@ -182,7 +182,7 @@ const {dbConnection} = require("./mysql.js");
             PlantId INT NOT NULL,
             PlantLocation VARCHAR(255),
             QuantityPlanted INT,
-            QuantityHarvested INT,
+            WeightHarvested INT,
             DatePlanted datetime NOT NULL,
             DateHarvested datetime
             )
@@ -213,7 +213,7 @@ const {dbConnection} = require("./mysql.js");
           SensorsRanges INT,
           DaysToMature INT,
           CurrentSeedInventory INT DEFAULT 0,
-          TotalQuantityHarvested INT DEFAULT 0,
+          TotalWeightHarvested INT DEFAULT 0,
           TotalHarvestSold INT DEFAULT 0,
           TotalHarvestDiscarded INT DEFAULT 0
       );

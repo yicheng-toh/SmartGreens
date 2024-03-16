@@ -751,7 +751,7 @@ router.post("/growPlant", async (req, res) => {
  *               plantBatchId:
  *                 type: integer
  *                 example: 1
- *               quantityHarvested:
+ *               weightHarvested:
  *                 type: integer
  *                 example: 3
  *     responses:
@@ -769,13 +769,13 @@ router.post("/growPlant", async (req, res) => {
 router.post("/harvestPlant", async (req, res) => {
   try {
     let success = 0;
-    let { plantBatchId, quantityHarvested } = req.body;
+    let { plantBatchId, weightHarvested } = req.body;
     if (plantBatchId === undefined || isNaN(parseInt(plantBatchId))) {
       sendInternalServerError(res, "Plant Batch Id is invalid.");
       return;
     } else if (
-      quantityHarvested === undefined ||
-      isNaN(parseInt(quantityHarvested))
+      weightHarvested === undefined ||
+      isNaN(parseInt(weightHarvested))
     ) {
       sendInternalServerError(res, "Quantity harvested is invalid.");
       return;
@@ -787,7 +787,7 @@ router.post("/harvestPlant", async (req, res) => {
       sendInternalServerError(res, "Plant Batch is not growing!");
       return;
     }
-    quantityHarvested = parseInt(quantityHarvested);
+    weightHarvested = parseInt(weightHarvested);
     dateHarvested = new Date();
     dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
     dateHarvested = dateHarvested.toISOString();
@@ -795,7 +795,7 @@ router.post("/harvestPlant", async (req, res) => {
     let formattedDateTimeHarvested = dateHarvested
       .slice(0, 19)
       .replace("T", " ");
-    success = await mysqlLogic.harvestPlant(plantBatchId, formattedDateTimeHarvested, quantityHarvested);
+    success = await mysqlLogic.harvestPlant(plantBatchId, formattedDateTimeHarvested, weightHarvested);
     if (success) {
       res
         .status(201)
