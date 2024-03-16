@@ -506,11 +506,24 @@ async function getAvailableExisitingMicrocontroller(){
   return queryResult[0];
 }
 
+async function insertNewMicrocontroller(microcontollerId){
+  try{
+  sqlQuery = `INSERT INTO MicrocontrollerPlantBatchPair (MicrocontrollerId) VALUES (?)`;
+  await dbConnection.execute(sqlQuery, [microcontollerId]);
+  return 1;
+  } catch (error){
+    console.log("Error inserting microcontroller id:" , error);
+    throw error;
+  }
+}
+
+
 module.exports = {
   getAllSensorData: getAllSensorData, //getAllSensorData2 does not work.
   getPlantBatchIdGivenMicrocontrollerPrefix,
   insertSensorValuesSuffix1,
   insertSensorValuesSuffix2,
+  insertNewMicrocontroller,
   getActivePlantBatchSensorData,
   getActivePlantBatchSensorDataXDaysAgo,
   getLatestActivePlantBatchSensorData,

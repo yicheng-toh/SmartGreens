@@ -4,13 +4,14 @@ const router = express.Router();
 const {sendBadRequestResponse, sendInternalServerError} = require("../request_error_messages.js")
 const mysqlLogic = require("../../database_logic/sql/sql.js")
 const errorCode = require("./error_code.js");
+const { groupSensorDataByPlantType, appendStatusToLatestSensorReadings } = require("../../misc_function.js");
 
 router.use(json());
 /**
  * @swagger
  * tags:
  *   name: Hardware
- *   description: Routes for plant-related data
+ *   description: Routes for sensor related data
  */
 
 /**
@@ -174,13 +175,113 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
     }
   });
 
+
+/**
+ * @swagger
+ * /plant/insertNewMicrocontroller:
+ *   post:
+ *     summary: Insert a new microcontroller.
+ *     tags: [Hardware]
+ *     description: Insert a new microcontroller into the system.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               microcontrollerId:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 20
+ *             required:
+ *               - microcontrollerId
+ *     responses:
+ *       '201':
+ *         description: Data inserted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   example: 1
+ *                 message:
+ *                   type: string
+ *                   example: Data inserted successfully
+ *       '400':
+ *         description: Bad request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+router.post("/insertNewMicrocontroller", async (req, res) => {
+    try {
+      try {
+        let {microcontrollerId} = req.body;
+        if (
+          microcontrollerId === undefined ||
+          microcontrollerId.length < 1 ||
+          microcontrollerId.length > 20
+        ) {
+          sendBadRequestResponse(res, "Invalid microcontroller Id.");
+          return;
+        }
+        //sql funciton here to insert microcontroller id into the table.
+        success = await mysqlLogic.insertNewMicrocontroller(microcontrollerId);
+        res
+          .status(201)
+          .json({ success: success, message: "Data inserted successfully" });
+      } catch (error) {
+        console.log("Error inserting data:", error);
+        sendInternalServerError(res, error);
+      }
+    } catch (error) {
+      sendBadRequestResponse(res, error);
+    }
+  });
+
+//only deletes when there is no plant batch.
+// router.delete("/deleteMicrocontroller/:microcontrollerId", async (req, res) => {
+//     try {
+//         let {microcontrollerId} = req.params;
+//       try {
+//         if (
+//           microcontrollerId === undefined ||
+//           microcontrollerId.length < 1 ||
+//           microcontrollerId.length > 20
+//         ) {
+//           sendBadRequestResponse(res, "Invalid microcontroller Id.");
+//           return;
+//         }
+//         //
+//         //sql funciton here to insert microcontroller id into the table.
+//         success = await mysqlLogic.deleteMicrocontroller(microcontrollerId);
+//         res
+//           .status(201)
+//           .json({ success: success, message: "Data inserted successfully" });
+//       } catch (error) {
+//         console.log("Error inserting data:", error);
+//         sendInternalServerError(res, error);
+//       }
+//     } catch (error) {
+//       sendBadRequestResponse(res, error);
+//     }
+//   });
+
+
 /**
  * @swagger
  * /plant/availableExisitingMicrocontroller:
  *   get:
  *     summary: Get available existing microcontroller IDs
  *     tags: [Hardware]
- *     description: Retrieve microcontroller IDs where the associated plant batch ID is not null.
+ *     description: Retrieve microcontroller IDs where the associated plant batch ID is null.
  *     responses:
  *       200:
  *         description: Successful response with available microcontroller IDs

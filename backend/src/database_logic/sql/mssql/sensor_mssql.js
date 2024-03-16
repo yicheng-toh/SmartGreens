@@ -463,6 +463,24 @@ async function getAvailableExisitingMicrocontroller() {
     return result.recordset;
   } catch (error) {
     console.error('Error executing query:', error);
+    await dbConnection.disconnect();
+    throw error;
+  }
+}
+
+async function insertNewMicrocontroller(microcontollerId){
+  try{
+    const dbConnection = await createDbConnection();
+    const request = await dbConnection.connect();
+    const result = await request
+    .input('microcontrollerId', sql.VarChar, microcontollerId)
+    .query(`INSERT INTO MicrocontrollerPlantBatchPair (MicrocontrollerId, PlantBatchId) 
+    VALUES (@microcontrollerId, null)`);
+    await dbConnection.disconnect();
+    return 1;
+  } catch (error){
+    console.log("Error inserting microcontroller id:" , error);
+    await dbConnection.disconnect();
     throw error;
   }
 }
@@ -473,6 +491,7 @@ module.exports = {
   getPlantBatchIdGivenMicrocontrollerPrefix,
   insertSensorValuesSuffix1,
   insertSensorValuesSuffix2,
+  insertNewMicrocontroller,
   getActivePlantBatchSensorData,
   getActivePlantBatchSensorDataXDaysAgo,
   getLatestActivePlantBatchSensorData,
