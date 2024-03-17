@@ -195,9 +195,9 @@ if (DOCUMENTATION) {
   const swaggerDefinition = {
     openapi: "3.0.0",
     info: {
-      title: "Express Swagger Example",
-      version: "1.0.0",
-      description: "A simple Express Swagger example",
+      title: "Greens.AI Backend Documentation",
+      version: "14.0.0",
+      description: "Documentation for all routes present for interaction with the frontend.",
     },
     basePath: "/",
   };
