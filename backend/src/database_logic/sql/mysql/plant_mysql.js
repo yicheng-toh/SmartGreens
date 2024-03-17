@@ -2,6 +2,7 @@
 \This file contains all the necessary plant related logic for plants route
 this is designed specifically for MYSQL database.
 */
+const sql = require("../sql.js");
 const { dbConnection } = require("./mysql.js");
 //Functions will be divided into different tables
 
@@ -477,6 +478,18 @@ async function deletePlantBatch(plantBatchId) {
   }
 }
 
+async function getAllHarvestedPlantBatchInfo(){
+  try{
+    let sqlQuery = `SELECT * FROM PLANTBATCH WHERE DateHarvested is NOT NULL;`;
+    let result = await dbConnection.promise().query(sqlQuery);
+    return result[0];
+
+  }catch(error){
+    console.log("Error in function getAllHarvestedPlantBatchInfo", error);
+    throw error;
+  }
+}
+
 module.exports = {
   deletePlantBatch,
   getActivePlantBatchInfoAndYield,
@@ -488,6 +501,7 @@ module.exports = {
   getAllPlantSeedInventory,
   getAllPlantYieldRate,
   getPlantBatchDatePlanted,
+  getAllHarvestedPlantBatchInfo,
   growPlant,
   harvestPlant,
   updateGrowingPlantBatchDetails,

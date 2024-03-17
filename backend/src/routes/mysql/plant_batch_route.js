@@ -368,4 +368,40 @@ router.get("/activePlantBatchInfoAndYield", async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /plant/allHarvestedPlantBatchInfo:
+ *   get:
+ *     summary: Get information about harvested plant batches.
+ *     tags: [PlantBatch]
+ *     responses:
+ *       200:
+ *         description: Successful response. Returns plant batch info and yield data.
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: 1
+ *               result:
+ *                 - PlantBatchId: 1
+ *                   PlantId: 123
+ *                   PlantName: "Sample Plant"
+ *                   DatePlanted: "2024-01-22T12:00:00"
+ *                   ExpectedHarvestDate: "2024-02-22T12:00:00"
+ *                   QuantityPlanted: 100
+ *                   YieldRate: 0.75
+ *                   Status: "Healthy"
+ */
+router.get("/allHarvestedPlantBatchInfo", async (req, res) => {
+    try {
+        let success = 0;
+        const rows = await mysqlLogic.getAllHarvestedPlantBatchInfo();
+        
+        success = 1;
+        res.status(200).json({ success: success, result: rows });
+    } catch (error) {
+        console.log("Error retrieving data:", error);
+        sendInternalServerError(res, error);
+    }
+});
+
 module.exports = router;

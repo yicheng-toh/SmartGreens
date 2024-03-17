@@ -748,14 +748,29 @@ async function updatePlantInfo(
       .input('currentSeedInventory', sql.Int, currentSeedInventory)
       .input('plantId', sql.Int, plantId)
       .query(sqlQuery);
-    
+    await dbConnection.disconnect();
     return 1;
   } catch (error) {
     console.error("Error updating data: ", error);
+    await dbConnection.disconnect();
     throw error;
   }
 }
 
+async function getAllHarvestedPlantBatchInfo(){
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try{
+    const result = await request.query(`SELECT * FROM PLANTBATCH WHERE DateHarvested is NOT NULL;`);
+    await dbConnection.disconnect();
+    return result.recordset[0];
+
+  }catch(error){
+    console.log("Error in function getAllHarvestedPlantBatchInfo", error);
+    await dbConnection.disconnect();
+    throw error;
+  }
+}
 
 
 module.exports = {
@@ -769,6 +784,7 @@ module.exports = {
   getAllPlantYieldRate,
   insertNewPlant,
   getAllPlantSeedInventory,
+  getAllHarvestedPlantBatchInfo,
   growPlant,
   harvestPlant,
   updatePlantSensorInfo,
