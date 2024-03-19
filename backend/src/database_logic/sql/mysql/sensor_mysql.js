@@ -1,3 +1,4 @@
+const { db } = require("../../../routes/sqlite3_route.js");
 const { dbConnection } = require("./mysql.js");
 
 //intead of microcontoller id plantbatch pair,
@@ -348,7 +349,6 @@ WHERE
   return queryResult[0];
 }
 
-
 async function getActivePlantBatchSensorDataXDaysAgo(x) {
   const sqlQuery = `
     SELECT 
@@ -402,7 +402,7 @@ async function getActivePlantBatchSensorDataXDaysAgo(x) {
   return queryResult[0];
 }
 
-async function getLatestActivePlantBatchSensorData(){
+async function getLatestActivePlantBatchSensorData() {
   const sqlQuery = `
   WITH LatestEntries AS (
     SELECT 
@@ -493,49 +493,103 @@ WHERE
   `;
   const queryResult = await dbConnection.promise().query(sqlQuery);
   return queryResult[0];
-
 }
 
-async function getAvailableExisitingMicrocontroller(){
+async function getAvailableExisitingMicrocontroller() {
   sqlQuery = `
   SELECT MicrocontrollerId 
   FROM MicrocontrollerPlantBatchPair 
   WHERE PlantBatchId IS NULL;
-  `
+  `;
   const queryResult = await dbConnection.promise().query(sqlQuery);
   return queryResult[0];
 }
 
-async function insertNewMicrocontroller(microcontollerId){
-  try{
-  sqlQuery = `INSERT INTO MicrocontrollerPlantBatchPair (MicrocontrollerId) VALUES (?)`;
-  await dbConnection.execute(sqlQuery, [microcontollerId]);
-  return 1;
-  } catch (error){
-    console.log("Error inserting microcontroller id:" , error);
+async function insertNewMicrocontroller(microcontollerId) {
+  try {
+    sqlQuery = `INSERT INTO MicrocontrollerPlantBatchPair (MicrocontrollerId) VALUES (?)`;
+    await dbConnection.execute(sqlQuery, [microcontollerId]);
+    return 1;
+  } catch (error) {
+    console.log("Error inserting microcontroller id:", error);
     throw error;
   }
 }
 
-async function verifyMicrocontrollerIdValidForDeletion(microcontrollerId){
+async function verifyMicrocontrollerIdValidForDeletion(microcontrollerId) {
   console.log("Currently executiong verifyMicrocontrollerIdValidForDeletion");
   let sqlQuery = `SELECT * FROM MicrocontrollerPlantBatchPair WHERE PlantBatchId is NULL AND MicrocontrollerId = ?;`;
-  let micrcontrollerIdList =  await dbConnection.promise().query(sqlQuery, [microcontrollerId]);
-  console.log("verifyMicrocontrollerIdValidForDeletion", micrcontrollerIdList);
-  console.log("verifyMicrocontrollerIdValidForDeletion", micrcontrollerIdList[0]);
-  return micrcontrollerIdList[0].length;
+  let microcontrollerIdList = await dbConnection
+    .promise()
+    .query(sqlQuery, [microcontrollerId]);
+  console.log("verifyMicrocontrollerIdValidForDeletion", microcontrollerIdList);
+  console.log(
+    "verifyMicrocontrollerIdValidForDeletion",
+    microcontrollerIdList[0]
+  );
+  return microcontrollerIdList[0].length;
 }
 
-async function deleteMicrocontroller(micrcontrollerId){
-  try{
-  sqlQuery = `DELETE FROM MicrocontrollerPlantBatchPair WHERE MicrocontrollerId = ?;`;
-  await dbConnection.execute(sqlQuery,[micrcontrollerId]);
-  return 1;
-  }catch(error){
-    console.log("Error encountered when deleting microcontroller",error);
+async function deleteMicrocontroller(micrcontrollerId) {
+  try {
+    sqlQuery = `DELETE FROM MicrocontrollerPlantBatchPair WHERE MicrocontrollerId = ?;`;
+    await dbConnection.execute(sqlQuery, [micrcontrollerId]);
+    return 1;
+  } catch (error) {
+    console.log("Error encountered when deleting microcontroller", error);
     throw error;
   }
-  
+}
+
+async function verifyCurrentAndNewMicrocontrollerIdValid(
+  currentMicrocontrollerId,
+  newMicrocontrollerId
+) {
+  try {
+    const currentMicrocontrollerIdSQLQuery = `
+  SELECT * FROM MicrocontrollerPlantBatchPair 
+  WHERE 
+  MicrocontrollerId = ? AND PlantBatchId is NOT NULL`;
+    const newMicrocontrollerIdSQLQuery = `
+  SELECT * FROM MicrocontrollerPlantBatchPair 
+  WHERE 
+  MicrocontrollerId = ? AND PlantBatchId is NULL`;
+
+    let currentMicrocontrollerIdList = await dbConnection
+      .promise()
+      .query(currentMicrocontrollerIdSQLQuery, [currentMicrocontrollerId]);
+    let newMicrocontrollerIdList = await dbConnection
+      .promise()
+      .query(newMicrocontrollerIdSQLQuery, [newMicrocontrollerId]);
+    console.log("Verifying current and new microcontroller id", currentMicrocontrollerIdList[0], newMicrocontrollerIdList[0]);
+    if (
+      currentMicrocontrollerIdList[0].length &&
+      newMicrocontrollerIdList[0].length
+    ) {
+      return 1;
+    }
+    return 0;
+  } catch (error) {
+    console.log(
+      "Error encoutered at verifying current and new microcontroller:",
+      error
+    );
+    throw error;
+  }
+}
+
+async function updateCurrentMicrocontrollerForNewMicrocontroller(currentMicrocontrollerId, newMicrocontrollerId){
+  try{
+    let updateCurrentMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = ? WHERE MicrocontrollerId = ? AND PlantBatchId is not NULL`;
+    let updateNewMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = ? WHERE MicrocontrollerId = ? AND PlantBatchId is NULL`;
+    await dbConnection.execute(updateCurrentMicrocontrollerIdQuery,[newMicrocontrollerId, currentMicrocontrollerId]);
+    await dbConnection.execute(updateNewMicrocontrollerIdQuery,[currentMicrocontrollerId, newMicrocontrollerId]);
+    return 1;
+
+  }catch(error){
+    console.log("Encountered error in updating current for new microcontroller: ", error);
+    throw error;
+  }
 }
 
 module.exports = {
@@ -549,5 +603,7 @@ module.exports = {
   insertSensorValuesSuffix1,
   insertSensorValuesSuffix2,
   insertNewMicrocontroller,
+  updateCurrentMicrocontrollerForNewMicrocontroller,
   verifyMicrocontrollerIdValidForDeletion,
+  verifyCurrentAndNewMicrocontrollerIdValid,
 };

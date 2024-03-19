@@ -249,6 +249,81 @@ router.post("/insertNewMicrocontroller", async (req, res) => {
 
 /**
  * @swagger
+ * /plant/updateMicrocontrollerForActivePlantBatch:
+ *   post:
+ *     summary: Update a microcontroller that is in use with a microcontroller that is not used.
+ *     tags: [Hardware]
+ *     description: Swap a previous occupied microcontroller with an idle one.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               currentMicrocontrollerId:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 20
+ *                 example: "A"
+ *               currentInactiveMicrocontrollerId:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 20
+ *                 example: "string" 
+ *             required:
+ *               - microcontrollerId
+ *     responses:
+ *       '201':
+ *         description: Data inserted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   example: 1
+ *                 message:
+ *                   type: string
+ *                   example: Data inserted successfully
+ *       '400':
+ *         description: Bad request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+router.post("/updateMicrocontrollerForActivePlantBatch", async (req, res) => {
+  try {
+    try {
+      let {currentMicrocontrollerId, currentInactiveMicrocontrollerId} = req.body;
+      let isCurrentAndNewMicrocontrollerIdValid = await mysqlLogic.verifyCurrentAndNewMicrocontrollerIdValid(currentMicrocontrollerId, currentInactiveMicrocontrollerId);
+      console.log("/updateMicrocontrollerForActivePlantBatch", isCurrentAndNewMicrocontrollerIdValid);
+      if(!isCurrentAndNewMicrocontrollerIdValid){
+        sendBadRequestResponse(res, "The details for the current or new microcontroller is not valid");
+        return;
+      }
+      //sql funciton here to insert microcontroller id into the table.
+      success = await mysqlLogic.updateCurrentMicrocontrollerForNewMicrocontroller(currentMicrocontrollerId, currentInactiveMicrocontrollerId);
+      res
+        .status(201)
+        .json({ success: success, message: "Microcontroller updated successfully" });
+    } catch (error) {
+      console.log("Error inserting data:", error);
+      sendInternalServerError(res, error);
+    }
+  } catch (error) {
+    sendBadRequestResponse(res, error);
+  }
+});
+
+
+/**
+ * @swagger
  * /plant/deleteMicrocontroller/{microcontrollerId}:
  *   delete:
  *     summary: Delete a Microcontroller by ID

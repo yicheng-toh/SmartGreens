@@ -517,6 +517,67 @@ async function deleteMicrocontroller(microcontrollerId){
   }
 }
 
+async function verifyCurrentAndNewMicrocontrollerIdValid(
+  currentMicrocontrollerId,
+  newMicrocontrollerId
+) {
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try {
+    const currentMicrocontrollerIdSQLQuery = `
+  SELECT * FROM MicrocontrollerPlantBatchPair 
+  WHERE 
+  MicrocontrollerId = @currentMicrocontrollerId AND PlantBatchId is NOT NULL`;
+    const newMicrocontrollerIdSQLQuery = `
+  SELECT * FROM MicrocontrollerPlantBatchPair 
+  WHERE 
+  MicrocontrollerId = @newMicrocontrollerId AND PlantBatchId is NULL`;
+
+  let currentMicrocontrollerIdList = await request.input("currentMicrocontrollerId", sql.VarChar, currentMicrocontrollerId)
+  .query(currentMicrocontrollerIdSQLQuery);
+
+  let newMicrocontrollerIdList = await request.input("newMicrocontrollerId", sql.VarChar, newMicrocontrollerId)
+  .query(newMicrocontrollerIdSQLQuery);
+
+  
+    console.log("Verifying current and new microcontroller id", currentMicrocontrollerIdList.recordset, newMicrocontrollerIdList.recordset);
+    await dbConnection.disconnect();
+    if (
+      currentMicrocontrollerIdList.recordset.length &&
+      newMicrocontrollerIdList.recordset.length
+    ) {
+      return 1;
+    }
+    return 0;
+  } catch (error) {
+    console.log(
+      "Error encoutered at verifying current and new microcontroller:",
+      error
+    );
+    await dbConnection.disconnect();
+    throw error;
+  }
+}
+
+async function updateCurrentMicrocontrollerForNewMicrocontroller(currentMicrocontrollerId, newMicrocontrollerId){
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try{
+    let updateCurrentMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = @newMicrocontrollerId WHERE MicrocontrollerId = @currentMicrocontrollerId AND PlantBatchId is not NULL`;
+    let updateNewMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = @currentMicrocontrollerId WHERE MicrocontrollerId = @newMicrocontrollerId AND PlantBatchId is NULL`;
+    await request
+    .input("currentMicrocontrollerId", sql.VarChar, currentMicrocontrollerId)
+    .input("newMicrocontrollerId", sql.VarChar, newMicrocontrollerId)
+    .query(updateCurrentMicrocontrollerIdQuery);
+    await request.query(updateNewMicrocontrollerIdQuery);
+    return 1;
+
+  }catch(error){
+    console.log("Encountered error in updating current for new microcontroller: ", error);
+    throw error;
+  }
+}
+
 
 module.exports = {
   deleteMicrocontroller,
@@ -529,5 +590,7 @@ module.exports = {
   insertSensorValuesSuffix1,
   insertSensorValuesSuffix2,
   insertNewMicrocontroller,
+  updateCurrentMicrocontrollerForNewMicrocontroller,
+  verifyCurrentAndNewMicrocontrollerIdValid,
   verifyMicrocontrollerIdValidForDeletion,
 };
