@@ -761,9 +761,22 @@ async function getAllHarvestedPlantBatchInfo(){
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   try{
-    const result = await request.query(`SELECT * FROM PLANTBATCH WHERE DateHarvested is NOT NULL;`);
+    const result = await request.query(`
+    SELECT 
+    pb.PlantBatchId,
+    pb.PlantId,
+    pi.PlantName,
+    pb.PlantLocation,
+    pb.QuantityPlanted,
+    pb.WeightHarvested,
+    pb.DatePlanted,
+    pb.DateHarvested
+    FROM PLANTBATCH pb
+    JOIN PlantInfo pi ON pi.PlantId = pb.PlantId
+    WHERE pb.DateHarvested is NOT NULL;
+    `);
     await dbConnection.disconnect();
-    return result.recordset[0];
+    return result.recordset;
 
   }catch(error){
     console.log("Error in function getAllHarvestedPlantBatchInfo", error);

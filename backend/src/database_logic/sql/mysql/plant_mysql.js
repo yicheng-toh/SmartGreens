@@ -480,7 +480,18 @@ async function deletePlantBatch(plantBatchId) {
 
 async function getAllHarvestedPlantBatchInfo(){
   try{
-    let sqlQuery = `SELECT * FROM PLANTBATCH WHERE DateHarvested is NOT NULL;`;
+    let sqlQuery = `SELECT 
+    pb.PlantBatchId,
+    pb.PlantId,
+    pi.PlantName,
+    pb.PlantLocation,
+    pb.QuantityPlanted,
+    pb.WeightHarvested,
+    pb.DatePlanted,
+    pb.DateHarvested
+    FROM PLANTBATCH pb
+    JOIN PlantInfo pi ON pi.PlantId = pb.PlantId
+    WHERE pb.DateHarvested is NOT NULL;`;
     let result = await dbConnection.promise().query(sqlQuery);
     return result[0];
 

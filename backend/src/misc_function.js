@@ -84,6 +84,25 @@ function groupSensorDataByPlantBatchId(data) {
   return res;
 }
 
+function groupPlantSensorInfoByPlantId(data) {
+  let res = {};
+  for (let entry of data) {
+    console.log("entry is", entry);
+    if (!(entry.PlantId in res)) {
+      res[entry.PlantId] = {};
+    }
+
+    for (let key in entry) {
+      // console.log("entry key is", key);
+      if (!(key in res[entry.PlantId])) {
+        res[entry.PlantId][key] = [];
+      }
+      res[entry.PlantId][key].push(entry[key]);
+    }
+  }
+  return res;
+}
+
 function appendStatusToLatestSensorReadings(dataList) {
   //if there is no violation, then the status is healthy.
   //if there is 1 violation, then it is attention
@@ -163,4 +182,5 @@ module.exports = {
   groupSensorDataByPlantType,
   groupSensorDataByPlantBatchId,
   appendStatusToLatestSensorReadings,
+  groupPlantSensorInfoByPlantId,
 };
