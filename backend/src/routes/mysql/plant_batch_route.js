@@ -73,6 +73,7 @@ router.post("/editPlantBatchDetails", async (req, res) => {
         let success = 0;
         let {
             plantBatchId,
+            plantId,
             datePlanted,
             quantityPlanted,
             weightHarvested,
@@ -80,6 +81,10 @@ router.post("/editPlantBatchDetails", async (req, res) => {
             location
         } = req.body;
         if (plantBatchId === undefined || isNaN(parseInt(plantBatchId))) {
+            sendInternalServerError(res, "Plant Batch Id is invalid.");
+            return;
+        }
+        if (plantId === undefined || isNaN(parseInt(plantId))) {
             sendInternalServerError(res, "Plant Batch Id is invalid.");
             return;
         }
@@ -108,6 +113,7 @@ router.post("/editPlantBatchDetails", async (req, res) => {
             //edit the entries' date planted and quantity plamted
             success = await mysqlLogic.updateGrowingPlantBatchDetails(
                 plantBatchId,
+                plantId,
                 formattedDateTimePlanted,
                 quantityPlanted,
                 location
@@ -143,8 +149,9 @@ router.post("/editPlantBatchDetails", async (req, res) => {
                 return;
             }
             //get the date planted time.
-            let success = await mysqlLogic.updateHarvestedPlantBatchDetails(
+            success = await mysqlLogic.updateHarvestedPlantBatchDetails(
                 plantBatchId,
+                plantId,
                 formattedDateTimePlanted,
                 quantityPlanted,
                 formattedDateTimeHarvested,
@@ -338,7 +345,7 @@ router.get("/allPlantBatchInfo", async (req, res) => {
  *                   DatePlanted: "2024-01-22T12:00:00"
  *                   ExpectedHarvestDate: "2024-02-22T12:00:00"
  *                   QuantityPlanted: 100
- *                   YieldRate: 0.75
+ *                   ExpectedYield: 0.75
  *                   Status: "Healthy"
  */
 router.get("/activePlantBatchInfoAndYield", async (req, res) => {
@@ -384,12 +391,12 @@ router.get("/activePlantBatchInfoAndYield", async (req, res) => {
  *               result:
  *                 - PlantBatchId: 1
  *                   PlantId: 123
- *                   PlantName: "Sample Plant"
+ *                   PlantName: "Choy Sum"
+ *                   PlantLocation: "There"
+ *                   QuantityPlanted: 1
+ *                   WeightHarvested: 1
  *                   DatePlanted: "2024-01-22T12:00:00"
- *                   ExpectedHarvestDate: "2024-02-22T12:00:00"
- *                   QuantityPlanted: 100
- *                   YieldRate: 0.75
- *                   Status: "Healthy"
+ *                   DateHarvested: "2024-02-22T12:00:00"
  */
 router.get("/allHarvestedPlantBatchInfo", async (req, res) => {
     try {

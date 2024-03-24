@@ -74,43 +74,48 @@ JOIN
 }
 
 async function getActivePlantBatchInfoAndYield() {
-  const plantBatchQuery = `
-  WITH PlantBatchSummary AS (
-    SELECT 
-        pb.PlantId,
-        COALESCE(SUM(pb.WeightHarvested), 0) AS TotalHarvested,
-        COALESCE(SUM(pb.QuantityPlanted), 0) AS TotalPlanted,
-        COALESCE(SUM(pb.WeightHarvested) / NULLIF(SUM(pb.QuantityPlanted), 0), 0) AS YieldRate
-    FROM 
-        PlantBatch pb
-    WHERE 
-        pb.DatePlanted IS NOT NULL
-        AND pb.DateHarvested IS NOT NULL
-    GROUP BY 
-        pb.PlantId
-)
+  try{
+    const plantBatchQuery = `
+    WITH PlantBatchSummary AS (
+      SELECT 
+          pb.PlantId,
+          COALESCE(SUM(pb.WeightHarvested), 0) AS TotalHarvested,
+          COALESCE(SUM(pb.QuantityPlanted), 0) AS TotalPlanted,
+          COALESCE(SUM(pb.WeightHarvested) / NULLIF(SUM(pb.QuantityPlanted), 0), 0) AS YieldRate
+      FROM 
+          PlantBatch pb
+      WHERE 
+          pb.DatePlanted IS NOT NULL
+          AND pb.DateHarvested IS NOT NULL
+      GROUP BY 
+          pb.PlantId
+  )
 
-SELECT
-    pb.PlantBatchId,
-    pbs.PlantId,
-    pi.PlantName,
-    pb.DatePlanted,
-    DATE_ADD(pb.DatePlanted, INTERVAL pi.DaysToMature DAY) AS ExpectedHarvestDate,
-    pb.QuantityPlanted,
-    pb.QuantityPlanted * pbs.YieldRate AS ExpectedYield
-FROM
-    PlantBatch pb
-JOIN
-    PlantInfo pi ON pb.PlantId = pi.PlantId
-LEFT JOIN
-    PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId
-WHERE
-    pb.DateHarvested IS NULL;
+  SELECT
+      pb.PlantBatchId,
+      pbs.PlantId,
+      pi.PlantName,
+      pb.DatePlanted,
+      DATE_ADD(pb.DatePlanted, INTERVAL pi.DaysToMature DAY) AS ExpectedHarvestDate,
+      pb.QuantityPlanted,
+      pb.QuantityPlanted * pbs.YieldRate AS ExpectedYield
+  FROM
+      PlantBatch pb
+  JOIN
+      PlantInfo pi ON pb.PlantId = pi.PlantId
+  LEFT JOIN
+      PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId
+  WHERE
+      pb.DateHarvested IS NULL;
 
-  `;
-  queryResult = await dbConnection.promise().query(plantBatchQuery);
-  console.log(queryResult);
-  return queryResult[0];
+    `;
+    queryResult = await dbConnection.promise().query(plantBatchQuery);
+    console.log(queryResult);
+    return queryResult[0];
+  }catch(error){
+    console.log("Error encoutntered in active plant batch and yield: ", error);
+    throw error;
+  }
 }
 
 async function getAllPlantYieldRate() {
@@ -396,6 +401,7 @@ async function verifyPlantBatchIsGrowing(plantBatchId) {
 
 async function updateGrowingPlantBatchDetails(
   plantBatchId,
+  plantId,
   datePlanted,
   quantityPlanted,
   location
@@ -403,13 +409,14 @@ async function updateGrowingPlantBatchDetails(
   try {
     const sqlQuery = `
       UPDATE PlantBatch
-      SET DatePlanted = ?, QuantityPlanted = ?, PlantLocation = ?
+      SET DatePlanted = ?, QuantityPlanted = ?, PlantLocation = ?, PlantId = ?
       WHERE PlantBatchId = ?
     `;
     const result = await dbConnection.execute(sqlQuery, [
       datePlanted,
       quantityPlanted,
       location,
+      plantId,
       plantBatchId,
     ]);
     console.log("updateGrowingPlantBatchDetails", result);
@@ -422,6 +429,7 @@ async function updateGrowingPlantBatchDetails(
 
 async function updateHarvestedPlantBatchDetails(
   plantBatchId,
+  plantId,
   datePlanted,
   quantityPlanted,
   dateHarvested,
@@ -431,7 +439,7 @@ async function updateHarvestedPlantBatchDetails(
   try {
     const sqlQuery = `
       UPDATE PlantBatch
-      SET DatePlanted = ?, QuantityPlanted = ?, DateHarvested = ?, WeightHarvested = ?, PlantLocation = ?
+      SET DatePlanted = ?, QuantityPlanted = ?, DateHarvested = ?, WeightHarvested = ?, PlantLocation = ?, PlantId = ?
       WHERE PlantBatchId = ?
     `;
     const result = await dbConnection.execute(sqlQuery, [
@@ -440,6 +448,7 @@ async function updateHarvestedPlantBatchDetails(
       dateHarvested,
       weightHarvested,
       location,
+      plantId,
       plantBatchId,
     ]);
     console.log("updateHarvestedPlantBatchDetails", "result[0]", result[0]);

@@ -54,9 +54,9 @@ async function getAllPlantBatchInfoAndYield() {
           PlantInfo pi ON pb.PlantId = pi.PlantId
       JOIN
           PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId;
-    `;  
-const queryResult = await request.query(plantBatchQuery);
-  console.log("getAllPlantBatchInfoAndYield",queryResult);
+    `;
+  const queryResult = await request.query(plantBatchQuery);
+  console.log("getAllPlantBatchInfoAndYield", queryResult);
   await dbConnection.disconnect();
   return queryResult.recordset;
 }
@@ -64,7 +64,8 @@ const queryResult = await request.query(plantBatchQuery);
 async function getActivePlantBatchInfoAndYield() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
-  const plantBatchQuery = `
+  try {
+    const plantBatchQuery = `
       WITH PlantBatchSummary AS (
         SELECT 
             pb.PlantId,
@@ -96,20 +97,20 @@ async function getActivePlantBatchInfoAndYield() {
           PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId
       WHERE
           Pb.DateHarvested IS NULL;
-    `;  
+    `;
     // const plantBatchQuery = `
     //   WITH PlantBatchSummary AS (
-    //     SELECT 
+    //     SELECT
     //         pb.PlantId,
     //         COALESCE(SUM(pb.WeightHarvested), 0) AS TotalHarvested,
     //         COALESCE(SUM(pb.QuantityPlanted), 0) AS TotalPlanted,
     //         COALESCE(SUM(pb.WeightHarvested) / NULLIF(SUM(pb.QuantityPlanted), 0), 0) AS YieldRate
-    //     FROM 
+    //     FROM
     //         PlantBatch pb
-    //     WHERE 
+    //     WHERE
     //         pb.DatePlanted IS NOT NULL
     //         AND pb.DateHarvested IS NOT NULL
-    //     GROUP BY 
+    //     GROUP BY
     //         pb.PlantId
     //   )
 
@@ -126,11 +127,16 @@ async function getActivePlantBatchInfoAndYield() {
     //       PlantInfo pi ON pb.PlantId = pi.PlantId
     //   WHERE
     //       Pb.DateHarvested IS NULL;
-    // `;  
-const queryResult = await request.query(plantBatchQuery);
-  console.log("getActivePlantBatchInfoAndYield",queryResult);
-  await dbConnection.disconnect();
-  return queryResult.recordset;
+    // `;
+    const queryResult = await request.query(plantBatchQuery);
+    console.log("getActivePlantBatchInfoAndYield", queryResult);
+    await dbConnection.disconnect();
+    return queryResult.recordset;
+  } catch (error) {
+    console.log("Error in active plant batch and yield: ", error);
+    await dbConnection.disconnect();
+    throw error;
+  }
 }
 
 async function getAllPlantInfo() {
@@ -216,7 +222,6 @@ async function harvestPlant(plantBatchId, dateHarvested, weightHarvested) {
       "UPDATE PlantBatch SET WeightHarvested = @weightHarvested, DateHarvested = @dateHarvested WHERE PlantBatchId = @plantBatchId"
     );
 
- 
   await request
     // .input("plantBatchId", sql.Int, plantBatchId)
     .query(
@@ -389,40 +394,39 @@ async function updatePlantSensorInfo(data) {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   try {
-      // Check if the PlantId exists
-      const result = await request
-      .input('plantId', data.plantId)
+    // Check if the PlantId exists
+    const result = await request
+      .input("plantId", data.plantId)
       .query("SELECT * FROM PlantSensorInfo WHERE PlantId = @plantId");
-      console.log("plant sensor info result is", result);
-      console.log("plant sensor info result is", result.recordset);
-      console.log("plant sensor info result is", result.recordset[0]);
-      console.log("plant sensor info result is", result.recordset.length);
-      if (result.recordset.length === 0) {
-          // If PlantId does not exist, insert a new row
-          await request
-              // .input('plantId', data.plantId)
-              .input('temperature_min', data.temperature_min)
-              .input('temperature_max', data.temperature_max)
-              .input('temperature_optimal', data.temperature_optimal)
-              .input('humidity_min', data.humidity_min)
-              .input('humidity_max', data.humidity_max)
-              .input('humidity_optimal', data.humidity_optimal)
-              .input('brightness_min', data.brightness_min)
-              .input('brightness_max', data.brightness_max)
-              .input('brightness_optimal', data.brightness_optimal)
-              .input('pH_min', data.pH_min)
-              .input('pH_max', data.pH_max)
-              .input('pH_optimal', data.pH_optimal)
-              .input('CO2_min', data.CO2_min)
-              .input('CO2_max', data.CO2_max)
-              .input('CO2_optimal', data.CO2_optimal)
-              .input('EC_min', data.EC_min)
-              .input('EC_max', data.EC_max)
-              .input('EC_optimal', data.EC_optimal)
-              .input('TDS_min', data.TDS_min)
-              .input('TDS_max', data.TDS_max)
-              .input('TDS_optimal', data.TDS_optimal)
-              .query(`
+    console.log("plant sensor info result is", result);
+    console.log("plant sensor info result is", result.recordset);
+    console.log("plant sensor info result is", result.recordset[0]);
+    console.log("plant sensor info result is", result.recordset.length);
+    if (result.recordset.length === 0) {
+      // If PlantId does not exist, insert a new row
+      await request
+        // .input('plantId', data.plantId)
+        .input("temperature_min", data.temperature_min)
+        .input("temperature_max", data.temperature_max)
+        .input("temperature_optimal", data.temperature_optimal)
+        .input("humidity_min", data.humidity_min)
+        .input("humidity_max", data.humidity_max)
+        .input("humidity_optimal", data.humidity_optimal)
+        .input("brightness_min", data.brightness_min)
+        .input("brightness_max", data.brightness_max)
+        .input("brightness_optimal", data.brightness_optimal)
+        .input("pH_min", data.pH_min)
+        .input("pH_max", data.pH_max)
+        .input("pH_optimal", data.pH_optimal)
+        .input("CO2_min", data.CO2_min)
+        .input("CO2_max", data.CO2_max)
+        .input("CO2_optimal", data.CO2_optimal)
+        .input("EC_min", data.EC_min)
+        .input("EC_max", data.EC_max)
+        .input("EC_optimal", data.EC_optimal)
+        .input("TDS_min", data.TDS_min)
+        .input("TDS_max", data.TDS_max)
+        .input("TDS_optimal", data.TDS_optimal).query(`
                   INSERT INTO PlantSensorInfo (
                       PlantId, 
                       Temperature_min, Temperature_max, Temperature_optimal,
@@ -444,32 +448,31 @@ async function updatePlantSensorInfo(data) {
                       @TDS_min, @TDS_max, @TDS_optimal
                   );
               `);
-      } else {
-          // If PlantId exists, update the existing row
-          await request
-              .input('temperature_min', data.temperature_min)
-              .input('temperature_max', data.temperature_max)
-              .input('temperature_optimal', data.temperature_optimal)
-              .input('humidity_min', data.humidity_min)
-              .input('humidity_max', data.humidity_max)
-              .input('humidity_optimal', data.humidity_optimal)
-              .input('brightness_min', data.brightness_min)
-              .input('brightness_max', data.brightness_max)
-              .input('brightness_optimal', data.brightness_optimal)
-              .input('pH_min', data.pH_min)
-              .input('pH_max', data.pH_max)
-              .input('pH_optimal', data.pH_optimal)
-              .input('CO2_min', data.CO2_min)
-              .input('CO2_max', data.CO2_max)
-              .input('CO2_optimal', data.CO2_optimal)
-              .input('EC_min', data.EC_min)
-              .input('EC_max', data.EC_max)
-              .input('EC_optimal', data.EC_optimal)
-              .input('TDS_min', data.TDS_min)
-              .input('TDS_max', data.TDS_max)
-              .input('TDS_optimal', data.TDS_optimal)
-              // .input('plantId', data.plantId)
-              .query(`
+    } else {
+      // If PlantId exists, update the existing row
+      await // .input('plantId', data.plantId)
+      request
+        .input("temperature_min", data.temperature_min)
+        .input("temperature_max", data.temperature_max)
+        .input("temperature_optimal", data.temperature_optimal)
+        .input("humidity_min", data.humidity_min)
+        .input("humidity_max", data.humidity_max)
+        .input("humidity_optimal", data.humidity_optimal)
+        .input("brightness_min", data.brightness_min)
+        .input("brightness_max", data.brightness_max)
+        .input("brightness_optimal", data.brightness_optimal)
+        .input("pH_min", data.pH_min)
+        .input("pH_max", data.pH_max)
+        .input("pH_optimal", data.pH_optimal)
+        .input("CO2_min", data.CO2_min)
+        .input("CO2_max", data.CO2_max)
+        .input("CO2_optimal", data.CO2_optimal)
+        .input("EC_min", data.EC_min)
+        .input("EC_max", data.EC_max)
+        .input("EC_optimal", data.EC_optimal)
+        .input("TDS_min", data.TDS_min)
+        .input("TDS_max", data.TDS_max)
+        .input("TDS_optimal", data.TDS_optimal).query(`
                   UPDATE PlantSensorInfo SET 
                       Temperature_min = @temperature_min, Temperature_max = @temperature_max, Temperature_optimal = @temperature_optimal,
                       Humidity_min = @humidity_min, Humidity_max = @humidity_max, Humidity_optimal = @humidity_optimal,
@@ -480,14 +483,14 @@ async function updatePlantSensorInfo(data) {
                       TDS_min = @TDS_min, TDS_max = @TDS_max, TDS_optimal = @TDS_optimal
                   WHERE PlantId = @plantId;
               `);
-      }
+    }
 
-      // Return true indicating successful update
-      await dbConnection.disconnect();
-      return 1;
+    // Return true indicating successful update
+    await dbConnection.disconnect();
+    return 1;
   } catch (error) {
-      console.error("Error updating PlantSensorInfo:", error);
-      return 0; // Return false indicating update failure
+    console.error("Error updating PlantSensorInfo:", error);
+    return 0; // Return false indicating update failure
   }
 }
 
@@ -495,40 +498,39 @@ async function updatePlantInfo(data) {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   try {
-      // Check if the PlantId should already exist.
-      const result = await request
-      .input('plantId', data.plantId)
+    // Check if the PlantId should already exist.
+    const result = await request
+      .input("plantId", data.plantId)
       .query("SELECT * FROM PlantInfo WHERE PlantId = @plantId");
-      console.log("plant sensor info result is", result);
-      console.log("plant sensor info result is", result.recordset);
-      console.log("plant sensor info result is", result.recordset[0]);
-      console.log("plant sensor info result is", result.recordset.length);
-      if (result.recordset.length === 0) {
-          // If PlantId does not exist, insert a new row
-          await request
-              // .input('plantId', data.plantId)
-              .input('temperature_min', data.temperature_min)
-              .input('temperature_max', data.temperature_max)
-              .input('temperature_optimal', data.temperature_optimal)
-              .input('humidity_min', data.humidity_min)
-              .input('humidity_max', data.humidity_max)
-              .input('humidity_optimal', data.humidity_optimal)
-              .input('brightness_min', data.brightness_min)
-              .input('brightness_max', data.brightness_max)
-              .input('brightness_optimal', data.brightness_optimal)
-              .input('pH_min', data.pH_min)
-              .input('pH_max', data.pH_max)
-              .input('pH_optimal', data.pH_optimal)
-              .input('CO2_min', data.CO2_min)
-              .input('CO2_max', data.CO2_max)
-              .input('CO2_optimal', data.CO2_optimal)
-              .input('EC_min', data.EC_min)
-              .input('EC_max', data.EC_max)
-              .input('EC_optimal', data.EC_optimal)
-              .input('TDS_min', data.TDS_min)
-              .input('TDS_max', data.TDS_max)
-              .input('TDS_optimal', data.TDS_optimal)
-              .query(`
+    console.log("plant sensor info result is", result);
+    console.log("plant sensor info result is", result.recordset);
+    console.log("plant sensor info result is", result.recordset[0]);
+    console.log("plant sensor info result is", result.recordset.length);
+    if (result.recordset.length === 0) {
+      // If PlantId does not exist, insert a new row
+      await request
+        // .input('plantId', data.plantId)
+        .input("temperature_min", data.temperature_min)
+        .input("temperature_max", data.temperature_max)
+        .input("temperature_optimal", data.temperature_optimal)
+        .input("humidity_min", data.humidity_min)
+        .input("humidity_max", data.humidity_max)
+        .input("humidity_optimal", data.humidity_optimal)
+        .input("brightness_min", data.brightness_min)
+        .input("brightness_max", data.brightness_max)
+        .input("brightness_optimal", data.brightness_optimal)
+        .input("pH_min", data.pH_min)
+        .input("pH_max", data.pH_max)
+        .input("pH_optimal", data.pH_optimal)
+        .input("CO2_min", data.CO2_min)
+        .input("CO2_max", data.CO2_max)
+        .input("CO2_optimal", data.CO2_optimal)
+        .input("EC_min", data.EC_min)
+        .input("EC_max", data.EC_max)
+        .input("EC_optimal", data.EC_optimal)
+        .input("TDS_min", data.TDS_min)
+        .input("TDS_max", data.TDS_max)
+        .input("TDS_optimal", data.TDS_optimal).query(`
                   INSERT INTO PlantSensorInfo (
                       PlantId, 
                       Temperature_min, Temperature_max, Temperature_optimal,
@@ -550,32 +552,31 @@ async function updatePlantInfo(data) {
                       @TDS_min, @TDS_max, @TDS_optimal
                   );
               `);
-      } else {
-          // If PlantId exists, update the existing row
-          await request
-              .input('temperature_min', data.temperature_min)
-              .input('temperature_max', data.temperature_max)
-              .input('temperature_optimal', data.temperature_optimal)
-              .input('humidity_min', data.humidity_min)
-              .input('humidity_max', data.humidity_max)
-              .input('humidity_optimal', data.humidity_optimal)
-              .input('brightness_min', data.brightness_min)
-              .input('brightness_max', data.brightness_max)
-              .input('brightness_optimal', data.brightness_optimal)
-              .input('pH_min', data.pH_min)
-              .input('pH_max', data.pH_max)
-              .input('pH_optimal', data.pH_optimal)
-              .input('CO2_min', data.CO2_min)
-              .input('CO2_max', data.CO2_max)
-              .input('CO2_optimal', data.CO2_optimal)
-              .input('EC_min', data.EC_min)
-              .input('EC_max', data.EC_max)
-              .input('EC_optimal', data.EC_optimal)
-              .input('TDS_min', data.TDS_min)
-              .input('TDS_max', data.TDS_max)
-              .input('TDS_optimal', data.TDS_optimal)
-              // .input('plantId', data.plantId)
-              .query(`
+    } else {
+      // If PlantId exists, update the existing row
+      await // .input('plantId', data.plantId)
+      request
+        .input("temperature_min", data.temperature_min)
+        .input("temperature_max", data.temperature_max)
+        .input("temperature_optimal", data.temperature_optimal)
+        .input("humidity_min", data.humidity_min)
+        .input("humidity_max", data.humidity_max)
+        .input("humidity_optimal", data.humidity_optimal)
+        .input("brightness_min", data.brightness_min)
+        .input("brightness_max", data.brightness_max)
+        .input("brightness_optimal", data.brightness_optimal)
+        .input("pH_min", data.pH_min)
+        .input("pH_max", data.pH_max)
+        .input("pH_optimal", data.pH_optimal)
+        .input("CO2_min", data.CO2_min)
+        .input("CO2_max", data.CO2_max)
+        .input("CO2_optimal", data.CO2_optimal)
+        .input("EC_min", data.EC_min)
+        .input("EC_max", data.EC_max)
+        .input("EC_optimal", data.EC_optimal)
+        .input("TDS_min", data.TDS_min)
+        .input("TDS_max", data.TDS_max)
+        .input("TDS_optimal", data.TDS_optimal).query(`
                   UPDATE PlantSensorInfo SET 
                       Temperature_min = @temperature_min, Temperature_max = @temperature_max, Temperature_optimal = @temperature_optimal,
                       Humidity_min = @humidity_min, Humidity_max = @humidity_max, Humidity_optimal = @humidity_optimal,
@@ -586,23 +587,22 @@ async function updatePlantInfo(data) {
                       TDS_min = @TDS_min, TDS_max = @TDS_max, TDS_optimal = @TDS_optimal
                   WHERE PlantId = @plantId;
               `);
-      }
+    }
 
-      // Return true indicating successful update
-      await dbConnection.disconnect();
-      return true;
+    // Return true indicating successful update
+    await dbConnection.disconnect();
+    return true;
   } catch (error) {
-      console.error("Error updating PlantSensorInfo:", error);
-      return false; // Return false indicating update failure
+    console.error("Error updating PlantSensorInfo:", error);
+    return false; // Return false indicating update failure
   }
 }
 
 async function getAllPlantBatchInfo() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
-  queryResult = await request
-    .query(
-      `SELECT 
+  queryResult = await request.query(
+    `SELECT 
         PlantBatch.PlantBatchId,
         PlantBatch.PlantId,
         PlantBatch.PlantLocation,
@@ -620,20 +620,18 @@ async function getAllPlantBatchInfo() {
        FROM PlantBatch 
       LEFT JOIN 
         PlantInfo ON PlantInfo.PlantID = PlantBatch.PlantID`
-    );
+  );
   await dbConnection.disconnect();
   return queryResult.recordset;
 }
-
 
 async function verifyPlantBatchIsGrowing(plantBatchId) {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   try {
-    
     let result = await request
-      .input('plantBatchId', sql.Int, plantBatchId)
-      .query('SELECT * FROM PlantBatch WHERE PlantBatchId = @plantBatchId');
+      .input("plantBatchId", sql.Int, plantBatchId)
+      .query("SELECT * FROM PlantBatch WHERE PlantBatchId = @plantBatchId");
     console.log("verifyPlantBatchIsGrowing", result.recordset);
     console.log("verifyPlantBatchIsGrowing", result.recordset[0]);
     console.log("verifyPlantBatchIsGrowing", result.recordset[0].DateHarvested);
@@ -642,7 +640,10 @@ async function verifyPlantBatchIsGrowing(plantBatchId) {
       return 0;
     }
     if (result.recordset[0].DateHarvested !== null) {
-      console.log("verifyPlantBatchIsGrowing", result.recordset[0].DateHarvested)
+      console.log(
+        "verifyPlantBatchIsGrowing",
+        result.recordset[0].DateHarvested
+      );
       await dbConnection.disconnect();
       return 0;
     }
@@ -655,16 +656,25 @@ async function verifyPlantBatchIsGrowing(plantBatchId) {
   }
 }
 
-async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, location) {
-    const dbConnection = await createDbConnection();
-    const request = await dbConnection.connect();
+async function updateGrowingPlantBatchDetails(
+  plantBatchId,
+  plantId,
+  datePlanted,
+  quantityPlanted,
+  location
+) {
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
   try {
     const result = await request
-      .input('datePlanted', sql.DateTime, datePlanted)
-      .input('quantityPlanted', sql.Int, quantityPlanted)
-      .input('plantBatchId', sql.Int, plantBatchId)
-      .input('location', sql.VarChar, location)
-      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, PlantLocation = @location WHERE PlantBatchId = @plantBatchId');
+      .input("datePlanted", sql.DateTime, datePlanted)
+      .input("quantityPlanted", sql.Int, quantityPlanted)
+      .input("plantBatchId", sql.Int, plantBatchId)
+      .input("location", sql.VarChar, location)
+      .input("plantId", sql.Int, plantId)
+      .query(
+        "UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, PlantLocation = @location PlantId = @plantId WHERE PlantBatchId = @plantBatchId"
+      );
     console.log("updateGrowingPlantBatchDetails", result.rowsAffected);
     await dbConnection.disconnect();
     return 1;
@@ -675,18 +685,32 @@ async function updateGrowingPlantBatchDetails(plantBatchId, datePlanted, quantit
   }
 }
 
-async function updateHarvestedPlantBatchDetails(plantBatchId, datePlanted, quantityPlanted, dateHarvested, weightHarvested, location) {
+async function updateHarvestedPlantBatchDetails(
+  plantBatchId,
+  plantId,
+  datePlanted,
+  quantityPlanted,
+  dateHarvested,
+  weightHarvested,
+  location
+) {
   try {
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     const result = await request
-      .input('datePlanted', sql.DateTime, datePlanted)
-      .input('quantityPlanted', sql.Int, quantityPlanted)
-      .input('dateHarvested', sql.DateTime, dateHarvested)
-      .input('weightHarvested', sql.Int, weightHarvested)
-      .input('plantBatchId', sql.Int, plantBatchId)
-      .input('location', sql.VarChar, location)
-      .query('UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, DateHarvested = @dateHarvested, WeightHarvested = @weightHarvested, PlantLocation = @location WHERE PlantBatchId = @plantBatchId');
+      .input("datePlanted", sql.DateTime, datePlanted)
+      .input("quantityPlanted", sql.Int, quantityPlanted)
+      .input("dateHarvested", sql.DateTime, dateHarvested)
+      .input("weightHarvested", sql.Int, weightHarvested)
+      .input("plantBatchId", sql.Int, plantBatchId)
+      .input("plantId", sql.Int, plantId)
+      .input("location", sql.VarChar, location)
+      .query(
+        `UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, 
+        DateHarvested = @dateHarvested, WeightHarvested = @weightHarvested, PlantLocation = @location, 
+        PlantId = @plantId 
+        WHERE PlantBatchId = @plantBatchId`
+      );
     console.log("updateHarvestedPlantBatchDetails", result.rowsAffected);
     await dbConnection.disconnect();
     return 1; // Successful update
@@ -701,23 +725,21 @@ async function deletePlantBatch(plantBatchId) {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   try {
-
     const deleteSensorReadingsQuery = `
       DELETE FROM SensorReadings
       WHERE PlantBatchId = @plantBatchId
     `;
     await request
-      .input('plantBatchId', sql.Int, plantBatchId)
+      .input("plantBatchId", sql.Int, plantBatchId)
       .query(deleteSensorReadingsQuery);
-    
+
     // Delete entry from PlantBatch table
     const deletePlantBatchQuery = `
       DELETE FROM PlantBatch
       WHERE PlantBatchId = @plantBatchId
     `;
-    await request
-      .query(deletePlantBatchQuery);
-      await dbConnection.disconnect();
+    await request.query(deletePlantBatchQuery);
+    await dbConnection.disconnect();
     return 1;
   } catch (error) {
     console.error("Error deleting plant batch data", error);
@@ -742,11 +764,11 @@ async function updatePlantInfo(
       WHERE PlantId = @plantId
     `;
     await request
-      .input('plantName', sql.NVarChar, plantName)
-      .input('plantPicture', sql.VarBinary(sql.MAX), plantPicture)
-      .input('daysToMature', sql.Int, daysToMature)
-      .input('currentSeedInventory', sql.Int, currentSeedInventory)
-      .input('plantId', sql.Int, plantId)
+      .input("plantName", sql.NVarChar, plantName)
+      .input("plantPicture", sql.VarBinary(sql.MAX), plantPicture)
+      .input("daysToMature", sql.Int, daysToMature)
+      .input("currentSeedInventory", sql.Int, currentSeedInventory)
+      .input("plantId", sql.Int, plantId)
       .query(sqlQuery);
     await dbConnection.disconnect();
     return 1;
@@ -757,10 +779,10 @@ async function updatePlantInfo(
   }
 }
 
-async function getAllHarvestedPlantBatchInfo(){
+async function getAllHarvestedPlantBatchInfo() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
-  try{
+  try {
     const result = await request.query(`
     SELECT 
     pb.PlantBatchId,
@@ -777,14 +799,12 @@ async function getAllHarvestedPlantBatchInfo(){
     `);
     await dbConnection.disconnect();
     return result.recordset;
-
-  }catch(error){
+  } catch (error) {
     console.log("Error in function getAllHarvestedPlantBatchInfo", error);
     await dbConnection.disconnect();
     throw error;
   }
 }
-
 
 module.exports = {
   deletePlantBatch,
