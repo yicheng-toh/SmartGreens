@@ -436,6 +436,7 @@ async function updateHarvestedPlantBatchDetails(
   weightHarvested,
   location
 ) {
+  
   try {
     const sqlQuery = `
       UPDATE PlantBatch
@@ -451,6 +452,7 @@ async function updateHarvestedPlantBatchDetails(
       plantId,
       plantBatchId,
     ]);
+    console.log("new plant id is ", plantId);
     console.log("updateHarvestedPlantBatchDetails", "result[0]", result[0]);
     return 1; // Successful update
   } catch (error) {
@@ -510,6 +512,34 @@ async function getAllHarvestedPlantBatchInfo(){
   }
 }
 
+async function getAllPlantYieldRateByMonth(){
+  try{
+    const sqlQuery = `
+        SELECT 
+        pb.plantId,
+        pi.plantName,
+        YEAR(DateHarvested) AS year,
+        MONTHNAME(DateHarvested) AS month,
+        SUM(weightHarvested) AS total_weight_harvested
+      FROM PlantBatch pb
+      JOIN PlantInfo pi ON pi.PlantId = pb.PlantId
+      WHERE DateHarvested >= 
+        CASE 
+            WHEN DAY(CURRENT_DATE) = 1 THEN DATE_SUB(DATE_FORMAT(CURRENT_DATE, '%Y-%m-01'), INTERVAL 1 MONTH)
+            ELSE DATE_FORMAT(CURRENT_DATE, '%Y-%m-01')
+        END
+      AND DateHarvested <= CURRENT_DATE
+      GROUP BY plantId, YEAR(DateHarvested), MONTH(DateHarvested), MONTHNAME(DateHarvested)
+      ORDER BY plantId, YEAR(DateHarvested), MONTH(DateHarvested);
+    `;
+    let result = await dbConnection.promise().query(sqlQuery);
+    return result[0];
+  }catch(error){
+    console.log("Error in function getAllHarvestedPlantBatchInfo", error);
+    throw error;
+  }
+}
+
 module.exports = {
   deletePlantBatch,
   getActivePlantBatchInfoAndYield,
@@ -520,6 +550,7 @@ module.exports = {
   getAllPlantBatchInfoAndYield,
   getAllPlantSeedInventory,
   getAllPlantYieldRate,
+  getAllPlantYieldRateByMonth,
   getPlantBatchDatePlanted,
   getAllHarvestedPlantBatchInfo,
   growPlant,

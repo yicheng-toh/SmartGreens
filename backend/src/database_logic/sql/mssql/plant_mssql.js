@@ -806,6 +806,38 @@ async function getAllHarvestedPlantBatchInfo() {
   }
 }
 
+async function getAllPlantYieldRateByMonth(){
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try{
+    const sqlQuery = `
+        SELECT 
+        pb.plantId,
+        pi.plantName,
+        YEAR(DateHarvested) AS year,
+        FORMAT(DateHarvested, 'MMMM') AS month,
+        SUM(weightHarvested) AS total_weight_harvested
+      FROM PlantBatch pb
+      JOIN PlantInfo pi ON pi.PlantId = pb.PlantId
+      WHERE DateHarvested >= 
+        CASE 
+          WHEN DAY(GETDATE()) = 1 THEN DATEADD(MONTH, -1, DATEADD(DAY, 1, EOMONTH(GETDATE())))
+          ELSE DATEADD(DAY, 1 - DAY(GETDATE()), GETDATE())
+        END
+      AND DateHarvested <= GETDATE()
+      GROUP BY pb.plantId, pi.plantName, YEAR(DateHarvested), FORMAT(DateHarvested, 'MMMM')
+      ORDER BY pb.plantId, YEAR(DateHarvested), FORMAT(DateHarvested, 'MMMM')
+    `;
+    let result = await request.query(sqlQuery);
+    await dbConnection.disconnect();
+    return result.recordset;
+  }catch(error){
+    await dbConnection.disconnect();
+    console.log("Error in function getAllHarvestedPlantBatchInfo", error);
+    throw error;
+  }
+}
+
 module.exports = {
   deletePlantBatch,
   getAllPlantHarvestData,
@@ -815,6 +847,7 @@ module.exports = {
   getAllPlantBatchInfo,
   getAllPlantInfo,
   getAllPlantYieldRate,
+  getAllPlantYieldRateByMonth,
   insertNewPlant,
   getAllPlantSeedInventory,
   getAllHarvestedPlantBatchInfo,

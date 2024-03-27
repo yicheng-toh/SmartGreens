@@ -164,21 +164,84 @@ function appendStatusToPlantBatchInfoAndYield(
     //retrieve the data.
     if (
       plantBatchSensorReadingsWithStatusObject === null ||
-      plantBatchSensorReadingsWithStatusObject[plantBatchInfo.PlantBatchId] === undefined ||
-      plantBatchSensorReadingsWithStatusObject[plantBatchInfo.PlantBatchId]["status"] === undefined
+      plantBatchSensorReadingsWithStatusObject[plantBatchInfo.PlantBatchId] ===
+        undefined ||
+      plantBatchSensorReadingsWithStatusObject[plantBatchInfo.PlantBatchId][
+        "status"
+      ] === undefined
     ) {
       plantBatchInfo.status = "Unknown";
     } else {
-        plantBatchInfo.status = plantBatchSensorReadingsWithStatusObject[plantBatchInfo.PlantBatchId]["status"];
+      plantBatchInfo.status =
+        plantBatchSensorReadingsWithStatusObject[plantBatchInfo.PlantBatchId][
+          "status"
+        ];
     }
   }
   return plantBatchInfoObject;
+}
+
+function groupMonthlyYieldByPlantName(data) {
+  // [
+  //   {
+  //     plantId: 1,
+  //     plantName: 'Tomato4',
+  //     year: 2024,
+  //     month: 'March',
+  //     total_weight_harvested: '6'
+  //   }
+  // ]
+  let blankArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let monthToIntMap = {
+    January: 1,
+    February: 2,
+    March: 3,
+    April: 4,
+    May: 5,
+    June: 6,
+    July: 7,
+    August: 8,
+    September: 9,
+    October: 10,
+    November: 11,
+    December: 12,
+  };
+  let result = {};
+  for (const dataEntry of data) {
+    //check if plantName is already the key
+    if (!dataEntry.PlantName) {
+      dataEntry.PlantName = dataEntry.plantName;
+    }
+    if (dataEntry.PlantName in result) {
+      //update the plant weight
+
+      result[dataEntry.PlantName]["WeightHarvested"][
+        monthToIntMap[dataEntry.month]
+      ] = dataEntry.total_weight_harvested;
+    } else {
+      result[dataEntry.PlantName] = {};
+      result[dataEntry.PlantName]["WeightHarvested"] = [...blankArray];
+      result[dataEntry.PlantName]["Year"] = dataEntry.year
+        ? dataEntry.year
+        : dataEntry.Year;
+      result[dataEntry.PlantName]["PlantId"] = dataEntry.PlantId
+        ? dataEntry.PlantId
+        : dataEntry.plantId;
+      result[dataEntry.PlantName]["WeightHarvested"][
+        monthToIntMap[dataEntry.month]
+      ] = parseInt(dataEntry.total_weight_harvested);
+      result[dataEntry.PlantName]["Month"] = [...months];
+    }
+  }
+  return result;
 }
 
 module.exports = {
   appendStatusToPlantBatchInfoAndYield,
   convertTime12HourTo24Hour,
   formatDateTimeOutput,
+  groupMonthlyYieldByPlantName,
   groupSensorDataByPlantType,
   groupSensorDataByPlantBatchId,
   appendStatusToLatestSensorReadings,
