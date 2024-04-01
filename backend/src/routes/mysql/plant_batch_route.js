@@ -33,6 +33,9 @@ router.use(json());
  *               plantBatchId:
  *                 example: 1
  *                 type: integer
+ *               plantId:
+ *                 example: 1
+ *                 type: integer
  *               datePlanted:
  *                 type: string
  *                 format: date-time
@@ -85,7 +88,7 @@ router.post("/editPlantBatchDetails", async (req, res) => {
             return;
         }
         if (plantId === undefined || isNaN(parseInt(plantId))) {
-            sendInternalServerError(res, "Plant Batch Id is invalid.");
+            sendInternalServerError(res, "Plant Id is invalid.");
             return;
         }
         if (quantityPlanted === undefined || isNaN(parseInt(quantityPlanted))) {
@@ -123,9 +126,9 @@ router.post("/editPlantBatchDetails", async (req, res) => {
             //check the edit entries
             if (
                 weightHarvested === undefined ||
-                isNaN(parseInt(weightHarvested))
+                isNaN(parseFloat(weightHarvested))
             ) {
-                sendInternalServerError(res, "Quantity Harvested is invalid.");
+                sendInternalServerError(res, "Weight Harvested is invalid.");
                 return;
             }
             if (dateHarvested === undefined) {
