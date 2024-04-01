@@ -14567,3 +14567,5 @@ backend/node_modules/z-schema/src/schemas/hyper-schema.json
 backend/node_modules/z-schema/src/schemas/schema.json
 backend/coverage/lcov-report/backend/src/routes/mysql/misc_route.js.html
 backend/azure_env integration.js
+example1.jpg
+backend/image.jpg
