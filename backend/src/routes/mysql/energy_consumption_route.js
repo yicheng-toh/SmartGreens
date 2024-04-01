@@ -46,7 +46,7 @@ router.get('/getEnergyConsumptionValue', async(req, res) => {
       res.status(200).json({success:1, result: rows});
     } catch (error) {
       console.log('Error retrieving data:', error);
-      sendInternalServerError(res);
+      sendInternalServerError(res, error);
     }
 });
 
