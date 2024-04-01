@@ -578,6 +578,40 @@ async function updateCurrentMicrocontrollerForNewMicrocontroller(currentMicrocon
   }
 }
 
+///trial functions
+async function getActivePlantBatchSensorDataTrial() {
+  const sensorDataSqlQuery = `
+    SELECT 
+      sr.Datetime,
+      sr.MicrocontrollerID,
+      sr.PlantBatchId,
+      pb.PlantId,
+      pi.PlantName,
+      sr.Temperature,
+      sr.Humidity,
+      sr.Brightness,
+      sr.pH,
+      sr.CO2,
+      sr.EC,
+      sr.TDS
+      
+    FROM 
+      SensorReadings sr
+    LEFT JOIN 
+      PlantBatch pb ON sr.PlantBatchId = pb.PlantBatchId
+    LEFT JOIN
+      PlantInfo pi ON pb.PlantId = pi.PlantId
+    WHERE 
+      pb.DatePlanted IS NOT NULL AND pb.DateHarvested IS NULL;
+  `;
+  const plantSensorInfoSqlQuery = `SELECT * from PlantSensorInfo;`;
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  const sensorDataQueryResult = await request.query(sensorDataSqlQuery);
+  const plantSensorInfoQueryResult = await request.query(plantSensorInfoSqlQuery);
+  await dbConnection.disconnect();
+  return {"sensorData": sensorDataQueryResult.recordset, "plantSensorInfo": plantSensorInfoQueryResult.recordset};
+}
 
 module.exports = {
   deleteMicrocontroller,
@@ -593,4 +627,6 @@ module.exports = {
   updateCurrentMicrocontrollerForNewMicrocontroller,
   verifyCurrentAndNewMicrocontrollerIdValid,
   verifyMicrocontrollerIdValidForDeletion,
+  //trial function
+  getActivePlantBatchSensorDataTrial,
 };

@@ -4,7 +4,7 @@ const router = express.Router();
 const {sendBadRequestResponse, sendInternalServerError} = require("../request_error_messages.js")
 const mysqlLogic = require("../../database_logic/sql/sql.js")
 const errorCode = require("./error_code.js");
-const { groupSensorDataByPlantType, appendStatusToLatestSensorReadings } = require("../../misc_function.js");
+const { groupSensorDataByPlantType, appendStatusToLatestSensorReadings, groupPlantSensorInfoByPlantId } = require("../../misc_function.js");
 
 router.use(json());
 /**
@@ -61,7 +61,8 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
         //detect the microncroller number and then see what values they offer.
         //Afterwards, check if the corresponding microcontroller have sent a reading prior.
         //if yes and the entries to be updated is still null, update it, else creaste a new entry
-        const { microcontrollerId } = req.params;
+        let { microcontrollerId } = req.params;
+        microcontrollerId = microcontrollerId.replace(/%20/g, ' ');
         if (
           microcontrollerId === undefined ||
           microcontrollerId.length < 2 ||
@@ -355,6 +356,7 @@ router.post("/updateMicrocontrollerForActivePlantBatch", async (req, res) => {
 router.delete("/deleteMicrocontroller/:microcontrollerId", async (req, res) => {
     try {
         let {microcontrollerId} = req.params;
+        microcontrollerId = microcontrollerId.replace(/%20/g, ' ');
       try {
         if (
           microcontrollerId === undefined ||
@@ -678,7 +680,7 @@ try {
  * @swagger
  * /plant/retrieveActivePlantBatchSensorData/{numDaysAgo}:
  *   get:
- *     tags: [Plant]
+ *     tags: [Hardware]
  *     description: Retrieve active plant batch sensor data for the past {numDaysAgo} days
  *     parameters:
  *       - in: path
@@ -790,7 +792,106 @@ router.get(
   }
 );  
 
-
+///These are trial requests!!!
+/**
+ * @swagger
+ * /plant/retrieveActivePlantBatchSensorDataTrial:
+ *   get:
+ *     tags: [Hardware]
+ *     description: Retrieve active plant batch sensor data
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   Datetime:
+ *                     type: string
+ *                     format: date-time
+ *                   MicrocontrollerID:
+ *                     type: string
+ *                   PlantBatchId:
+ *                     type: integer
+ *                   Temperature:
+ *                     type: number
+ *                   Humidity:
+ *                     type: integer
+ *                   Brightness:
+ *                     type: integer
+ *                   pH:
+ *                     type: number
+ *                   CO2:
+ *                     type: number
+ *                   EC:
+ *                     type: number
+ *                   TDS:
+ *                     type: number
+ *                   PlantId:
+ *                     type: integer
+ *                   Temperature_min:
+ *                     type: number
+ *                   Temperature_max:
+ *                     type: number
+ *                   Temperature_optimal:
+ *                     type: number
+ *                   Humidity_min:
+ *                     type: integer
+ *                   Humidity_max:
+ *                     type: integer
+ *                   Humidity_optimal:
+ *                     type: integer
+ *                   Brightness_min:
+ *                     type: integer
+ *                   Brightness_max:
+ *                     type: integer
+ *                   Brightness_optimal:
+ *                     type: integer
+ *                   pH_min:
+ *                     type: number
+ *                   pH_max:
+ *                     type: number
+ *                   pH_optimal:
+ *                     type: number
+ *                   CO2_min:
+ *                     type: number
+ *                   CO2_max:
+ *                     type: number
+ *                   CO2_optimal:
+ *                     type: number
+ *                   EC_min:
+ *                     type: number
+ *                   EC_max:
+ *                     type: number
+ *                   EC_optimal:
+ *                     type: number
+ *                   TDS_min:
+ *                     type: number
+ *                   TDS_max:
+ *                     type: number
+ *                   TDS_optimal:
+ *                     type: number
+ */
+router.get("/retrieveActivePlantBatchSensorDataTrial", async (req, res) => {
+  try {
+      let rows = await mysqlLogic.getActivePlantBatchSensorDataTrial();
+      console.log(rows);
+      if (rows) {
+      console.log(rows);
+      rows["sensorData"] = groupSensorDataByPlantType(rows["sensorData"]);
+      rows["plantSensorInfo"] = groupPlantSensorInfoByPlantId(rows["plantSensorInfo"]);
+      res.status(200).json({ success: 1, result: rows });
+      } else {
+      res.json({ success: 1, message: "No sensor data available" });
+      }
+  } catch (error) {
+      console.log("Error retrieving data:", error);
+      sendInternalServerError(res, error);
+  }
+  });
 
 
 module.exports = router;

@@ -19,7 +19,7 @@ async function getPlantBatchIdGivenMicrocontrollerPrefix(
   if (queryResult[0].length) {
     console.log(queryResult);
     console.log(queryResult[0]);
-    return queryResult[0][0];
+    return queryResult[0][0].PlantBatchId;
   }
   // return -1;
   //to change it back later
@@ -592,6 +592,36 @@ async function updateCurrentMicrocontrollerForNewMicrocontroller(currentMicrocon
   }
 }
 
+async function getActivePlantBatchSensorDataTrial() {
+  const sensorDataSqlQuery = `
+  SELECT 
+    sr.Datetime,
+    sr.MicrocontrollerID,
+    sr.PlantBatchId,
+    pb.PlantId,
+    pi.PlantName,
+    sr.Temperature,
+    sr.Humidity,
+    sr.Brightness,
+    sr.pH,
+    sr.CO2,
+    sr.EC,
+    sr.TDS
+FROM 
+    SensorReadings sr
+LEFT JOIN 
+    PlantBatch pb ON sr.PlantBatchId = pb.PlantBatchId
+LEFT JOIN
+    PlantInfo pi ON pb.PlantId = pi.PlantId
+WHERE 
+    pb.DatePlanted IS NOT NULL AND pb.DateHarvested IS NULL;
+    `;
+  const plantSensorInfoSqlQuery = `SELECT * from PlantSensorInfo;`;
+  const sensorDataQueryResult = await dbConnection.promise().query(sensorDataSqlQuery);
+  const plantSensorInfoQueryResult = await dbConnection.promise().query(plantSensorInfoSqlQuery);
+  return {"sensorData": sensorDataQueryResult[0], "plantSensorInfo": plantSensorInfoQueryResult[0]};
+}
+
 module.exports = {
   getAllSensorData: getAllSensorData, //getAllSensorData2 does not work.
   getPlantBatchIdGivenMicrocontrollerPrefix,
@@ -606,4 +636,7 @@ module.exports = {
   updateCurrentMicrocontrollerForNewMicrocontroller,
   verifyMicrocontrollerIdValidForDeletion,
   verifyCurrentAndNewMicrocontrollerIdValid,
+  //trial function here
+  getActivePlantBatchSensorDataTrial,
+
 };
