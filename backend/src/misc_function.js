@@ -217,7 +217,7 @@ function groupMonthlyYieldByPlantName(data) {
       //update the plant weight
 
       result[dataEntry.PlantName]["WeightHarvested"][
-        monthToIntMap[dataEntry.month]
+        monthToIntMap[dataEntry.month]-1
       ] = dataEntry.total_weight_harvested;
     } else {
       result[dataEntry.PlantName] = {};
@@ -229,9 +229,66 @@ function groupMonthlyYieldByPlantName(data) {
         ? dataEntry.PlantId
         : dataEntry.plantId;
       result[dataEntry.PlantName]["WeightHarvested"][
-        monthToIntMap[dataEntry.month]
-      ] = parseInt(dataEntry.total_weight_harvested);
+        monthToIntMap[dataEntry.month]-1
+      ] = parseFloat(dataEntry.total_weight_harvested);
       result[dataEntry.PlantName]["Month"] = [...months];
+    }
+  }
+  return result;
+}
+
+function groupWeeklyYieldByPlantName(data) {
+  // [
+  //   {
+  //     plantId: 1,
+  //     plantName: 'Tomato4',
+  //     year: 2024,
+  //     month: 'March',
+  //     total_weight_harvested: '6'
+  //   }
+  // ]
+  let blankArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  // let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let weeks = [1,2,3,4,5,6,7,8,9,10,11,12];
+  // let monthToIntMap = {
+  //   January: 1,
+  //   February: 2,
+  //   March: 3,
+  //   April: 4,
+  //   May: 5,
+  //   June: 6,
+  //   July: 7,
+  //   August: 8,
+  //   September: 9,
+  //   October: 10,
+  //   November: 11,
+  //   December: 12,
+  // };
+  let result = {};
+  for (const dataEntry of data) {
+    //check if plantName is already the key
+    if (!dataEntry.PlantName) {
+      dataEntry.PlantName = dataEntry.plantName;
+    }
+    if (dataEntry.PlantName in result) {
+      //update the plant weight
+
+      result[dataEntry.PlantName]["WeightHarvested"][
+        dataEntry.weekNumber-1
+      ] = dataEntry.total_weight_harvested;
+    } else {
+      result[dataEntry.PlantName] = {};
+      result[dataEntry.PlantName]["WeightHarvested"] = [...blankArray];
+      result[dataEntry.PlantName]["Year"] = dataEntry.year
+        ? dataEntry.year
+        : dataEntry.Year;
+      result[dataEntry.PlantName]["PlantId"] = dataEntry.PlantId
+        ? dataEntry.PlantId
+        : dataEntry.plantId;
+      result[dataEntry.PlantName]["WeightHarvested"][
+        dataEntry.weekNumber-1
+      ] = parseFloat(dataEntry.total_weight_harvested);
+      result[dataEntry.PlantName]["Week"] = [...weeks];
     }
   }
   return result;
@@ -242,6 +299,7 @@ module.exports = {
   convertTime12HourTo24Hour,
   formatDateTimeOutput,
   groupMonthlyYieldByPlantName,
+  groupWeeklyYieldByPlantName,
   groupSensorDataByPlantType,
   groupSensorDataByPlantBatchId,
   appendStatusToLatestSensorReadings,
