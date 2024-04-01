@@ -86,6 +86,8 @@ async function getActivePlantBatchInfoAndYield() {
           pb.PlantId,
           pi.PlantName,
           pb.DatePlanted,
+          pb.PlantLocation,
+          m.MicrocontrollerId,
           DATEADD(DAY, pi.DaysToMature, pb.DatePlanted) AS ExpectedHarvestDate,
           pb.QuantityPlanted,
           pb.QuantityPlanted * pbs.YieldRate AS ExpectedYield
@@ -93,6 +95,8 @@ async function getActivePlantBatchInfoAndYield() {
           PlantBatch pb
       JOIN
           PlantInfo pi ON pb.PlantId = pi.PlantId
+      JOIN
+          MicrocontrollerPlantBatchPair m ON m.PlantBatchId = pb.PlantBatchId
       LEFT JOIN
           PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId
       WHERE
@@ -216,7 +220,7 @@ async function harvestPlant(plantBatchId, dateHarvested, weightHarvested) {
     return 0;
   }
   await request
-    .input("weightHarvested", sql.Int, weightHarvested)
+    .input("weightHarvested", sql.Float, weightHarvested)
     .input("dateHarvested", sql.DateTime, dateHarvested)
     .query(
       "UPDATE PlantBatch SET WeightHarvested = @weightHarvested, DateHarvested = @dateHarvested WHERE PlantBatchId = @plantBatchId"
@@ -673,7 +677,7 @@ async function updateGrowingPlantBatchDetails(
       .input("location", sql.VarChar, location)
       .input("plantId", sql.Int, plantId)
       .query(
-        "UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, PlantLocation = @location PlantId = @plantId WHERE PlantBatchId = @plantBatchId"
+        "UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, PlantLocation = @location, PlantId = @plantId WHERE PlantBatchId = @plantBatchId"
       );
     console.log("updateGrowingPlantBatchDetails", result.rowsAffected);
     await dbConnection.disconnect();
@@ -681,7 +685,7 @@ async function updateGrowingPlantBatchDetails(
   } catch (error) {
     console.error("Error updating growing plant batch details:", error);
     await dbConnection.disconnect();
-    return 0; // Return 0 to indicate failure
+    throw error;
   }
 }
 
@@ -821,13 +825,57 @@ async function getAllPlantYieldRateByMonth(){
       JOIN PlantInfo pi ON pi.PlantId = pb.PlantId
       WHERE DateHarvested >= 
         CASE 
-          WHEN DAY(GETDATE()) = 1 THEN DATEADD(MONTH, -1, DATEADD(DAY, 1, EOMONTH(GETDATE())))
+          WHEN DAY(GETDATE()) = 1 THEN DATEADD(MONTH, -12, DATEADD(DAY, 1, EOMONTH(GETDATE())))
           ELSE DATEADD(DAY, 1 - DAY(GETDATE()), GETDATE())
         END
-      AND DateHarvested <= GETDATE()
+      AND DateHarvested <= DATEADD(HOUR, 8, GETDATE()) -- for gmt + 8
       GROUP BY pb.plantId, pi.plantName, YEAR(DateHarvested), FORMAT(DateHarvested, 'MMMM')
       ORDER BY pb.plantId, YEAR(DateHarvested), FORMAT(DateHarvested, 'MMMM')
     `;
+    let result = await request.query(sqlQuery);
+    await dbConnection.disconnect();
+    return result.recordset;
+  }catch(error){
+    await dbConnection.disconnect();
+    console.log("Error in function getAllHarvestedPlantBatchInfo", error);
+    throw error;
+  }
+}
+
+async function getAllPlantYieldRateByWeek(){
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try{
+    const sqlQuery = `
+    SELECT 
+    pb.plantId,
+    pi.plantName,
+    YEAR(DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested)) AS year,
+    (DATEPART(WEEK, DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested)) - DATEPART(WEEK, GETDATE()) + 12) AS weekNumber,
+    SUM(weightHarvested) AS total_weight_harvested
+FROM PlantBatch pb
+JOIN PlantInfo pi ON pi.PlantId = pb.PlantId
+WHERE DateHarvested >= DATEADD(WEEK, -11, CAST(GETDATE() AS DATE))
+  AND DateHarvested <= DATEADD(HOUR, 8, GETDATE())
+GROUP BY pb.plantId, pi.plantName, YEAR(DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested)), DATEPART(WEEK, DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested))
+ORDER BY pb.plantId, YEAR(DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested)), weekNumber;
+
+    `;
+//     const sqlQuery = `
+//     SELECT 
+//     pb.plantId,
+//     pi.plantName,
+//     YEAR(DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested)) AS year,
+//     DATEPART(WEEK, DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested)) AS weekNumber,
+//     SUM(weightHarvested) AS total_weight_harvested
+// FROM PlantBatch pb
+// JOIN PlantInfo pi ON pi.PlantId = pb.PlantId
+// WHERE DateHarvested >= DATEADD(WEEK, -9, CAST(GETDATE() AS DATE))
+//   AND DateHarvested <= DATEADD(HOUR, 8, GETDATE())
+// GROUP BY pb.plantId, pi.plantName, YEAR(DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested)), DATEPART(WEEK, DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested))
+// ORDER BY pb.plantId, YEAR(DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested)), DATEPART(WEEK, DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), DateHarvested));
+
+//     `;
     let result = await request.query(sqlQuery);
     await dbConnection.disconnect();
     return result.recordset;
@@ -848,6 +896,7 @@ module.exports = {
   getAllPlantInfo,
   getAllPlantYieldRate,
   getAllPlantYieldRateByMonth,
+  getAllPlantYieldRateByWeek,
   insertNewPlant,
   getAllPlantSeedInventory,
   getAllHarvestedPlantBatchInfo,

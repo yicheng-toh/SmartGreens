@@ -96,6 +96,8 @@ async function getActivePlantBatchInfoAndYield() {
       pbs.PlantId,
       pi.PlantName,
       pb.DatePlanted,
+      pb.PlantLocation,
+      m.MicrocontrollerId,
       DATE_ADD(pb.DatePlanted, INTERVAL pi.DaysToMature DAY) AS ExpectedHarvestDate,
       pb.QuantityPlanted,
       pb.QuantityPlanted * pbs.YieldRate AS ExpectedYield
@@ -103,6 +105,8 @@ async function getActivePlantBatchInfoAndYield() {
       PlantBatch pb
   JOIN
       PlantInfo pi ON pb.PlantId = pi.PlantId
+  JOIN
+      MicrocontrollerPlantBatchPair m ON m.PlantBatchId = pb.PlantBatchId
   LEFT JOIN
       PlantBatchSummary pbs ON pb.PlantId = pbs.PlantId
   WHERE
@@ -540,6 +544,31 @@ async function getAllPlantYieldRateByMonth(){
   }
 }
 
+async function getAllPlantYieldRateByWeek(){
+  try{
+    const sqlQuery = `
+        SELECT 
+        pb.plantId,
+        pi.plantName,
+        YEAR(DateHarvested) AS year,
+        WEEK(DateHarvested) AS weekNumber,
+        SUM(weightHarvested) AS total_weight_harvested
+      FROM PlantBatch pb
+      JOIN PlantInfo pi ON pi.PlantId = pb.PlantId
+      WHERE DateHarvested >= DATE_SUB(CURDATE(), INTERVAL 11 WEEK)
+        AND DateHarvested <= CURDATE()
+      GROUP BY plantId, YEAR(DateHarvested), WEEK(DateHarvested)
+      ORDER BY plantId, YEAR(DateHarvested), WEEK(DateHarvested);
+    `;
+    let result = await dbConnection.promise().query(sqlQuery);
+    return result[0];
+  }catch(error){
+    console.log("Error in function getAllHarvestedPlantBatchInfo", error);
+    throw error;
+  }
+}
+
+
 module.exports = {
   deletePlantBatch,
   getActivePlantBatchInfoAndYield,
@@ -551,6 +580,7 @@ module.exports = {
   getAllPlantSeedInventory,
   getAllPlantYieldRate,
   getAllPlantYieldRateByMonth,
+  getAllPlantYieldRateByWeek,
   getPlantBatchDatePlanted,
   getAllHarvestedPlantBatchInfo,
   growPlant,

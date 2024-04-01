@@ -8,6 +8,7 @@ const {
 const mysqlLogic = require("../../database_logic/sql/sql.js");
 const {
   groupMonthlyYieldByPlantName,
+  groupWeeklyYieldByPlantName,
 } = require("../../misc_function.js");
 /**
  * @swagger
@@ -319,7 +320,7 @@ router.post("/harvestPlant", async (req, res) => {
       sendInternalServerError(res, "Plant Batch is not growing!");
       return;
     }
-    weightHarvested = parseInt(weightHarvested);
+    weightHarvested = parseFloat(weightHarvested);
     if (dateHarvested == null) {
       dateHarvested = new Date();
       dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
@@ -932,13 +933,45 @@ router.get("/plantYield", async (req, res) => {
  *         description: Successful response with plant yield rate data.
  *         content:
  *           application/json:
- *             example:
- *               success: 1
- *               result:
- *                 - plantId: 1
- *                   yieldRate: 0.85
- *                 - plantId: 2
- *                   yieldRate: 0.92
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   example: 1
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     Basil:
+ *                       type: object
+ *                       properties:
+ *                         WeightHarvested:
+ *                           type: array
+ *                           items:
+ *                             type: integer
+ *                           example: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+ *                         Year:
+ *                           type: integer
+ *                           example: 2024
+ *                         PlantId:
+ *                           type: integer
+ *                           example: 1
+ *                         Month:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                           example: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+ *     examples:
+ *       'BasilHarvestedWeight':
+ *         summary: Example response for Basil's harvested weight
+ *         value:
+ *           success: 1
+ *           result:
+ *             Basil:
+ *               WeightHarvested: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+ *               Year: 2024
+ *               PlantId: 1
+ *               Month: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
  *       500:
  *         description: Internal Server Error.
  */
@@ -949,6 +982,78 @@ router.get("/plantYieldByMonth", async (req, res) => {
     const rows = await mysqlLogic.getAllPlantYieldRateByMonth();
     console.log(rows);
     let result = groupMonthlyYieldByPlantName(rows);
+    success = 1;
+
+    res.status(200).json({ success: success, result: result });
+  } catch (error) {
+    console.log("Error retrieving data:", error);
+    sendInternalServerError(res, error);
+  }
+});
+
+
+/**
+ * @swagger
+ * /plant/plantYieldByWeek:
+ *   get:
+ *     summary: Get plant yield rate data for the past 12 weeks
+ *     tags: [Plant]
+ *     description: Retrieve plant yield rate data.
+ *     responses:
+ *       200:
+ *         description: Successful response with plant yield rate data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   example: 1
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     Basil:
+ *                       type: object
+ *                       properties:
+ *                         WeightHarvested:
+ *                           type: array
+ *                           items:
+ *                             type: integer
+ *                           example: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+ *                         Year:
+ *                           type: integer
+ *                           example: 2024
+ *                         PlantId:
+ *                           type: integer
+ *                           example: 1
+ *                         Month:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                           example: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+ *     examples:
+ *       'BasilHarvestedWeight':
+ *         summary: Example response for Basil's harvested weight
+ *         value:
+ *           success: 1
+ *           result:
+ *             Basil:
+ *               WeightHarvested: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+ *               Year: 2024
+ *               PlantId: 1
+ *               Month: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+ *       500:
+ *         description: Internal Server Error.
+ */
+router.get("/plantYieldByWeek", async (req, res) => {
+  try {
+    let success = 0;
+    // console.log(mysqlLogic.getAllPlantYieldRate);
+    const rows = await mysqlLogic.getAllPlantYieldRateByWeek();
+    console.log(rows);
+    let result = groupWeeklyYieldByPlantName(rows);
+    // let result = rows;
     success = 1;
 
     res.status(200).json({ success: success, result: result });
