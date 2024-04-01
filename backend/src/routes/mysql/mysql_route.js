@@ -148,4 +148,7 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
   const plantBatchRouter = require("./plant_batch_route.js");
   router.use("/plant", plantBatchRouter)
 
+  const aiRouter = require("./ai_route.js");
+  router.use("/ai", aiRouter);
+
 module.exports = router;
