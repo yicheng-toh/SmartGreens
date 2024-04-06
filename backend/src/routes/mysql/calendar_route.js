@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../env.js");
 const { json } = require("express");
 const express = require("express");
 const router = express.Router({ mergeParams: true });
@@ -62,7 +63,7 @@ router.post("/insertAlert", async (req, res) => {
       sendInternalServerError(res, "Issues is invalid.");
       return;
     } else if (datetime === undefined || isNaN(Date.parse(datetime.trim()))) {
-      // console.log(Date(datetime.trim()));
+      // if (DEBUG) console.log(Date(datetime.trim()));
       sendInternalServerError(res, "Datetime is invalid.");
       return;
     } else if (plantBatchId === undefined) {
@@ -78,7 +79,7 @@ router.post("/insertAlert", async (req, res) => {
     if (datetime.includes("T")) {
       datetime.slice(0, 19).replace("T", " ");
     }
-    console.log(datetime, issue, severity);
+    if (DEBUG) console.log(datetime, issue, severity);
 
     success = await mysqlLogic.insertAlert(
       issue,
@@ -86,19 +87,19 @@ router.post("/insertAlert", async (req, res) => {
       plantBatchId,
       severity
     );
-    // console.log(success);
+    // if (DEBUG) console.log(success);
     if (success) {
       res
         .status(201)
         .json({ success: 1, message: "Data inserted successfully" });
       return;
     } else {
-      console.log("Insertion failed.");
+      if (DEBUG) console.log("Insertion failed.");
       sendInternalServerError(res, "Data insertion failed.");
       return;
     }
   } catch (error) {
-    console.log("Error inserting data:", error);
+    if (DEBUG) console.log("Error inserting data:", error);
     sendInternalServerError(res, error);
     return;
   }
@@ -156,13 +157,13 @@ router.post("/insertSchedule", async (req, res) => {
     content = content.trim();
     let contentDate = content.slice(0, -8);
     let contentTime = content.slice(-8);
-    console.log("contentDate", contentDate, "contentTime", contentTime);
+    if (DEBUG) console.log("contentDate", contentDate, "contentTime", contentTime);
     processedContentDateTime = new Date(
       contentDate + convertTime12HourTo24Hour(contentTime)
     )
     // processedContentDateTime.setHours(processedContentDateTime.getHours() + 8);
 
-    console.log(task, processedContentDateTime, type);
+    if (DEBUG) console.log(task, processedContentDateTime, type);
     success = await mysqlLogic.insertSchedule(
       type,
       processedContentDateTime,
@@ -178,7 +179,7 @@ router.post("/insertSchedule", async (req, res) => {
       return;
     }
   } catch (error) {
-    console.log("Error inserting data:", error);
+    if (DEBUG) console.log("Error inserting data:", error);
     sendInternalServerError(res, error);
     return;
   }
@@ -229,7 +230,7 @@ router.post("/insertTask", async (req, res) => {
       status === undefined ||
       !(!isNaN(parseInt(status)) || typeof myVariable === "boolean")
     ) {
-      // console.log("status failed");
+      // if (DEBUG) console.log("status failed");
       sendInternalServerError(res, "Status is invalid.");
       return;
     }
@@ -239,7 +240,7 @@ router.post("/insertTask", async (req, res) => {
     if (datetime.includes("T")) {
       datetime.slice(0, 19).replace("T", " ");
     }
-    console.log(action, datetime, status);
+    if (DEBUG) console.log(action, datetime, status);
     success = await mysqlLogic.insertTask(action, datetime, status);
     if (success) {
       res
@@ -251,7 +252,7 @@ router.post("/insertTask", async (req, res) => {
       return;
     }
   } catch (error) {
-    console.log("Error inserting data:", error);
+    if (DEBUG) console.log("Error inserting data:", error);
     sendInternalServerError(res, error);
     return;
   }
@@ -281,7 +282,7 @@ router.get("/retrieveAlerts", async (req, res) => {
       return;
     }
   } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
     return;
   }
@@ -302,8 +303,15 @@ router.get("/retrieveAlerts", async (req, res) => {
 router.get("/retrieveSchedules", async (req, res) => {
   try {
     // const [rows] = await mysqlLogic.getAllSensorData();
-    const rows = await mysqlLogic.getAllSchedules();
-    console.log("retrieve schedules rows", rows);
+    let rows;
+    try{
+      rows = await mysqlLogic.getAllSchedules();
+    }catch(error){
+      rows = await mysqlLogic.getAllSchedules();
+      console.log("/retrieveSchedules:", error);
+
+    }
+    if (DEBUG) console.log("retrieve schedules rows", rows);
     rows.forEach((item) => {
       item.content = item.Content ? formatDateTimeOutput(item.Content): formatDateTimeOutput(item.content);
     });
@@ -316,7 +324,7 @@ router.get("/retrieveSchedules", async (req, res) => {
     }
   } catch (error) {
     sendInternalServerError(res, error);
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     return;
   }
 });
@@ -344,7 +352,7 @@ router.get("/retrieveTasks", async (req, res) => {
       return;
     }
   } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
     return;
   }
@@ -387,7 +395,7 @@ router.delete("/deleteAlert/:alertId", async (req, res) => {
     }
     const isAlertIdExist = await mysqlLogic.verifyAlertIdExist(alertId);
     if (!isAlertIdExist) {
-      console.log("isAlertIdExist", isAlertIdExist);
+      if (DEBUG) console.log("isAlertIdExist", isAlertIdExist);
       sendInternalServerError(res, "Alert Id does not exist.");
       return;
     }
@@ -396,7 +404,7 @@ router.delete("/deleteAlert/:alertId", async (req, res) => {
     res.status(201).json({ success: success });
     return;
   } catch (error) {
-    console.log("Error inserting data:", error);
+    if (DEBUG) console.log("Error inserting data:", error);
     // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
     sendInternalServerError(res, error);
     return;
@@ -442,7 +450,7 @@ router.delete("/deleteSchedule/:scheduleId", async (req, res) => {
       scheduleId
     );
     if (!isScheduleIdExist) {
-      console.log("isScheduleIdExist", isScheduleIdExist);
+      if (DEBUG) console.log("isScheduleIdExist", isScheduleIdExist);
       sendInternalServerError(res, "Schedule Id does not exist.");
       return;
     }
@@ -451,7 +459,7 @@ router.delete("/deleteSchedule/:scheduleId", async (req, res) => {
     res.status(201).json({ success: success });
     return;
   } catch (error) {
-    console.log("Error inserting data:", error);
+    if (DEBUG) console.log("Error inserting data:", error);
     // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
     sendInternalServerError(res, error);
     return;
@@ -495,7 +503,7 @@ router.delete("/deleteTask/:taskId", async (req, res) => {
     }
     const isTaskIdExist = await mysqlLogic.verifyTaskIdExist(taskId);
     if (!isTaskIdExist) {
-      console.log("isTaskIdExist", isTaskIdExist);
+      if (DEBUG) console.log("isTaskIdExist", isTaskIdExist);
       sendInternalServerError(res, "Task Id does not exist.");
       return;
     }
@@ -504,7 +512,7 @@ router.delete("/deleteTask/:taskId", async (req, res) => {
     res.status(201).json({ success: success });
     return;
   } catch (error) {
-    console.log("Error inserting data:", error);
+    if (DEBUG) console.log("Error inserting data:", error);
     // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
     sendInternalServerError(res, error);
     return;

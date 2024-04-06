@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../env.js");
 const { json } = require("express");
 const express = require("express");
 const router = express.Router({mergeParams: true});
@@ -37,15 +38,22 @@ const mysqlLogic = require("../../database_logic/sql/sql.js")
  */
 router.get('/getEnergyConsumptionValue', async(req, res) => {
     try {
-      const rows = await mysqlLogic.getTotalEnergyConsumptionValue();
+      let rows;
+      try{
+        rows = await mysqlLogic.getTotalEnergyConsumptionValue();
+      } catch (error){
+        rows = await mysqlLogic.getTotalEnergyConsumptionValue();
+        console.log("/getEnergyConsumptionValue:", error);
+      }
       if(rows.EnergyUsage === null){
         rows.EnergyUsage = 0;
       }
       rows.CarbonFootprint = rows.EnergyUsage * 0.4168;
-      if(rows)
-      res.status(200).json({success:1, result: rows});
+      if(rows){
+        res.status(200).json({success:1, result: rows});
+      }
     } catch (error) {
-      console.log('Error retrieving data:', error);
+      if (DEBUG) console.log('Error retrieving data:', error);
       sendInternalServerError(res, error);
     }
 });
@@ -107,12 +115,12 @@ router.post('/insertNewEnergyConsumingDevice', async (req, res) => {
             energyConsumption = parseFloat(energyConsumption);
           }
           
-          console.log(deviceName, quantity, energyConsumption);
+          if (DEBUG) console.log(deviceName, quantity, energyConsumption);
           success = await mysqlLogic.insertNewEnergyConsumingDevice(deviceName, quantity, energyConsumption);
           res.status(201).json({"success": success, message:'Data inserted successfully'});
           return;
         } catch (error) {
-          console.log('Error inserting data:', error);
+          if (DEBUG) console.log('Error inserting data:', error);
           sendInternalServerError(res, error);
           return;
         }
@@ -201,7 +209,7 @@ router.post('/updateEnergyConsumingDevice', async (req, res) => {
         return;
 
       } catch (error) {
-        console.log('Error inserting data:', error);
+        if (DEBUG) console.log('Error inserting data:', error);
         // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
         sendInternalServerError(res, error);
         return;
@@ -227,7 +235,7 @@ router.get('/retrieveAllEnergyConsumingDevice', async(req, res) => {
         res.status(200).send({'success': 1, 'result': rows});
         return;
     } catch (error) {
-        console.log('Error retrieving data:', error);
+        if (DEBUG) console.log('Error retrieving data:', error);
         // sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
         sendInternalServerError(res, error);
         return;
@@ -266,7 +274,7 @@ router.delete('/deleteEnergyConsumingDevice/:currentEnergyConsumingDeviceId',asy
         }
         const isDeviceIdExist = await mysqlLogic.verifyEnergyConsumingDeviceIdExist(currentEnergyConsumingDeviceId);
         if(!isDeviceIdExist){
-          console.log("isDeviceIdExist",isDeviceIdExist);
+          if (DEBUG) console.log("isDeviceIdExist",isDeviceIdExist);
           sendInternalServerError(res, "Energy Cosuming Device Id does not exist.");
           return;
         }
@@ -277,7 +285,7 @@ router.delete('/deleteEnergyConsumingDevice/:currentEnergyConsumingDeviceId',asy
         return;
 
       } catch (error) {
-        console.log('Error inserting data:', error);
+        if (DEBUG) console.log('Error inserting data:', error);
         sendInternalServerError(res, error);
         return;
       }

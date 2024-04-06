@@ -355,26 +355,38 @@ router.get("/allPlantBatchInfo", async (req, res) => {
 router.get("/activePlantBatchInfoAndYield", async (req, res) => {
     try {
         let success = 0;
-        const rows = await mysqlLogic.getActivePlantBatchInfoAndYield();
-        console.log(rows);
-        let latestActivePlantData = await mysqlLogic.getLatestActivePlantBatchSensorData();
-        console.log(latestActivePlantData);
+        let rows;
+        try{
+            rows = await mysqlLogic.getActivePlantBatchInfoAndYield();
+        } catch(error){
+            rows = await mysqlLogic.getActivePlantBatchInfoAndYield();
+            console.log("/activePlantBatchInfoAndYield: plantbatch data and yield:", error);
+        }
+        if (DEBUG) console.log(rows);
+        let latestActivePlantData;
+        try{
+            latestActivePlantData = await mysqlLogic.getLatestActivePlantBatchSensorData();
+        } catch(error){
+            latestActivePlantData = await mysqlLogic.getLatestActivePlantBatchSensorData();
+            console.log("/activePlantBatchInfoAndYield: sensor data for health:", error);
+        }
+        if (DEBUG) console.log(latestActivePlantData);
         let activeLatestPlantDataWithStatus = null;
         if (latestActivePlantData) {
-            // console.log(rows);
+            // if (DEBUG) console.log(rows);
             let groupedLatestActivePlantData = groupSensorDataByPlantBatchId(latestActivePlantData);
-            // console.log(rows);
+            // if (DEBUG) console.log(rows);
             activeLatestPlantDataWithStatus = appendStatusToLatestSensorReadings(groupedLatestActivePlantData);
         }
 
         //concatenate the 2 data together
         //function will take in existing plantbatch and the 
         let plantBatchInfoYieldAndStatus = appendStatusToPlantBatchInfoAndYield(rows, activeLatestPlantDataWithStatus);
-        console.log("plantBatchInfoYieldAndStatus", plantBatchInfoYieldAndStatus);
+        if (DEBUG) console.log("plantBatchInfoYieldAndStatus", plantBatchInfoYieldAndStatus);
         success = 1;
         res.status(200).json({ success: success, result: plantBatchInfoYieldAndStatus });
     } catch (error) {
-        console.log("Error retrieving data:", error);
+        if (DEBUG) console.log("Error retrieving data:", error);
         sendInternalServerError(res, error);
     }
 });
