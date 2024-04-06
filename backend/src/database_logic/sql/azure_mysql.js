@@ -29,23 +29,23 @@ class Database {
 
   constructor(config) {
     this.config = config;
-    console.log(`Database: config: ${JSON.stringify(config)}`);
+    if (DEBUG) console.log(`Database: config: ${JSON.stringify(config)}`);
   }
 
   async connect() {
-    console.log("running connect code here");
+    if (DEBUG) console.log("running connect code here");
     try {
-      console.log(`Database connecting...${this.connected}`);
+      if (DEBUG) console.log(`Database connecting...${this.connected}`);
       if (this.connected === false) {
-        console.log(`Database: config: ${JSON.stringify(this.config)}`);
-        this.poolconnection = await mssql.connect(this.config).catch(err => console.log('Error connecting to database:', err));;
+        if (DEBUG) console.log(`Database: config: ${JSON.stringify(this.config)}`);
+        this.poolconnection = await mssql.connect(this.config).catch(err => if (DEBUG) console.log('Error connecting to database:', err));;
         this.connected = true;
-        console.log('Database connection successful');
+        if (DEBUG) console.log('Database connection successful');
       } else {
-        console.log('Database already connected');
+        if (DEBUG) console.log('Database already connected');
       }
     } catch (error) {
-      console.log(`Error connecting to database: ${JSON.stringify(error)}`);
+      if (DEBUG) console.log(`Error connecting to database: ${JSON.stringify(error)}`);
     }
   }
 
@@ -53,9 +53,9 @@ class Database {
     try {
       this.poolconnection.close();
       this.connected = false;
-      console.log('Database connection closed');
+      if (DEBUG) console.log('Database connection closed');
     } catch (error) {
-      console.log(`Error closing database connection: ${error}`);
+      if (DEBUG) console.log(`Error closing database connection: ${error}`);
     }
   }
 
@@ -92,9 +92,9 @@ class Database {
           positionLayer INT
           )
           `;
-      console.log("it is fine before the connect");
+      if (DEBUG) console.log("it is fine before the connect");
       await this.connect();
-      console.log("it is fine after the connect");
+      if (DEBUG) console.log("it is fine after the connect");
       const request = await this.poolconnection.request();
       await request.query(createSensorDetailTable);
       await request.query(createPlantBatchTable);
@@ -103,9 +103,9 @@ class Database {
       // await dbConnection.execute(createSensorDetailTable);
       // // await dbConnection.execute(createMicrocontrollerLocationTable);
       // await dbConnection.execute(createPlantBatchTable);
-      // // console.log("Tables created or already exists.");
+      // // if (DEBUG) console.log("Tables created or already exists.");
     } catch (error) {
-      console.log("Error creating table:", error);
+      if (DEBUG) console.log("Error creating table:", error);
     }
   }
   
@@ -130,7 +130,7 @@ class Database {
         `);
         await this.disconnect();
     } catch (error) {
-      console.log('Error executing insert query:', error);
+      if (DEBUG) console.log('Error executing insert query:', error);
     }
   }
   
@@ -149,16 +149,16 @@ class Database {
     const request = this.poolconnection.request();
     const result = await request.query('SELECT * FROM SensorDetail');
     await this.disconnect();
-    // console.log("hahahahha");
-    // console.log(queryResult);
+    // if (DEBUG) console.log("hahahahha");
+    // if (DEBUG) console.log(queryResult);
     return result;
   }
 }
-console.log(`config is ${config}`);
+if (DEBUG) console.log(`config is ${config}`);
 // const dbConnection = new Database(config);
 const dbConnection = new Database(config);
-console.log("dbConnection initialised");
-console.log(dbConnection);
+if (DEBUG) console.log("dbConnection initialised");
+if (DEBUG) console.log(dbConnection);
 module.exports = dbConnection;
 
   // // Reassign more meaningful function name

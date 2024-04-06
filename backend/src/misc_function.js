@@ -1,10 +1,12 @@
+const{ DEBUG } = require("./env.js");
+
 function convertTime12HourTo24Hour(timeStr) {
   // Extract hour and minute from the time string
   timeStr = timeStr.trim();
   let hour = parseInt(timeStr.substring(0, 2));
   let minute = timeStr.substring(3, 5);
-  console.log("timeStr", timeStr);
-  console.log("hour", hour, "minute", minute);
+  if (DEBUG) console.log("timeStr", timeStr);
+  if (DEBUG) console.log("hour", hour, "minute", minute);
 
   // Adjust hour for PM time
   if (timeStr.toLowerCase().endsWith("pm") && hour < 12) {
@@ -21,7 +23,7 @@ function convertTime12HourTo24Hour(timeStr) {
 }
 
 function formatDateTimeOutput(content) {
-  console.log("format date time output content", content);
+  if (DEBUG) console.log("format date time output content", content);
   const dateTime = new Date(content);
 
   // Get individual date components
@@ -49,13 +51,13 @@ function formatDateTimeOutput(content) {
 function groupSensorDataByPlantType(data) {
   let res = {};
   for (let entry of data) {
-    console.log("entry is", entry);
+    if (DEBUG) console.log("entry is", entry);
     if (!(entry.PlantName in res)) {
       res[entry.PlantName] = {};
     }
 
     for (let key in entry) {
-      // console.log("entry key is", key);
+      // if (DEBUG) console.log("entry key is", key);
       if (!(key in res[entry.PlantName])) {
         res[entry.PlantName][key] = [];
       }
@@ -68,13 +70,13 @@ function groupSensorDataByPlantType(data) {
 function groupSensorDataByPlantBatchId(data) {
   let res = {};
   for (let entry of data) {
-    console.log("entry is", entry);
+    if (DEBUG) console.log("entry is", entry);
     if (!(entry.PlantBatchId in res)) {
       res[entry.PlantBatchId] = {};
     }
 
     for (let key in entry) {
-      // console.log("entry key is", key);
+      // if (DEBUG) console.log("entry key is", key);
       if (!(key in res[entry.PlantBatchId])) {
         res[entry.PlantBatchId][key] = [];
       }
@@ -87,13 +89,13 @@ function groupSensorDataByPlantBatchId(data) {
 function groupPlantSensorInfoByPlantId(data) {
   let res = {};
   for (let entry of data) {
-    console.log("entry is", entry);
+    if (DEBUG) console.log("entry is", entry);
     if (!(entry.PlantId in res)) {
       res[entry.PlantId] = {};
     }
 
     for (let key in entry) {
-      // console.log("entry key is", key);
+      // if (DEBUG) console.log("entry key is", key);
       if (!(key in res[entry.PlantId])) {
         res[entry.PlantId][key] = [];
       }
@@ -108,9 +110,9 @@ function appendStatusToLatestSensorReadings(dataList) {
   //if there is 1 violation, then it is attention
   // if there are greater than 1 violation then it is critical.
   //will be coded with hard coded values.
-  console.log("datalsit is ", dataList);
+  if (DEBUG) console.log("datalsit is ", dataList);
   for (let [key, data] of Object.entries(dataList)) {
-    console.log("data is", data);
+    if (DEBUG) console.log("data is", data);
     const parameters = [
       "Temperature",
       "Humidity",

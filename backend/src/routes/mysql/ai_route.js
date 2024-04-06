@@ -1,4 +1,5 @@
 // const axios = require('axios');
+const{ DEBUG, AI_WEB_SERVER } = require("../../env.js");
 const { json } = require("express");
 const express = require("express");
 const fetch = require('node-fetch');
@@ -23,7 +24,7 @@ const {
 
 
 //will need to put this in the env variable...
-let aiAddress = "http:///127.0.0.1:5000/ai_routes";
+let aiAddress = AI_WEB_SERVER;
 
 /**
  * @swagger
@@ -60,24 +61,25 @@ router.post("/predictFromPhoto/:microcontrollerId", async (req, res) => {
   try{
     let success = 0;
     let {microcontrollerId} = req.params;
-    console.log("microcontroller id is", microcontrollerId);
-    // let {imgData} = req.body;
+    if (DEBUG) console.log("microcontroller id is", microcontrollerId);
+    let {imgData} = req.body;
 
     microcontrollerId = microcontrollerId.replace(/%20/g, ' ');
 
     //send the data over to python
     //mock a data by reading in the image.
     // Read file as a Buffer
-    let tempFilePath = "../example1.jpg";
-    let imgData;
-    await fs.readFile(tempFilePath, { encoding: 'base64' })
-    .then(data => {
-      imgData = data;
-    })
-    .catch(err => {
-      console.error('Error reading file:', err);
-    });
-    console.log("img data outside the scope", imgData);
+    ////////////////////////////////////////////
+    // let tempFilePath = "../example1.jpg";
+    // let imgData;
+    // await fs.readFile(tempFilePath, { encoding: 'base64' })
+    // .then(data => {
+    //   imgData = data;
+    // })
+    // .catch(err => {
+    //   console.error('Error reading file:', err);
+    // });
+    if (DEBUG) console.log("img data outside the scope", imgData);
 
 
     
@@ -97,7 +99,7 @@ router.post("/predictFromPhoto/:microcontrollerId", async (req, res) => {
           },
           body: JSON.stringify(dataToSend)
         });
-        console.log("fetch response is", response);
+        if (DEBUG) console.log("fetch response is", response);
     
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -110,14 +112,14 @@ router.post("/predictFromPhoto/:microcontrollerId", async (req, res) => {
     let plantBatchId = await mysqlLogic.getPlantBatchIdGivenMicrocontrollerPrefix(
       microcontrollerId
     );
-    console.log("plantBatchId", plantBatchId);
+    if (DEBUG) console.log("plantBatchId", plantBatchId);
     // Call the function to send the POST request
     response = await postDataToServer();
     
     //store data in the plant batch, which are the LatestImage, expected yield
     //save it into another file also!!!
     let aiOutput = await response.json();
-    console.log("ai output is:", aiOutput);
+    if (DEBUG) console.log("ai output is:", aiOutput);
     let expectedCurrentYield = await aiOutput.expectedCurrentYield;
     let latestImage = await aiOutput.imgData;
     let bufferData;
@@ -127,7 +129,7 @@ router.post("/predictFromPhoto/:microcontrollerId", async (req, res) => {
         // Write buffer data to file
         fs.writeFile('image.jpg', bufferData, { encoding: 'binary' })
             .then(() => {
-                console.log('Image file written successfully.');
+                if (DEBUG) console.log('Image file written successfully.');
             })
             .catch(error => {
                 console.error('Error writing image file:', error);
@@ -136,16 +138,16 @@ router.post("/predictFromPhoto/:microcontrollerId", async (req, res) => {
         console.error('Latest image data is undefined.');
     }
     //get the data by joining 2 tables. and then update it.
-    console.log("Expected current yield is ", expectedCurrentYield);
-    console.log("Latest image is ", latestImage);
-    console.log("Microcontrollr id is ", microcontrollerId);
+    if (DEBUG) console.log("Expected current yield is ", expectedCurrentYield);
+    if (DEBUG) console.log("Latest image is ", latestImage);
+    if (DEBUG) console.log("Microcontrollr id is ", microcontrollerId);
     //write all the data into the database
     success = mysqlLogic.insertLatestImagesAndExpectedCurrentYieldIntoPlantbatch(plantBatchId,expectedCurrentYield, bufferData);
-    console.log("storage is successful");
+    if (DEBUG) console.log("storage is successful");
     res.status(201).json({ success: success, message: "AI training complete and result stored." });
     return;
   }catch(error){
-    console.log("Error encountered", error);
+    if (DEBUG) console.log("Error encountered", error);
     sendInternalServerError(res, error);
     return;
   }});

@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../../env.js");
 const {createDbConnection} = require("./mssql.js");
 const sql = require("mssql");
 //reminder
@@ -6,7 +7,7 @@ async function getAllSchedules(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     queryResult = await request.query('SELECT * FROM Schedule2');
-    console.log("schedules result", queryResult);
+    if (DEBUG) console.log("schedules result", queryResult);
     dbConnection.disconnect();
     return queryResult.recordset;
 }
@@ -92,11 +93,11 @@ async function verifyAlertIdExist(alertId){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // const request =  dbConnection.connect();
-    console.log("verifying id....");
+    if (DEBUG) console.log("verifying id....");
     const alertIdList = await request
         .input('alertId', sql.Int, alertId)
         .query('SELECT * FROM Alert WHERE AlertId = @alertId');
-    console.log("alert id list is", alertIdList);
+    if (DEBUG) console.log("alert id list is", alertIdList);
     dbConnection.disconnect();
     return alertIdList.recordset.length;
 }
@@ -105,11 +106,11 @@ async function verifyScheduleIdExist(scheduleId){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // const request =  dbConnection.connect();
-    console.log("verifying id....");
+    if (DEBUG) console.log("verifying id....");
     const scheduleIdList = await request
         .input('scheduleId', sql.Int, scheduleId)
         .query('SELECT * FROM Schedule2 WHERE ScheduleId = @scheduleId');
-    console.log("schedule id list is", scheduleIdList);
+    if (DEBUG) console.log("schedule id list is", scheduleIdList);
     dbConnection.disconnect();
     return scheduleIdList.recordset.length;
 }
@@ -118,11 +119,11 @@ async function verifyTaskIdExist(taskId){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // const request =  dbConnection.connect();
-    console.log("verifying id....");
+    if (DEBUG) console.log("verifying id....");
     const taskIdList = await request
         .input('taskId', sql.Int, taskId)
         .query('SELECT * FROM Task WHERE TaskId = @taskId');
-    console.log("task id list is", taskIdList);
+    if (DEBUG) console.log("task id list is", taskIdList);
     dbConnection.disconnect();
     return taskIdList.recordset.length;
 }

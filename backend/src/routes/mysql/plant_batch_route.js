@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../env.js");
 const { json } = require("express");
 const express = require("express");
 const router = express.Router();
@@ -98,7 +99,7 @@ router.post("/editPlantBatchDetails", async (req, res) => {
         if (datePlanted === undefined) {
             // const plantBatchId = -1;
             datePlanted = new Date();
-            // console.log(currentUTCDateTime);
+            // if (DEBUG) console.log(currentUTCDateTime);
             datePlanted.setHours(datePlanted.getHours() + 8); //GMT + 8
             datePlanted = datePlanted.toISOString;
         }
@@ -110,9 +111,9 @@ router.post("/editPlantBatchDetails", async (req, res) => {
 
         let isPlantBatchGrowing =
             await mysqlLogic.verifyPlantBatchIsGrowing(plantBatchId);
-        console.log("isPlantBatchGrowing", isPlantBatchGrowing);
+        if (DEBUG) console.log("isPlantBatchGrowing", isPlantBatchGrowing);
         if (isPlantBatchGrowing) {
-            console.log("plantbatch", plantBatchId, "is growing");
+            if (DEBUG) console.log("plantbatch", plantBatchId, "is growing");
             //edit the entries' date planted and quantity plamted
             success = await mysqlLogic.updateGrowingPlantBatchDetails(
                 plantBatchId,
@@ -122,7 +123,7 @@ router.post("/editPlantBatchDetails", async (req, res) => {
                 location
             );
         } else {
-            console.log("plantbatch", plantBatchId, "is harvested");
+            if (DEBUG) console.log("plantbatch", plantBatchId, "is harvested");
             //check the edit entries
             if (
                 weightHarvested === undefined ||
@@ -133,7 +134,7 @@ router.post("/editPlantBatchDetails", async (req, res) => {
             }
             if (dateHarvested === undefined) {
                 dateHarvested = new Date();
-                // console.log(currentUTCDateTime);
+                // if (DEBUG) console.log(currentUTCDateTime);
                 dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
                 dateHarvested = dateHarvested.toISOString;
             }
@@ -167,7 +168,7 @@ router.post("/editPlantBatchDetails", async (req, res) => {
             .status(200)
             .json({ success: success, message: "Data inserted successfully" });
     } catch (error) {
-        console.log("Error retrieving data:", error);
+        if (DEBUG) console.log("Error retrieving data:", error);
         sendInternalServerError(res, error);
     }
 });
@@ -215,7 +216,7 @@ router.delete('/deletePlantBatch/:plantBatchId', async (req, res) => {
             dateHarvested = new Date();
             dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
             dateHarvested = dateHarvested.toISOString();
-            // console.log("dateHarvested is", dateHarvested);
+            // if (DEBUG) console.log("dateHarvested is", dateHarvested);
             let formattedDateTimeHarvested = dateHarvested
                 .slice(0, 19)
                 .replace("T", " ");
@@ -228,7 +229,7 @@ router.delete('/deletePlantBatch/:plantBatchId', async (req, res) => {
         return;
 
     } catch (error) {
-        console.log('Error inserting data:', error);
+        if (DEBUG) console.log('Error inserting data:', error);
         // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
         sendInternalServerError(res, error);
         return;
@@ -319,11 +320,11 @@ router.get("/allPlantBatchInfo", async (req, res) => {
     try {
         let success = 0;
         const rows = await mysqlLogic.getAllPlantBatchInfo();
-        console.log(rows);
+        if (DEBUG) console.log(rows);
         success = 1;
         res.status(200).json({ success: success, result: rows });
     } catch (error) {
-        console.log("Error retrieving data:", error);
+        if (DEBUG) console.log("Error retrieving data:", error);
         sendInternalServerError(res, error);
     }
 });
@@ -409,7 +410,7 @@ router.get("/allHarvestedPlantBatchInfo", async (req, res) => {
         success = 1;
         res.status(200).json({ success: success, result: rows });
     } catch (error) {
-        console.log("Error retrieving data:", error);
+        if (DEBUG) console.log("Error retrieving data:", error);
         sendInternalServerError(res, error);
     }
 });

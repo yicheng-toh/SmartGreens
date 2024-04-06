@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../../env.js");
 const {dbConnection} = require("./mysql.js");
 
 // Function to create the BASESENSOR table if it doesn't exist
@@ -38,9 +39,9 @@ const {dbConnection} = require("./mysql.js");
 //       await dbConnection.execute(createSensorDetailTable);
 //       // await dbConnection.execute(createMicrocontrollerLocationTable);
 //       await dbConnection.execute(createPlantBatchTable);
-//       // console.log("Tables created or already exists.");
+//       // if (DEBUG) console.log("Tables created or already exists.");
 //     } catch (error) {
-//       console.log("Error creating table:", error);
+//       if (DEBUG) console.log("Error creating table:", error);
 //     }
 //   }
   
@@ -146,9 +147,9 @@ const {dbConnection} = require("./mysql.js");
 //       await dbConnection.execute(createRemindersTable);
 //       // await dbConnection.execute(createMicrocontrollerLocationTable);
 //       // await dbConnection.execute(createPlantBatchTable);
-//       // console.log("Tables created or already exists.");
+//       // if (DEBUG) console.log("Tables created or already exists.");
 //     } catch (error) {
-//       console.log("Error creating table:", error);
+//       if (DEBUG) console.log("Error creating table:", error);
 //     }
 //   }
 
@@ -304,9 +305,9 @@ const {dbConnection} = require("./mysql.js");
       await dbConnection.execute(createEnergyConsumingDevicesTable);
       // await dbConnection.execute(createMicrocontrollerLocationTable);
       // await dbConnection.execute(createPlantBatchTable);
-      // console.log("Tables created or already exists.");
+      // if (DEBUG) console.log("Tables created or already exists.");
     } catch (error) {
-      console.log("Error creating table:", error);
+      if (DEBUG) console.log("Error creating table:", error);
     }
   }
   
@@ -323,8 +324,8 @@ const {dbConnection} = require("./mysql.js");
   
   // async function getAllSensorData(){
   //   queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail');
-  //   // console.log("hahahahha");
-  //   // console.log(queryResult);
+  //   // if (DEBUG) console.log("hahahahha");
+  //   // if (DEBUG) console.log(queryResult);
   //   return queryResult;
   // }
   // Reassign more meaningful function name

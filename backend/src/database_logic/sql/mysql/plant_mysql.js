@@ -2,6 +2,7 @@
 \This file contains all the necessary plant related logic for plants route
 this is designed specifically for MYSQL database.
 */
+const{ DEBUG } = require("../../../env.js");
 const sql = require("../sql.js");
 const { dbConnection } = require("./mysql.js");
 //Functions will be divided into different tables
@@ -69,7 +70,7 @@ JOIN
 
   `;
   queryResult = await dbConnection.promise().query(plantBatchQuery);
-  console.log(queryResult);
+  if (DEBUG) console.log(queryResult);
   return queryResult[0];
 }
 
@@ -114,10 +115,10 @@ async function getActivePlantBatchInfoAndYield() {
 
     `;
     queryResult = await dbConnection.promise().query(plantBatchQuery);
-    console.log(queryResult);
+    if (DEBUG) console.log(queryResult);
     return queryResult[0];
   }catch(error){
-    console.log("Error encoutntered in active plant batch and yield: ", error);
+    if (DEBUG) console.log("Error encoutntered in active plant batch and yield: ", error);
     throw error;
   }
 }
@@ -138,7 +139,7 @@ async function getAllPlantYieldRate() {
         PlantId
 `;
   queryResult = await dbConnection.promise().query(yieldRateQuery);
-  console.log(queryResult);
+  if (DEBUG) console.log(queryResult);
   return queryResult[0];
 }
 
@@ -199,8 +200,8 @@ async function growPlant(
     "INSERT INTO PlantBatch (plantID, plantLocation, quantityPlanted, datePlanted) VALUES (?,?,?,?)",
     [plantId, plantLocation, quantityDecrement, datePlanted]
   );
-  // console.log(result);
-  // console.log(result.insertId);
+  if (DEBUG) console.log(result);
+  if (DEBUG) console.log(result.insertId);
   const plantBatchId = result.insertId;
   const originalQuantityResultList = await dbConnection
     .promise()
@@ -208,18 +209,18 @@ async function growPlant(
       "SELECT PlantId, PlantName, CurrentSeedInventory FROM PlantInfo WHERE PlantId = ?",
       plantId
     );
-  // console.log(originalQuantityResultList);
-  // console.log(originalQuantityResultList[0]);
-  // console.log(!originalQuantityResultList[0]);
-  // console.log(!originalQuantityResultList[0].length);
-  // console.log(originalQuantityResultList[0][0]);
+  if (DEBUG) console.log(originalQuantityResultList);
+  if (DEBUG) console.log(originalQuantityResultList[0]);
+  if (DEBUG) console.log(!originalQuantityResultList[0]);
+  if (DEBUG) console.log(!originalQuantityResultList[0].length);
+  if (DEBUG) console.log(originalQuantityResultList[0][0]);
   if (!originalQuantityResultList[0].length) {
     return 0;
   }
   const originalQuantity =
     originalQuantityResultList[0][0].CurrentSeedInventory;
-  // console.log("original quantity", originalQuantity);
-  // console.log("quanttiey decreemtn", quantityDecrement);
+  if (DEBUG) console.log("original quantity", originalQuantity);
+  if (DEBUG) console.log("quanttiey decreemtn", quantityDecrement);
   if (quantityDecrement > originalQuantity) {
     return 0;
   }
@@ -230,7 +231,7 @@ async function growPlant(
   );
   //update the microcontoller batch table.
   await dbConnection.execute(
-    "INSERT INTO MicrocontrollerPlantbatchPair (microcontrollerId, plantBatchId) VALUES (?, ?) ON DUPLICATE KEY UPDATE microcontrollerId = VALUES(microcontrollerId), plantBatchId = VALUES(plantBatchId)",
+    "INSERT INTO MicrocontrollerPlantbatchPair (microcontrollerId, plantBatchId) VALUES (?, ?) ON DUPLICATE KEY UPDATE plantBatchId = VALUES(plantBatchId) WHERE microcontrollerId = VALUES(microcontrollerId)",
     [microcontrollerId, plantBatchId]
   );
   return 1;
@@ -243,14 +244,14 @@ async function updatePlantSeedInventory(plantId, quantityChange) {
       "SELECT CurrentSeedInventory FROM PlantInfo WHERE PlantId = ?",
       plantId
     );
-  console.log(currentQuantityResultList);
-  console.log(currentQuantityResultList[0]);
-  console.log(currentQuantityResultList[0][0]);
+  if (DEBUG) console.log(currentQuantityResultList);
+  if (DEBUG) console.log(currentQuantityResultList[0]);
+  if (DEBUG) console.log(currentQuantityResultList[0][0]);
   if (!currentQuantityResultList[0].length) {
     return 0;
   }
   const currentQuantity = currentQuantityResultList[0][0].CurrentSeedInventory;
-  console.log("current seed quantiy is", currentQuantity);
+  if (DEBUG) console.log("current seed quantiy is", currentQuantity);
   const newQuantity = currentQuantity + quantityChange;
   await dbConnection.execute(
     "UPDATE PlantInfo SET CurrentSeedInventory = ? WHERE plantId = ?;",
@@ -275,7 +276,7 @@ async function updatePlantSensorInfo(data) {
     const plantSensorEntry = await dbConnection
       .promise()
       .query("SELECT * FROM PlantSensorInfo WHERE PlantId = ?", [data.plantId]);
-    // console.log("existingRows",plantSensorEntry);
+    // if (DEBUG) console.log("existingRows",plantSensorEntry);
 
     if (plantSensorEntry[0].length <= 0) {
       // If PlantId does not exist, insert a new row
@@ -366,7 +367,7 @@ async function updatePlantInfo(
     ]);
     return 1;
   } catch (error) {
-    console.log("Error updating data: ", error);
+    if (DEBUG) console.log("Error updating data: ", error);
     throw error;
   }
 }
@@ -385,15 +386,15 @@ async function verifyPlantBatchIsGrowing(plantBatchId) {
     let queryResult = await dbConnection
       .promise()
       .query(`SELECT * FROM PlantBatch WHERE PlantBatchId = ?`, [plantBatchId]);
-    console.log("verifyPlantBatchIsGrowing", queryResult);
-    console.log("verifyPlantBatchIsGrowing", queryResult[0]);
-    console.log("verifyPlantBatchIsGrowing", queryResult[0][0]);
-    console.log("verifyPlantBatchIsGrowing", queryResult[0][0].DateHarvested);
+    if (DEBUG) console.log("verifyPlantBatchIsGrowing", queryResult);
+    if (DEBUG) console.log("verifyPlantBatchIsGrowing", queryResult[0]);
+    if (DEBUG) console.log("verifyPlantBatchIsGrowing", queryResult[0][0]);
+    if (DEBUG) console.log("verifyPlantBatchIsGrowing", queryResult[0][0].DateHarvested);
     if (!queryResult[0][0].DatePlanted) {
       return 0;
     }
     if (queryResult[0][0].DateHarvested !== null) {
-      console.log("verifyPlantBatchIsGrowing", queryResult[0][0].DateHarvested);
+      if (DEBUG) console.log("verifyPlantBatchIsGrowing", queryResult[0][0].DateHarvested);
       return 0;
     }
     return 1;
@@ -423,8 +424,8 @@ async function updateGrowingPlantBatchDetails(
       plantId,
       plantBatchId,
     ]);
-    console.log("updateGrowingPlantBatchDetails", result);
-    console.log("updateGrowingPlantBatchDetails", result[0]);
+    if (DEBUG) console.log("updateGrowingPlantBatchDetails", result);
+    if (DEBUG) console.log("updateGrowingPlantBatchDetails", result[0]);
   } catch (error) {
     console.error("Error updating growing plant batch details:", error);
     return 0; // Return 0 to indicate failure
@@ -456,8 +457,8 @@ async function updateHarvestedPlantBatchDetails(
       plantId,
       plantBatchId,
     ]);
-    console.log("new plant id is ", plantId);
-    console.log("updateHarvestedPlantBatchDetails", "result[0]", result[0]);
+    if (DEBUG) console.log("new plant id is ", plantId);
+    if (DEBUG) console.log("updateHarvestedPlantBatchDetails", "result[0]", result[0]);
     return 1; // Successful update
   } catch (error) {
     console.error("Error updating growing plant batch details:", error);
@@ -511,7 +512,7 @@ async function getAllHarvestedPlantBatchInfo(){
     return result[0];
 
   }catch(error){
-    console.log("Error in function getAllHarvestedPlantBatchInfo", error);
+    if (DEBUG) console.log("Error in function getAllHarvestedPlantBatchInfo", error);
     throw error;
   }
 }
@@ -539,7 +540,7 @@ async function getAllPlantYieldRateByMonth(){
     let result = await dbConnection.promise().query(sqlQuery);
     return result[0];
   }catch(error){
-    console.log("Error in function getAllHarvestedPlantBatchInfo", error);
+    if (DEBUG) console.log("Error in function getAllHarvestedPlantBatchInfo", error);
     throw error;
   }
 }
@@ -563,7 +564,7 @@ async function getAllPlantYieldRateByWeek(){
     let result = await dbConnection.promise().query(sqlQuery);
     return result[0];
   }catch(error){
-    console.log("Error in function getAllHarvestedPlantBatchInfo", error);
+    if (DEBUG) console.log("Error in function getAllHarvestedPlantBatchInfo", error);
     throw error;
   }
 }

@@ -1,12 +1,13 @@
 
 
 // const { query } = require("mssql");
+const{ DEBUG } = require("../../../env.js");
 const {createDbConnection} = require("./mssql.js");
 const sql = require("mssql");
 
 //insertNewInventoryObject
 async function insertNewInventoryObject(itemName, quantity = 0, units = null, location = null){
-    console.log("Inside insertNewInventoryObject function");
+    if (DEBUG) console.log("Inside insertNewInventoryObject function");
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // const request = dbConnection.connect();
@@ -24,11 +25,11 @@ async function verifyInventoryIdExist(inventoryId){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // const request =  dbConnection.connect();
-    console.log("verifying id....");
+    if (DEBUG) console.log("verifying id....");
     const inventoryIdList = await request
         .input('inventoryId', sql.Int, inventoryId)
         .query('SELECT * FROM Inventory WHERE InventoryId = @inventoryId');
-    console.log("inventory id list is", inventoryIdList);
+    if (DEBUG) console.log("inventory id list is", inventoryIdList);
     dbConnection.disconnect();
     return inventoryIdList.recordset.length;
 }
@@ -43,10 +44,10 @@ async function updateInventoryQuantity(inventoryId, quantityChange){
         .input('inventoryId', sql.Int, inventoryId)
         // .query('SELECT Quantity FROM Inventory WHERE InventoryId = @inventoryId').recordset;
         .query('SELECT Quantity FROM Inventory WHERE InventoryId = @inventoryId');
-    // console.log(currentQuantityRecordSet);
-    // console.log(currentQuantityRecordSet.recordset);
-    // console.log(currentQuantityRecordSet.recordset[0]);
-    // console.log(currentQuantityRecordSet.recordset[0].Quantity);
+    // if (DEBUG) console.log(currentQuantityRecordSet);
+    // if (DEBUG) console.log(currentQuantityRecordSet.recordset);
+    // if (DEBUG) console.log(currentQuantityRecordSet.recordset[0]);
+    // if (DEBUG) console.log(currentQuantityRecordSet.recordset[0].Quantity);
 
     const currentQuantity = currentQuantityRecordSet.recordset[0].Quantity;
 
@@ -96,11 +97,11 @@ async function getAllInventoryData(){
 
 //insertNewInventoryObject
 async function insertNewInventoryObject2(itemName, quantity = 0, units = null, location = null){
-    console.log("Inside insertNewInventoryObject function 2");
+    if (DEBUG) console.log("Inside insertNewInventoryObject function 2");
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // const request = dbConnection.connect();
-    console.log("insert new inventory",itemName, quantity, units, location);
+    if (DEBUG) console.log("insert new inventory",itemName, quantity, units, location);
     await request
         .input('itemName', sql.VarChar, itemName)
         .input('quantity', sql.Float, quantity)
@@ -116,11 +117,11 @@ async function verifyInventoryIdExist2(inventoryId){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
     // const request =  dbConnection.connect();
-    console.log("verifying id....");
+    if (DEBUG) console.log("verifying id....");
     const inventoryIdList = await request
         .input('inventoryId', sql.Int, inventoryId)
         .query('SELECT * FROM Inventory2 WHERE id = @inventoryId');
-    console.log("inventory id list is", inventoryIdList);
+    if (DEBUG) console.log("inventory id list is", inventoryIdList);
     dbConnection.disconnect();
     return inventoryIdList.recordset.length;
 }
@@ -135,10 +136,10 @@ async function updateInventoryQuantity2(inventoryId, quantityChange){
         .input('inventoryId', sql.Int, inventoryId)
         // .query('SELECT Quantity FROM Inventory WHERE InventoryId = @inventoryId').recordset;
         .query('SELECT Quantity FROM Inventory2 WHERE id = @inventoryId');
-    // console.log(currentQuantityRecordSet);
-    // console.log(currentQuantityRecordSet.recordset);
-    // console.log(currentQuantityRecordSet.recordset[0]);
-    // console.log(currentQuantityRecordSet.recordset[0].Quantity);
+    // if (DEBUG) console.log(currentQuantityRecordSet);
+    // if (DEBUG) console.log(currentQuantityRecordSet.recordset);
+    // if (DEBUG) console.log(currentQuantityRecordSet.recordset[0]);
+    // if (DEBUG) console.log(currentQuantityRecordSet.recordset[0].Quantity);
 
     const currentQuantity = currentQuantityRecordSet.recordset[0].Quantity;
 

@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../../env.js");
 const { createDbConnection } = require("./mssql.js");
 const sql = require("mssql");
 
@@ -17,15 +18,15 @@ async function getPlantBatchIdGivenMicrocontrollerPrefix(
       FROM MicrocontrollerPlantBatchPair
       WHERE MicrocontrollerId = @microcontrollerId
     `);
-  //   console.log("rows is rows", rows);
+  //   if (DEBUG) console.log("rows is rows", rows);
   //   let queryResult = rows;
-  console.log("qyuery resutl ist", queryResult.recordset);
-//   console.log(queryResult[0]);
+  if (DEBUG) console.log("qyuery resutl ist", queryResult.recordset);
+//   if (DEBUG) console.log(queryResult[0]);
   if (queryResult.recordset.length) {
-    console.log(queryResult);
-    console.log(queryResult.recordset);
-    console.log(queryResult.recordset[0]);
-    console.log(queryResult.recordset[0].PlantBatchId);
+    if (DEBUG) console.log(queryResult);
+    if (DEBUG) console.log(queryResult.recordset);
+    if (DEBUG) console.log(queryResult.recordset[0]);
+    if (DEBUG) console.log(queryResult.recordset[0].PlantBatchId);
     return queryResult.recordset[0].PlantBatchId;
   }
   // return -1;
@@ -42,7 +43,7 @@ async function insertSensorValuesSuffix1(
   brightness
 ) {
   const shouldUpdate = await shouldUpdateExisingSensorReadings(microcontrollerIdPrefix, microcontrollerIdSuffix);
-  console.log("Insert data suffix1 shouldUpdate:", shouldUpdate);
+  if (DEBUG) console.log("Insert data suffix1 shouldUpdate:", shouldUpdate);
   const dbConnection = await createDbConnection();
   let request = await dbConnection.connect();
   if (shouldUpdate) {
@@ -190,7 +191,7 @@ async function getAllSensorData() {
 `;
   const queryResult = await request.query(sqlQuery);
   await dbConnection.disconnect();
-  console.log("sensor data recordset",queryResult.recordset);
+  if (DEBUG) console.log("sensor data recordset",queryResult.recordset);
   return queryResult.recordset;
 }
 
@@ -213,7 +214,7 @@ async function shouldUpdateExisingSensorReadings(micrcontrolleridPrefix, microco
       .input('minutes', sql.Int, minutes)
       .query(getLatestMicroControllerSensorReadingQuery);
     await dbConnection.disconnect();
-    console.log("should update funtion recrodset",queryResult.recordset)
+    if (DEBUG) console.log("should update funtion recrodset",queryResult.recordset)
     if (!queryResult.recordset.length){
         return shouldUpdate;
     }
@@ -225,16 +226,16 @@ async function shouldUpdateExisingSensorReadings(micrcontrolleridPrefix, microco
         if (rows.Temperature === null && rows.pH !== null){
             shouldUpdate = true;
         }
-        console.log("rows.temperature is ", rows.Temperature, "rows.pH is ", rows.pH);
-        // console.log("rows.pH is ", rows.pH);
+        if (DEBUG) console.log("rows.temperature is ", rows.Temperature, "rows.pH is ", rows.pH);
+        // if (DEBUG) console.log("rows.pH is ", rows.pH);
 
     }else if (microcontrollerIdSuffix == 2){
         if (rows.pH === null && rows.Temperature !== null){
             shouldUpdate = true;
         }
-        console.log("rows.temperature is ", rows.Temperature, "rows.pH is ", rows.pH);
-        // console.log("rows.temperature is ", rows.temperature);
-        // console.log("rows.pH is ", rows.pH);
+        if (DEBUG) console.log("rows.temperature is ", rows.Temperature, "rows.pH is ", rows.pH);
+        // if (DEBUG) console.log("rows.temperature is ", rows.temperature);
+        // if (DEBUG) console.log("rows.pH is ", rows.pH);
     }
     await dbConnection.disconnect();
     return shouldUpdate;
@@ -479,7 +480,7 @@ async function insertNewMicrocontroller(microcontollerId){
     await dbConnection.disconnect();
     return 1;
   } catch (error){
-    console.log("Error inserting microcontroller id:" , error);
+    if (DEBUG) console.log("Error inserting microcontroller id:" , error);
     await dbConnection.disconnect();
     throw error;
   }
@@ -491,9 +492,9 @@ async function verifyMicrocontrollerIdValidForDeletion(microcontrollerId){
   const result = await request
     .input('microcontrollerId', sql.VarChar, microcontrollerId)
     .query(`SELECT * FROM MicrocontrollerPlantBatchPair WHERE PlantBatchId is NULL AND MicrocontrollerId = @microcontrollerId;`);
-  console.log("Currently executing verifyMicrocontrollerIdValidForDeletion");
-  console.log("verifyMicrocontrollerIdValidForDeletion", result.recordset);
-  console.log("verifyMicrocontrollerIdValidForDeletion", result.recordset[0]);
+  if (DEBUG) console.log("Currently executing verifyMicrocontrollerIdValidForDeletion");
+  if (DEBUG) console.log("verifyMicrocontrollerIdValidForDeletion", result.recordset);
+  if (DEBUG) console.log("verifyMicrocontrollerIdValidForDeletion", result.recordset[0]);
   if(!result.recordset[0]){
     return 0;
   }
@@ -511,7 +512,7 @@ async function deleteMicrocontroller(microcontrollerId){
     await dbConnection.disconnect();
     return 1;
   }catch(error){
-    console.log("Error encountered when deleting microcontroller",error);
+    if (DEBUG) console.log("Error encountered when deleting microcontroller",error);
     await dbConnection.disconnect();
     throw error;
   }
@@ -540,7 +541,7 @@ async function verifyCurrentAndNewMicrocontrollerIdValid(
   .query(newMicrocontrollerIdSQLQuery);
 
   
-    console.log("Verifying current and new microcontroller id", currentMicrocontrollerIdList.recordset, newMicrocontrollerIdList.recordset);
+    if (DEBUG) console.log("Verifying current and new microcontroller id", currentMicrocontrollerIdList.recordset, newMicrocontrollerIdList.recordset);
     await dbConnection.disconnect();
     if (
       currentMicrocontrollerIdList.recordset.length &&
@@ -550,7 +551,7 @@ async function verifyCurrentAndNewMicrocontrollerIdValid(
     }
     return 0;
   } catch (error) {
-    console.log(
+    if (DEBUG) console.log(
       "Error encoutered at verifying current and new microcontroller:",
       error
     );
@@ -573,7 +574,7 @@ async function updateCurrentMicrocontrollerForNewMicrocontroller(currentMicrocon
     return 1;
 
   }catch(error){
-    console.log("Encountered error in updating current for new microcontroller: ", error);
+    if (DEBUG) console.log("Encountered error in updating current for new microcontroller: ", error);
     throw error;
   }
 }

@@ -14,7 +14,7 @@ describe("Plant Route Integration Tests", () => {
     // Perform any setup needed before running the tests (e.g., database seeding)
     //initialise all the tables
     
-    // console.log("trying to inser new plant");
+    // if (DEBUG) console.log("trying to inser new plant");
     // mysqlLogic.initialiseMySQL();
     // mysqlLogic.insertNewPlant("Tomapo", 20,90);
     // mysqlLogic.insertNewPlant("Tomaco", 20,90);
@@ -23,10 +23,10 @@ describe("Plant Route Integration Tests", () => {
     await mysqlLogic.insertNewPlant("Tomapo", 20,90);
     await mysqlLogic.insertNewPlant("Tomaco", 20,90);
     await mysqlLogic.updatePlantSeedInventory(1,1000);
-    // console.log("insertion supposed to be completed")
-    // console.log("trying to change the plant seed quantity");
+    // if (DEBUG) console.log("insertion supposed to be completed")
+    // if (DEBUG) console.log("trying to change the plant seed quantity");
     
-    // console.log("quantity change is supposed to be completed.");
+    // if (DEBUG) console.log("quantity change is supposed to be completed.");
     //insert any initial data as necessary
   },100000);
 

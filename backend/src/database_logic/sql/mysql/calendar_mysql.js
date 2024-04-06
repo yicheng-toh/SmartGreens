@@ -1,10 +1,11 @@
+const{ DEBUG } = require("../../../env.js");
 const { dbConnection } = require("./mysql.js");
 
 //reminder
 //getAllReminders
 async function getAllSchedules() {
   queryResult = await dbConnection.promise().query("SELECT * FROM Schedule2");
-  console.log(queryResult[0]);
+  if (DEBUG) console.log(queryResult[0]);
   return queryResult[0];
 }
 //insertReminder
@@ -26,7 +27,7 @@ async function insertSchedule(type, content, task, id = null) {
       );
     }
   } catch (error) {
-    console.log("Error in getAllAlerts:", error);
+    if (DEBUG) console.log("Error in getAllAlerts:", error);
     throw error; // Optionally rethrow the error
   }
   return 1;
@@ -52,7 +53,7 @@ async function insertAlert(issue, datetime, plantBatchId, severity) {
       }
     );
   } catch (error) {
-    console.log("Error in getAllAlerts:", error);
+    if (DEBUG) console.log("Error in getAllAlerts:", error);
     throw error; // Optionally rethrow the error
     // return 0;
   }
@@ -74,7 +75,7 @@ async function insertTask(action, datetime, status) {
     );
     return 1;
   } catch (error) {
-    console.log("Error in getAllAlerts:", error);
+    if (DEBUG) console.log("Error in getAllAlerts:", error);
     throw error; // Optionally rethrow the error
   }
 }
@@ -83,7 +84,7 @@ async function verifyAlertIdExist(alertId) {
   const alertIdList = await dbConnection
     .promise()
     .query("SELECT * FROM Alert WHERE AlertId = ?", alertId);
-  // console.log(inventoryIdList);
+  // if (DEBUG) console.log(inventoryIdList);
   return alertIdList[0].length;
 }
 
@@ -91,7 +92,7 @@ async function verifyScheduleIdExist(scheduleId) {
   const scheduleIdList = await dbConnection
     .promise()
     .query("SELECT * FROM Schedule2 WHERE ScheduleId = ?", scheduleId);
-  // console.log(inventoryIdList);
+  // if (DEBUG) console.log(inventoryIdList);
   return scheduleIdList[0].length;
 }
 
@@ -99,7 +100,7 @@ async function verifyTaskIdExist(taskId) {
   const taskIdList = await dbConnection
     .promise()
     .query("SELECT * FROM Task WHERE TaskId = ?", taskId);
-  // console.log(inventoryIdList);
+  // if (DEBUG) console.log(inventoryIdList);
   return taskIdList[0].length;
 }
 

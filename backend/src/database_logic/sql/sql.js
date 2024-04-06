@@ -9,7 +9,7 @@ const {DEPLOYMENT, MYSQL, DOCKER, MSSQL} = require("../../env.js");
 // }else if (!DEPLOYMENT){
 //   dbDetails = require("../../yc_data_test.js");
 // }
-// console.log(`mssql is ${MSSQL}`);
+// if (DEBUG) console.log(`mssql is ${MSSQL}`);
 let dbConnection,insertSensorValues,getSensorDataByMicrocontrollerId,getAllSensorData,initialiseMySQL, dropAllTableMySQL;
 if(MSSQL){
 // if(false){
@@ -21,7 +21,7 @@ if(MSSQL){
     // (dbConnection = require("./azure_mysql.js"));
     // ({insertSensorValues,getSensorDataByMicrocontrollerId,getAllSensorData,initialiseMySQL} = dbConnection);
     // // initialiseMySQL = dbConnection.initialiseMySQL;
-    // console.log(initialiseMySQL);
+    // if (DEBUG) console.log(initialiseMySQL);
     // module.exports = dbConnection;
     // ({dbConnection} = require("./mssql/mssql.js"));
     ({createDbConnection} = require("./mssql/mssql.js"));

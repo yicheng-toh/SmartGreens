@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../../env.js");
 const { dbConnection } = require("./mysql.js");
 
 //insertNewEnergyConsumingDeviceObject
@@ -30,7 +31,7 @@ async function verifyEnergyConsumingDeviceIdExist(deviceId) {
         "SELECT * FROM EnergyConsumingDevice WHERE DeviceId = ?",
         deviceId
       );
-    // console.log(EnergyConsumingDeviceIdList);
+    // if (DEBUG) console.log(EnergyConsumingDeviceIdList);
     return EnergyConsumingDeviceIdList[0].length;
   } catch (error) {
     console.error(
@@ -82,7 +83,7 @@ async function getAllEnergyConsumingDevice() {
       .query("SELECT * FROM EnergyConsumingDevice");
     return result[0][0];
   } catch (error) {
-    console.log("Error fetching all energy consumption device:", error);
+    if (DEBUG) console.log("Error fetching all energy consumption device:", error);
     throw error;
   }
 }
@@ -93,9 +94,9 @@ async function getTotalEnergyConsumptionValue() {
       .query(`SELECT SUM(COALESCE(Quantity, 0) * COALESCE(EnergyConsumption, 0)) AS EnergyUsage
     FROM EnergyConsumingDevice;
     `);
-    console.log("getTotalEnergyConsumptionValue", result);
-    console.log("getTotalEnergyConsumptionValue", result[0]);
-    console.log("getTotalEnergyConsumptionValue", result[0][0]);
+    if (DEBUG) console.log("getTotalEnergyConsumptionValue", result);
+    if (DEBUG) console.log("getTotalEnergyConsumptionValue", result[0]);
+    if (DEBUG) console.log("getTotalEnergyConsumptionValue", result[0][0]);
     return result[0][0];
   } catch (error) {
     console.error(

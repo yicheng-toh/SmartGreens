@@ -1,3 +1,4 @@
+const { DEBUG } = require("../../env.js");
 const { json } = require("express");
 const express = require("express");
 const router = express.Router({ mergeParams: true });
@@ -85,7 +86,7 @@ router.post("/createPlant", async (req, res) => {
         );
       }
     } catch (error) {
-      console.log("Error inserting data:", error);
+      if (DEBUG) console.log("Error inserting data:", error);
       sendInternalServerError(res, error);
     }
   } catch (error) {
@@ -151,7 +152,7 @@ router.post("/editSeedQuantity", async (req, res) => {
         sendInternalServerError(res, "Data insertion failed.");
       }
     } catch (error) {
-      console.log("Error inserting data:", error);
+      if (DEBUG) console.log("Error inserting data:", error);
       sendInternalServerError(res, error);
     }
   } catch (error) {
@@ -211,15 +212,15 @@ router.post("/growPlant", async (req, res) => {
         datePlanted,
       } = req.body;
       if (plantId === undefined || isNaN(parseInt(plantId))) {
-        // console.log("fail at plantId");
+        // if (DEBUG) console.log("fail at plantId");
         sendInternalServerError(res, "Invalid Plant Id.");
         return;
       } else if (plantLocation === undefined) {
-        // console.log('fail at plantLocation');
+        // if (DEBUG) console.log('fail at plantLocation');
         sendInternalServerError(res, "Invalid Plant Location.");
         return;
       } else if (microcontrollerId === undefined) {
-        // console.log("fail at microcontroller");
+        // if (DEBUG) console.log("fail at microcontroller");
         sendInternalServerError(res, "Invalid Microcontroller Id");
         return;
       } else if (
@@ -235,29 +236,39 @@ router.post("/growPlant", async (req, res) => {
         datePlanted = new Date();
         datePlanted.setHours(datePlanted.getHours() + 8); //GMT + 8
         datePlanted = datePlanted.toISOString();
-        console.log("datePlanted is", datePlanted);
+        if (DEBUG) console.log("datePlanted is", datePlanted);
         datePlanted = datePlanted.slice(0, 19).replace("T", " ");
       }
 
       //may need to disintegrate this logic....
-      success = await mysqlLogic.growPlant(
-        plantId,
-        plantLocation,
-        microcontrollerId,
-        quantityPlanted,
-        datePlanted
-      );
-      // console.log("success", success);
+      try {
+        success = await mysqlLogic.growPlant(
+          plantId,
+          plantLocation,
+          microcontrollerId,
+          quantityPlanted,
+          datePlanted
+        );
+      } catch (error) {
+        success = await mysqlLogic.growPlant(
+          plantId,
+          plantLocation,
+          microcontrollerId,
+          quantityPlanted,
+          datePlanted
+        );
+      }
+      // if (DEBUG) console.log("success", success);
       if (success) {
         res
           .status(201)
           .json({ success: success, message: "Data inserted successfully" });
       } else {
-        sendInternalServerError(res, "Data insertion failed.");
+        sendInternalServerError(res, error ,"Data insertion failed.");
       }
     } catch (error) {
-      console.log("Error inserting data:", error);
-      sendInternalServerError(res);
+      if (DEBUG) console.log("Error inserting data:", error);
+      sendInternalServerError(res,error);
     }
   } catch (error) {
     sendBadRequestResponse(res);
@@ -325,7 +336,7 @@ router.post("/harvestPlant", async (req, res) => {
       dateHarvested = new Date();
       dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
       dateHarvested = dateHarvested.toISOString();
-      // console.log("dateHarvested is", dateHarvested);
+      // if (DEBUG) console.log("dateHarvested is", dateHarvested);
     }
     dateHarvested = dateHarvested.slice(0, 19).replace("T", " ");
     success = await mysqlLogic.harvestPlant(
@@ -341,7 +352,7 @@ router.post("/harvestPlant", async (req, res) => {
       sendInternalServerError(res, "Data Insertion Failed");
     }
   } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
   }
 });
@@ -460,7 +471,7 @@ router.post("/updatePlantInfo", async (req, res) => {
         sendInternalServerError(res, "Data insertion failed.");
       }
     } catch (error) {
-      console.log("Error inserting data:", error);
+      if (DEBUG) console.log("Error inserting data:", error);
       sendInternalServerError(res, error);
     }
   } catch (error) {
@@ -825,7 +836,7 @@ router.post("/updatePlantSensorInfo", async (req, res) => {
         sendInternalServerError(res, "Data insertion failed.");
       }
     } catch (error) {
-      console.log("Error inserting data:", error);
+      if (DEBUG) console.log("Error inserting data:", error);
       sendInternalServerError(res, error);
     }
   } catch (error) {
@@ -853,7 +864,7 @@ router.get("/plantSeedsInventory", async (req, res) => {
     const rows = await mysqlLogic.getAllPlantSeedInventory();
     res.status(200).json({ success: 1, result: rows });
   } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
   }
 });
@@ -880,7 +891,7 @@ router.get("/plantData", async (req, res) => {
     success = 1;
     res.status(200).json({ success: success, result: rows });
   } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
   }
 });
@@ -910,13 +921,13 @@ router.get("/plantData", async (req, res) => {
 router.get("/plantYield", async (req, res) => {
   try {
     let success = 0;
-    // console.log(mysqlLogic.getAllPlantYieldRate);
+    // if (DEBUG) console.log(mysqlLogic.getAllPlantYieldRate);
     const rows = await mysqlLogic.getAllPlantYieldRate();
-    console.log(rows);
+    if (DEBUG) console.log(rows);
     success = 1;
     res.status(200).json({ success: success, result: rows });
   } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
   }
 });
@@ -978,19 +989,26 @@ router.get("/plantYield", async (req, res) => {
 router.get("/plantYieldByMonth", async (req, res) => {
   try {
     let success = 0;
-    // console.log(mysqlLogic.getAllPlantYieldRate);
-    const rows = await mysqlLogic.getAllPlantYieldRateByMonth();
-    console.log(rows);
+    // if (DEBUG) console.log(mysqlLogic.getAllPlantYieldRate);
+    let rows;
+    try {
+      rows = await mysqlLogic.getAllPlantYieldRateByMonth();
+      if (DEBUG) console.log(rows);
+    } catch (error) {
+      rows = await mysqlLogic.getAllPlantYieldRateByMonth();
+      if (DEBUG) console.log("in error", rows);
+      console.log("/plantYieldByMonth:", error);
+    }
+    if (DEBUG) console.log(rows);
     let result = groupMonthlyYieldByPlantName(rows);
     success = 1;
 
     res.status(200).json({ success: success, result: result });
   } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
   }
 });
-
 
 /**
  * @swagger
@@ -1049,16 +1067,22 @@ router.get("/plantYieldByMonth", async (req, res) => {
 router.get("/plantYieldByWeek", async (req, res) => {
   try {
     let success = 0;
-    // console.log(mysqlLogic.getAllPlantYieldRate);
-    const rows = await mysqlLogic.getAllPlantYieldRateByWeek();
-    console.log(rows);
+    // if (DEBUG) console.log(mysqlLogic.getAllPlantYieldRate);
+    let rows;
+    try {
+      rows = await mysqlLogic.getAllPlantYieldRateByWeek();
+    } catch (error) {
+      rows = await mysqlLogic.getAllPlantYieldRateByWeek();
+      console.log("/plantYieldByWeek:", error);
+    }
+    if (DEBUG) console.log(rows);
     let result = groupWeeklyYieldByPlantName(rows);
     // let result = rows;
     success = 1;
 
     res.status(200).json({ success: success, result: result });
   } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
   }
 });

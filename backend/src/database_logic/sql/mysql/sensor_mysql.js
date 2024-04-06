@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../../env.js");
 const { db } = require("../../../routes/sqlite3_route.js");
 const { dbConnection } = require("./mysql.js");
 
@@ -12,13 +13,13 @@ async function getPlantBatchIdGivenMicrocontrollerPrefix(
     WHERE MicrocontrollerId = ?`,
     [microcontrollerIdPrefix]
   );
-  //   console.log("rows is rows", rows);
+  //   if (DEBUG) console.log("rows is rows", rows);
   //   let queryResult = rows;
-  console.log("query resutl ist", queryResult);
-  console.log(queryResult[0]);
+  if (DEBUG) console.log("query resutl ist", queryResult);
+  if (DEBUG) console.log(queryResult[0]);
   if (queryResult[0].length) {
-    console.log(queryResult);
-    console.log(queryResult[0]);
+    if (DEBUG) console.log(queryResult);
+    if (DEBUG) console.log(queryResult[0]);
     return queryResult[0][0].PlantBatchId;
   }
   // return -1;
@@ -46,12 +47,12 @@ async function shouldUpdateExisingSensorReadings(
       micrcontrolleridPrefix,
       minutes,
     ]);
-  console.log("queryResult is", queryResult);
+  if (DEBUG) console.log("queryResult is", queryResult);
   if (queryResult == undefined) {
     return shouldUpdate;
   }
   let [rows] = queryResult[0];
-  console.log("rows is", rows);
+  if (DEBUG) console.log("rows is", rows);
   if (!rows) {
     return shouldUpdate;
   }
@@ -59,14 +60,14 @@ async function shouldUpdateExisingSensorReadings(
     if (rows.temperature == null && rows.pH != null) {
       shouldUpdate = true;
     }
-    console.log("rows.temperature is", rows.temperature);
-    console.log("rows.pH is ", rows.pH);
+    if (DEBUG) console.log("rows.temperature is", rows.temperature);
+    if (DEBUG) console.log("rows.pH is ", rows.pH);
   } else if (microcontrollerIdSuffix == 2) {
     if (rows.pH == null && rows.temperature != null) {
       shouldUpdate = true;
     }
-    console.log("rows.pH is ", rows.pH);
-    console.log("rows.temperature is", rows.temperature);
+    if (DEBUG) console.log("rows.pH is ", rows.pH);
+    if (DEBUG) console.log("rows.temperature is", rows.temperature);
   }
   return shouldUpdate;
 }
@@ -86,9 +87,9 @@ async function insertSensorValuesSuffix1(
     microcontrollerIdPrefix,
     microcontrollerIdSuffix
   );
-  console.log("should update is", shouldUpdate);
-  console.log("Insert data suffix1 shouldUpdate:", shouldUpdate);
-  console.log("mc id previx is", microcontrollerIdPrefix);
+  if (DEBUG) console.log("should update is", shouldUpdate);
+  if (DEBUG) console.log("Insert data suffix1 shouldUpdate:", shouldUpdate);
+  if (DEBUG) console.log("mc id previx is", microcontrollerIdPrefix);
   if (shouldUpdate) {
     await dbConnection.execute(
       `
@@ -142,12 +143,12 @@ async function insertSensorValuesSuffix2(
   EC,
   TDS
 ) {
-  console.log("Currently in insertSensorValuesSuffix2");
+  if (DEBUG) console.log("Currently in insertSensorValuesSuffix2");
   let shouldUpdate = await shouldUpdateExisingSensorReadings(
     microcontrollerIdPrefix,
     microcontrollerIdSuffix
   );
-  console.log("should update", shouldUpdate);
+  if (DEBUG) console.log("should update", shouldUpdate);
   if (shouldUpdate) {
     await dbConnection.execute(
       `
@@ -511,19 +512,19 @@ async function insertNewMicrocontroller(microcontollerId) {
     await dbConnection.execute(sqlQuery, [microcontollerId]);
     return 1;
   } catch (error) {
-    console.log("Error inserting microcontroller id:", error);
+    if (DEBUG) console.log("Error inserting microcontroller id:", error);
     throw error;
   }
 }
 
 async function verifyMicrocontrollerIdValidForDeletion(microcontrollerId) {
-  console.log("Currently executiong verifyMicrocontrollerIdValidForDeletion");
+  if (DEBUG) console.log("Currently executiong verifyMicrocontrollerIdValidForDeletion");
   let sqlQuery = `SELECT * FROM MicrocontrollerPlantBatchPair WHERE PlantBatchId is NULL AND MicrocontrollerId = ?;`;
   let microcontrollerIdList = await dbConnection
     .promise()
     .query(sqlQuery, [microcontrollerId]);
-  console.log("verifyMicrocontrollerIdValidForDeletion", microcontrollerIdList);
-  console.log(
+  if (DEBUG) console.log("verifyMicrocontrollerIdValidForDeletion", microcontrollerIdList);
+  if (DEBUG) console.log(
     "verifyMicrocontrollerIdValidForDeletion",
     microcontrollerIdList[0]
   );
@@ -536,7 +537,7 @@ async function deleteMicrocontroller(micrcontrollerId) {
     await dbConnection.execute(sqlQuery, [micrcontrollerId]);
     return 1;
   } catch (error) {
-    console.log("Error encountered when deleting microcontroller", error);
+    if (DEBUG) console.log("Error encountered when deleting microcontroller", error);
     throw error;
   }
 }
@@ -561,7 +562,7 @@ async function verifyCurrentAndNewMicrocontrollerIdValid(
     let newMicrocontrollerIdList = await dbConnection
       .promise()
       .query(newMicrocontrollerIdSQLQuery, [newMicrocontrollerId]);
-    console.log("Verifying current and new microcontroller id", currentMicrocontrollerIdList[0], newMicrocontrollerIdList[0]);
+    if (DEBUG) console.log("Verifying current and new microcontroller id", currentMicrocontrollerIdList[0], newMicrocontrollerIdList[0]);
     if (
       currentMicrocontrollerIdList[0].length &&
       newMicrocontrollerIdList[0].length
@@ -570,7 +571,7 @@ async function verifyCurrentAndNewMicrocontrollerIdValid(
     }
     return 0;
   } catch (error) {
-    console.log(
+    if (DEBUG) console.log(
       "Error encoutered at verifying current and new microcontroller:",
       error
     );
@@ -587,7 +588,7 @@ async function updateCurrentMicrocontrollerForNewMicrocontroller(currentMicrocon
     return 1;
 
   }catch(error){
-    console.log("Encountered error in updating current for new microcontroller: ", error);
+    if (DEBUG) console.log("Encountered error in updating current for new microcontroller: ", error);
     throw error;
   }
 }

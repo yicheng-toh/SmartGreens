@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../../env.js");
 const sql = require("../sql.js");
 const { dbConnection } = require("./mysql.js");
 

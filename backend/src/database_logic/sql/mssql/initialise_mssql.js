@@ -1,4 +1,5 @@
 //This file should contain the creation for all the database.
+const{ DEBUG } = require("../../../env.js");
 const {createDbConnection} = require("./mssql.js");
 
 
@@ -104,9 +105,9 @@ const {createDbConnection} = require("./mssql.js");
 //         await dbConnection.execute(createRemindersTable);
 //         // await dbConnection.execute(createMicrocontrollerLocationTable);
 //         // await dbConnection.execute(createPlantBatchTable);
-//         // console.log("Tables created or already exists.");
+//         // if (DEBUG) console.log("Tables created or already exists.");
 //     } catch (error) {
-//         console.log("Error creating table:", error);
+//         if (DEBUG) console.log("Error creating table:", error);
 //     }
 // }
 
@@ -262,10 +263,10 @@ const {createDbConnection} = require("./mssql.js");
 //         await request.query(createAlertSentTable);
 //         await request.query(createRemindersTable);
 
-//         console.log("Tables created or already exist.");
+//         if (DEBUG) console.log("Tables created or already exist.");
 //         await dbConnection.disconnect();
 //     } catch (error) {
-//         console.log("Error creating table:", error);
+//         if (DEBUG) console.log("Error creating table:", error);
 //     }
 // }
 
@@ -389,10 +390,10 @@ const {createDbConnection} = require("./mssql.js");
 //         request = await dbConnection.connect();
 //         await request.query(createScheduleTable);
 
-//         console.log("Tables created or already exist.");
+//         if (DEBUG) console.log("Tables created or already exist.");
 //         dbConnection.disconnect();
 //     } catch (error) {
-//         console.log("Error creating table:", error);
+//         if (DEBUG) console.log("Error creating table:", error);
 //     }
 // }
 
@@ -535,7 +536,7 @@ async function createTableIfNotExistsVersion4() {
         request = await dbConnection.connect();
         await request.query(createScheduleQuery);
 
-        console.log("Tables created or already exist.");
+        if (DEBUG) console.log("Tables created or already exist.");
         await dbConnection.disconnect();
         // dbConnection.disconnect();
     } catch (error) {
@@ -606,7 +607,7 @@ async function dropAllTableMySQLVersion1() {
         await request.query(dropAlertQuery);
         await request.query(dropScheduleQuery);
 
-        console.log("Tables dropped successfully.");
+        if (DEBUG) console.log("Tables dropped successfully.");
         await dbConnection.disconnect();
         // dbConnection.disconnect();
     } catch (error) {
@@ -781,7 +782,7 @@ async function createTablesIfNotExistVersion5() {
         // await request.batch(sqlScript);
         await request.query(sqlScript);
 
-        console.log("Tables created or already exist.");
+        if (DEBUG) console.log("Tables created or already exist.");
         await dbConnection.disconnect();
     } catch (error) {
         console.error("Error creating tables:", error.message);

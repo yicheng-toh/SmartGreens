@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../env.js");
 const { json } = require("express");
 const express = require("express");
 const router = express.Router();
@@ -84,41 +85,41 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
         let partnerMicrocontrollerId = null;
         // const plantBatchId = -1;
         const currentDateTime = new Date();
-        // console.log(currentUTCDateTime);
+        // if (DEBUG) console.log(currentUTCDateTime);
         currentDateTime.setHours(currentDateTime.getHours() + 8); //GMT + 8
-        console.log(currentDateTime);
+        if (DEBUG) console.log(currentDateTime);
         const formattedDateTime = currentDateTime
           .toISOString()
           .slice(0, 19)
           .replace("T", " ");
-        console.log(formattedDateTime);
+        if (DEBUG) console.log(formattedDateTime);
         const dateTime = formattedDateTime.toString();
         const microcontrollerIdPrefix = microcontrollerId.slice(0, -1);
         const microcontrollerIdSuffix = microcontrollerId.slice(-1);
         plantBatchId = await mysqlLogic.getPlantBatchIdGivenMicrocontrollerPrefix(
           microcontrollerIdPrefix
         );
-        console.log("plantBatchId", plantBatchId);
+        if (DEBUG) console.log("plantBatchId", plantBatchId);
         if (microcontrollerIdSuffix == 1) {
           ({ temperature, humidity, brightness } = req.body);
           if (temperature === undefined || isNaN(parseFloat(temperature))) {
-            // console.log("fail at temperature");
+            // if (DEBUG) console.log("fail at temperature");
             // sendInternalServerError(res, "Invalid Temperature Reading.");
             // return;
             temperature = null;
           } else if (brightness === undefined || isNaN(parseFloat(brightness))) {
-            // console.log("fail at brightness");
+            // if (DEBUG) console.log("fail at brightness");
             // sendInternalServerError(res, "Invalid Brightness Reading.");
             // return;
             brightness = null;
           } else if (humidity === undefined || isNaN(parseFloat(humidity))) {
-            // console.log("fail at humidity");
+            // if (DEBUG) console.log("fail at humidity");
             // sendInternalServerError(res, "Invalid Humidity Reading.");
             // return;
             humidity = null;
           }
           partnerMicrocontrollerId = microcontrollerIdPrefix + "2";
-          console.log(temperature, humidity, brightness);
+          if (DEBUG) console.log(temperature, humidity, brightness);
           success = await mysqlLogic.insertSensorValuesSuffix1(
             dateTime,
             microcontrollerIdPrefix,
@@ -148,7 +149,7 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
             CO2 = null;
           }
           partnerMicrocontrollerId = microcontrollerIdPrefix + "1";
-          console.log(pH, CO2, EC, TDS);
+          if (DEBUG) console.log(pH, CO2, EC, TDS);
           success = await mysqlLogic.insertSensorValuesSuffix2(
             dateTime,
             microcontrollerIdPrefix,
@@ -163,12 +164,12 @@ router.post("/insertData/:microcontrollerId", async (req, res) => {
           sendBadRequestResponse(res, "Invalid Microcontroller Reading.");
           return;
         }
-        console.log(dateTime, microcontrollerId);
+        if (DEBUG) console.log(dateTime, microcontrollerId);
         res
           .status(201)
           .json({ success: success, message: "Data inserted successfully" });
       } catch (error) {
-        console.log("Error inserting data:", error);
+        if (DEBUG) console.log("Error inserting data:", error);
         sendInternalServerError(res, error);
       }
     } catch (error) {
@@ -239,7 +240,7 @@ router.post("/insertNewMicrocontroller", async (req, res) => {
           .status(201)
           .json({ success: success, message: "Data inserted successfully" });
       } catch (error) {
-        console.log("Error inserting data:", error);
+        if (DEBUG) console.log("Error inserting data:", error);
         sendInternalServerError(res, error);
       }
     } catch (error) {
@@ -303,7 +304,7 @@ router.post("/updateMicrocontrollerForActivePlantBatch", async (req, res) => {
     try {
       let {currentMicrocontrollerId, currentInactiveMicrocontrollerId} = req.body;
       let isCurrentAndNewMicrocontrollerIdValid = await mysqlLogic.verifyCurrentAndNewMicrocontrollerIdValid(currentMicrocontrollerId, currentInactiveMicrocontrollerId);
-      console.log("/updateMicrocontrollerForActivePlantBatch", isCurrentAndNewMicrocontrollerIdValid);
+      if (DEBUG) console.log("/updateMicrocontrollerForActivePlantBatch", isCurrentAndNewMicrocontrollerIdValid);
       if(!isCurrentAndNewMicrocontrollerIdValid){
         sendBadRequestResponse(res, "The details for the current or new microcontroller is not valid");
         return;
@@ -314,7 +315,7 @@ router.post("/updateMicrocontrollerForActivePlantBatch", async (req, res) => {
         .status(201)
         .json({ success: success, message: "Microcontroller updated successfully" });
     } catch (error) {
-      console.log("Error inserting data:", error);
+      if (DEBUG) console.log("Error inserting data:", error);
       sendInternalServerError(res, error);
     }
   } catch (error) {
@@ -377,7 +378,7 @@ router.delete("/deleteMicrocontroller/:microcontrollerId", async (req, res) => {
           .json({ success: success, message: "Microcontroller deleted successfully" });
 
       } catch (error) {
-        console.log("Error inserting data:", error);
+        if (DEBUG) console.log("Error inserting data:", error);
         sendInternalServerError(res, error);
       }
     } catch (error) {
@@ -432,11 +433,11 @@ router.get("/availableExisitingMicrocontroller", async (req, res) => {
     try {
       let success = 0;
       const rows = await mysqlLogic.getAvailableExisitingMicrocontroller();
-      console.log(rows);
+      if (DEBUG) console.log(rows);
       success = 1;
       res.status(200).json({ success: success, result: rows });
     } catch (error) {
-      console.log("Error retrieving data:", error);
+      if (DEBUG) console.log("Error retrieving data:", error);
       sendInternalServerError(res, error);
     }
   });
@@ -461,16 +462,16 @@ router.get("/retrieveData", async (req, res) => {
       // const [rows] = await mysqlLogic.getAllSensorData();
       // const [rows]  = await mysqlLogic.getAllSensorData();
       let rows = await mysqlLogic.getAllSensorData();
-      console.log(rows);
+      if (DEBUG) console.log(rows);
       if (rows) {
-        console.log(rows);
+        if (DEBUG) console.log(rows);
         rows = groupSensorDataByPlantType(rows);
         res.status(200).json({ success: 1, result: rows });
       } else {
         res.json({ success: 1, message: "No sensor data available" });
       }
     } catch (error) {
-      console.log("Error retrieving data:", error);
+      if (DEBUG) console.log("Error retrieving data:", error);
       sendInternalServerError(res, error);
     }
   });
@@ -559,17 +560,23 @@ router.get("/retrieveData", async (req, res) => {
  */
 router.get("/retrieveActivePlantBatchSensorData", async (req, res) => {
 try {
-    let rows = await mysqlLogic.getActivePlantBatchSensorData();
-    console.log(rows);
+    let rows;
+    try{
+      rows = await mysqlLogic.getActivePlantBatchSensorData();
+    } catch (error){
+      rows = await mysqlLogic.getActivePlantBatchSensorData();
+      console.log("/retrieveActivePlantBatchSensorData:", error);
+    }
+    if (DEBUG) console.log(rows);
     if (rows) {
-    console.log(rows);
+    if (DEBUG) console.log(rows);
     rows = groupSensorDataByPlantType(rows);
     res.status(200).json({ success: 1, result: rows });
     } else {
     res.json({ success: 1, message: "No sensor data available" });
     }
 } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
 }
 });
@@ -658,20 +665,26 @@ try {
  */
 router.get("/retrieveLatestActivePlantBatchSensorData", async (req, res) => {
 try {
-    let rows = await mysqlLogic.getLatestActivePlantBatchSensorData();
-    console.log(rows);
+    let rows;
+    try{
+      rows = await mysqlLogic.getLatestActivePlantBatchSensorData();
+    }catch (error){
+      rows = await mysqlLogic.getLatestActivePlantBatchSensorData();
+      console.log("/retrieveLatestActivePlantBatchSensorData:", error);
+    }
+    if (DEBUG) console.log(rows);
     if (rows) {
-    // console.log(rows);
+    // if (DEBUG) console.log(rows);
     rows = groupSensorDataByPlantType(rows);
-    // console.log(rows);
+    // if (DEBUG) console.log(rows);
     rows = appendStatusToLatestSensorReadings(rows);
-    // console.log(rows)
+    // if (DEBUG) console.log(rows)
     res.status(200).json({ success: 1, result: rows });
     } else {
     res.json({ success: 1, message: "No sensor data available" });
     }
 } catch (error) {
-    console.log("Error retrieving data:", error);
+    if (DEBUG) console.log("Error retrieving data:", error);
     sendInternalServerError(res, error);
 }
 });
@@ -777,16 +790,16 @@ router.get(
       let rows = await mysqlLogic.getActivePlantBatchSensorDataXDaysAgo(
         numDaysAgo
       );
-      console.log(rows);
+      if (DEBUG) console.log(rows);
       if (rows) {
-        console.log(rows);
+        if (DEBUG) console.log(rows);
         rows = groupSensorDataByPlantType(rows);
         res.status(200).json({ success: 1, result: rows });
       } else {
         res.json({ success: 1, message: "No sensor data available" });
       }
     } catch (error) {
-      console.log("Error retrieving data:", error);
+      if (DEBUG) console.log("Error retrieving data:", error);
       sendInternalServerError(res, error);
     }
   }
@@ -878,9 +891,9 @@ router.get(
 router.get("/retrieveActivePlantBatchSensorDataTrial", async (req, res) => {
   try {
       let rows = await mysqlLogic.getActivePlantBatchSensorDataTrial();
-      console.log(rows);
+      if (DEBUG) console.log(rows);
       if (rows) {
-      console.log(rows);
+      if (DEBUG) console.log(rows);
       rows["sensorData"] = groupSensorDataByPlantType(rows["sensorData"]);
       rows["plantSensorInfo"] = groupPlantSensorInfoByPlantId(rows["plantSensorInfo"]);
       res.status(200).json({ success: 1, result: rows });
@@ -888,7 +901,7 @@ router.get("/retrieveActivePlantBatchSensorDataTrial", async (req, res) => {
       res.json({ success: 1, message: "No sensor data available" });
       }
   } catch (error) {
-      console.log("Error retrieving data:", error);
+      if (DEBUG) console.log("Error retrieving data:", error);
       sendInternalServerError(res, error);
   }
   });

@@ -102,9 +102,9 @@ async function createTableIfNotExists() {
     await dbConnection.execute(createSensorDetailTable);
     // await dbConnection.execute(createMicrocontrollerLocationTable);
     await dbConnection.execute(createPlantBatchTable);
-    // console.log("Tables created or already exists.");
+    // if (DEBUG) console.log("Tables created or already exists.");
   } catch (error) {
-    console.log("Error creating table:", error);
+    if (DEBUG) console.log("Error creating table:", error);
   }
 }
 
@@ -136,8 +136,8 @@ async function getAllSensorData() {
   queryResult = await dbConnection
     .promise()
     .query("SELECT * FROM SensorDetail");
-  // console.log("hahahahha");
-  // console.log(queryResult);
+  // if (DEBUG) console.log("hahahahha");
+  // if (DEBUG) console.log(queryResult);
   return queryResult;
 }
 // Reassign more meaningful function name
