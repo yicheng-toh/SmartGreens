@@ -15,7 +15,7 @@ async function insertNewInventoryObject(itemName, quantity = 0, units = null, lo
         .input('quantity', sql.Int, quantity)
         .input('units', sql.VarChar, units)
         .input('location', sql.VarChar, location)
-        .query('INSERT INTO Inventory (InventoryName, Quantity, Units, Location) VALUES (@itemName, @quantity, @units, @location)');
+        .query('INSERT INTO Inventory (InventoryName, Quantity, Units, Location) VALUES (@itemName, @quantity, @units, @location);');
     await dbConnection.disconnect();
     return 1;
 }
@@ -28,7 +28,7 @@ async function verifyInventoryIdExist(inventoryId){
     if (DEBUG) console.log("verifying id....");
     const inventoryIdList = await request
         .input('inventoryId', sql.Int, inventoryId)
-        .query('SELECT * FROM Inventory WHERE InventoryId = @inventoryId');
+        .query('SELECT * FROM Inventory WHERE InventoryId = @inventoryId;');
     if (DEBUG) console.log("inventory id list is", inventoryIdList);
     dbConnection.disconnect();
     return inventoryIdList.recordset.length;
@@ -43,7 +43,7 @@ async function updateInventoryQuantity(inventoryId, quantityChange){
     const currentQuantityRecordSet = await request
         .input('inventoryId', sql.Int, inventoryId)
         // .query('SELECT Quantity FROM Inventory WHERE InventoryId = @inventoryId').recordset;
-        .query('SELECT Quantity FROM Inventory WHERE InventoryId = @inventoryId');
+        .query('SELECT Quantity FROM Inventory WHERE InventoryId = @inventoryId;');
     // if (DEBUG) console.log(currentQuantityRecordSet);
     // if (DEBUG) console.log(currentQuantityRecordSet.recordset);
     // if (DEBUG) console.log(currentQuantityRecordSet.recordset[0]);
@@ -56,7 +56,7 @@ async function updateInventoryQuantity(inventoryId, quantityChange){
     await request
         .input('newQuantity', sql.Int, newQuantity)
         // .input('inventoryId', sql.Int, inventoryId)
-        .query('UPDATE Inventory SET quantity = @newQuantity WHERE InventoryId = @inventoryId');
+        .query('UPDATE Inventory SET quantity = @newQuantity WHERE InventoryId = @inventoryId;');
     dbConnection.disconnect();
     return 1;
 }
@@ -69,7 +69,7 @@ async function updateInventoryUnit(inventoryId, newUnit){
     await request
         .input('newUnit', sql.VarChar, newUnit)
         .input('inventoryId', sql.Int, inventoryId)
-        .query('UPDATE Inventory SET Units = @newUnit WHERE InventoryID = @inventoryId');
+        .query('UPDATE Inventory SET Units = @newUnit WHERE InventoryID = @inventoryId;');
     dbConnection.disconnect();
     return 1;
 }
@@ -90,7 +90,7 @@ async function deleteInventoryObject(inventoryId){
 async function getAllInventoryData(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    const queryResult =  await request.query('SELECT * FROM Inventory');
+    const queryResult =  await request.query('SELECT * FROM Inventory;');
     dbConnection.disconnect();
     return queryResult.recordset;
 }
@@ -107,7 +107,7 @@ async function insertNewInventoryObject2(itemName, quantity = 0, units = null, l
         .input('quantity', sql.Float, quantity)
         .input('units', sql.VarChar, units)
         .input('location', sql.VarChar, location)
-        .query('INSERT INTO Inventory2 (item, quantity, units, location) VALUES (@itemName, @quantity, @units, @location)');
+        .query('INSERT INTO Inventory2 (item, quantity, units, location) VALUES (@itemName, @quantity, @units, @location);');
     await dbConnection.disconnect();
     return 1;
 }
@@ -120,7 +120,7 @@ async function verifyInventoryIdExist2(inventoryId){
     if (DEBUG) console.log("verifying id....");
     const inventoryIdList = await request
         .input('inventoryId', sql.Int, inventoryId)
-        .query('SELECT * FROM Inventory2 WHERE id = @inventoryId');
+        .query('SELECT * FROM Inventory2 WHERE id = @inventoryId;');
     if (DEBUG) console.log("inventory id list is", inventoryIdList);
     dbConnection.disconnect();
     return inventoryIdList.recordset.length;
@@ -135,7 +135,7 @@ async function updateInventoryQuantity2(inventoryId, quantityChange){
     const currentQuantityRecordSet = await request
         .input('inventoryId', sql.Int, inventoryId)
         // .query('SELECT Quantity FROM Inventory WHERE InventoryId = @inventoryId').recordset;
-        .query('SELECT Quantity FROM Inventory2 WHERE id = @inventoryId');
+        .query('SELECT Quantity FROM Inventory2 WHERE id = @inventoryId;');
     // if (DEBUG) console.log(currentQuantityRecordSet);
     // if (DEBUG) console.log(currentQuantityRecordSet.recordset);
     // if (DEBUG) console.log(currentQuantityRecordSet.recordset[0]);
@@ -148,7 +148,7 @@ async function updateInventoryQuantity2(inventoryId, quantityChange){
     await request
         .input('newQuantity', sql.Int, newQuantity)
         // .input('inventoryId', sql.Int, inventoryId)
-        .query('UPDATE Inventory2 SET quantity = @newQuantity WHERE id = @inventoryId');
+        .query('UPDATE Inventory2 SET quantity = @newQuantity WHERE id = @inventoryId;');
     dbConnection.disconnect();
     return 1;
 }
@@ -161,7 +161,7 @@ async function updateInventoryUnit2(inventoryId, newUnit){
     await request
         .input('newUnit', sql.VarChar, newUnit)
         .input('inventoryId', sql.Int, inventoryId)
-        .query('UPDATE Inventory2 SET units = @newUnit WHERE id = @inventoryId');
+        .query('UPDATE Inventory2 SET units = @newUnit WHERE id = @inventoryId;');
     dbConnection.disconnect();
     return 1;
 }
@@ -173,7 +173,7 @@ async function deleteInventoryObject2(inventoryId){
     // await dbConnection.execute('DELETE FROM Inventory WHERE InventoryID = ?', [inventoryId]);
     await request
     .input('inventoryId', sql.Int, inventoryId)
-    .query('DELETE FROM Inventory2 WHERE id = @inventoryId');
+    .query('DELETE FROM Inventory2 WHERE id = @inventoryId;');
     dbConnection.disconnect();
     return 1;
 }
@@ -182,7 +182,7 @@ async function deleteInventoryObject2(inventoryId){
 async function getAllInventoryData2(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    const queryResult =  await request.query('SELECT * FROM Inventory2');
+    const queryResult =  await request.query('SELECT * FROM Inventory2;');
     dbConnection.disconnect();
     return queryResult.recordset;
 }

@@ -10,6 +10,7 @@ const mysqlLogic = require("../../database_logic/sql/sql.js");
 const {
   convertTime12HourTo24Hour,
   formatDateTimeOutput,
+  retrySQLQueryFiveTimes
 } = require("../../misc_function.js");
 /**
  * @swagger
@@ -304,13 +305,14 @@ router.get("/retrieveSchedules", async (req, res) => {
   try {
     // const [rows] = await mysqlLogic.getAllSensorData();
     let rows;
-    try{
-      rows = await mysqlLogic.getAllSchedules();
-    }catch(error){
-      rows = await mysqlLogic.getAllSchedules();
-      console.log("/retrieveSchedules:", error);
+    rows = await retrySQLQueryFiveTimes(mysqlLogic.getAllSchedules,[],"/retrieveSchedules:");
+    // try{
+    //   rows = await mysqlLogic.getAllSchedules();
+    // }catch(error){
+    //   rows = await mysqlLogic.getAllSchedules();
+    //   console.log("/retrieveSchedules:", error);
 
-    }
+    // }
     if (DEBUG) console.log("retrieve schedules rows", rows);
     rows.forEach((item) => {
       item.content = item.Content ? formatDateTimeOutput(item.Content): formatDateTimeOutput(item.content);

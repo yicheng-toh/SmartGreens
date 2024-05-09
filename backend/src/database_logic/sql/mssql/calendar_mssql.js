@@ -6,7 +6,7 @@ const sql = require("mssql");
 async function getAllSchedules(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    queryResult = await request.query('SELECT * FROM Schedule2');
+    queryResult = await request.query('SELECT * FROM Schedule2 ORDER BY Content ASC;');
     if (DEBUG) console.log("schedules result", queryResult);
     dbConnection.disconnect();
     return queryResult.recordset;
@@ -27,14 +27,14 @@ async function insertSchedule(type, content, task, id = null){
             .input('type', sql.VarChar, type)
             .input('content', sql.DateTime, content)
             .input('task', sql.VarChar, task)
-            .query('INSERT INTO Schedule2 (Type, Content, Task) VALUES (@type, @content, @task)');
+            .query('INSERT INTO Schedule2 (Type, Content, Task) VALUES (@type, @content, @task);');
     }else{
         await request
             .input('id', sql.Int, id)
             .input('type', sql.VarChar, type)
             .input('content', sql.DateTime, content)
             .input('task', sql.VarChar, task)
-            .query('INSERT INTO Schedule2 (Type, Content, Task, ScheduleId) VALUES (@type, @content, @task, @id)');
+            .query('INSERT INTO Schedule2 (Type, Content, Task, ScheduleId) VALUES (@type, @content, @task, @id);');
     }
     dbConnection.disconnect();
     return 1;
@@ -45,7 +45,7 @@ async function insertSchedule(type, content, task, id = null){
 async function getAllAlerts(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    queryResult = await request.query('SELECT * FROM Alert');
+    queryResult = await request.query('SELECT * FROM Alert;');
     dbConnection.disconnect();
     return queryResult.recordset;
 }
@@ -60,7 +60,7 @@ async function insertAlert(issue, datetime, plantBatchId, severity){
         .input('datetime', sql.DateTime, datetime)
         .input('plantBatchId', sql.Int, plantBatchId)
         .input('severity', sql.VarChar, severity)
-        .query('INSERT INTO Alert (Issue, Datetime, PlantBatchId, Severity) VALUES (@action, @datetime, @plantBatchId, @severity)');
+        .query('INSERT INTO Alert (Issue, Datetime, PlantBatchId, Severity) VALUES (@action, @datetime, @plantBatchId, @severity);');
     dbConnection.disconnect();
     return 1;
 }
@@ -70,7 +70,7 @@ async function insertAlert(issue, datetime, plantBatchId, severity){
 async function getAllTasks(){
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
-    queryResult = await request.query('SELECT * FROM Task');
+    queryResult = await request.query('SELECT * FROM Task;');
     dbConnection.disconnect();
     return queryResult.recordset;
 }
@@ -84,7 +84,7 @@ async function insertTask(action, datetime, status){
         .input('action', sql.VarChar, action)
         .input('datetime', sql.DateTime, datetime)
         .input('status', sql.Bit, status)
-        .query('INSERT INTO Task (Action, Datetime, Status) VALUES (@action, @datetime, @status)');
+        .query('INSERT INTO Task (Action, Datetime, Status) VALUES (@action, @datetime, @status);');
     dbConnection.disconnect();
     return 1;
 }
@@ -96,7 +96,7 @@ async function verifyAlertIdExist(alertId){
     if (DEBUG) console.log("verifying id....");
     const alertIdList = await request
         .input('alertId', sql.Int, alertId)
-        .query('SELECT * FROM Alert WHERE AlertId = @alertId');
+        .query('SELECT * FROM Alert WHERE AlertId = @alertId;');
     if (DEBUG) console.log("alert id list is", alertIdList);
     dbConnection.disconnect();
     return alertIdList.recordset.length;
@@ -109,7 +109,7 @@ async function verifyScheduleIdExist(scheduleId){
     if (DEBUG) console.log("verifying id....");
     const scheduleIdList = await request
         .input('scheduleId', sql.Int, scheduleId)
-        .query('SELECT * FROM Schedule2 WHERE ScheduleId = @scheduleId');
+        .query('SELECT * FROM Schedule2 WHERE ScheduleId = @scheduleId;');
     if (DEBUG) console.log("schedule id list is", scheduleIdList);
     dbConnection.disconnect();
     return scheduleIdList.recordset.length;
@@ -122,7 +122,7 @@ async function verifyTaskIdExist(taskId){
     if (DEBUG) console.log("verifying id....");
     const taskIdList = await request
         .input('taskId', sql.Int, taskId)
-        .query('SELECT * FROM Task WHERE TaskId = @taskId');
+        .query('SELECT * FROM Task WHERE TaskId = @taskId;');
     if (DEBUG) console.log("task id list is", taskIdList);
     dbConnection.disconnect();
     return taskIdList.recordset.length;
@@ -133,7 +133,7 @@ async function deleteAlert(alertId){
     const request = await dbConnection.connect();
     await request
     .input('alertId', sql.Int, alertId)
-    .query('DELETE FROM Alert WHERE AlertID = @alertId');
+    .query('DELETE FROM Alert WHERE AlertID = @alertId;');
     dbConnection.disconnect();
     return 1;
 }
@@ -142,7 +142,7 @@ async function deleteSchedule(scheduleId){
     const request = await dbConnection.connect();
     await request
     .input('scheduleId', sql.Int, scheduleId)
-    .query('DELETE FROM Schedule2 WHERE ScheduleID = @scheduleId');
+    .query('DELETE FROM Schedule2 WHERE ScheduleID = @scheduleId;');
     dbConnection.disconnect();
     return 1;
 }
@@ -151,7 +151,7 @@ async function deleteTask(TaskId){
     const request = await dbConnection.connect();
     await request
     .input('taskId', sql.Int, TaskId)
-    .query('DELETE FROM Task WHERE TaskID = @taskId');
+    .query('DELETE FROM Task WHERE TaskID = @taskId;');
     dbConnection.disconnect();
     return 1;
 }

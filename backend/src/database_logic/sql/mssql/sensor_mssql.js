@@ -16,7 +16,7 @@ async function getPlantBatchIdGivenMicrocontrollerPrefix(
   ).query(`
       SELECT PlantBatchId
       FROM MicrocontrollerPlantBatchPair
-      WHERE MicrocontrollerId = @microcontrollerId
+      WHERE MicrocontrollerId = @microcontrollerId;
     `);
   //   if (DEBUG) console.log("rows is rows", rows);
   //   let queryResult = rows;
@@ -68,7 +68,7 @@ async function insertSensorValuesSuffix1(
               FROM (SELECT * FROM SensorReadings) AS temp
               WHERE MicrocontrollerId = @microcontrollerId
             )
-        `);
+        ;`);
   }else{
 
     await request
@@ -80,7 +80,7 @@ async function insertSensorValuesSuffix1(
         .input("brightness", sql.Float, brightness);
     // request = await dbConnection.connect();
     await request.query(
-        "INSERT INTO SensorReadings (DateTime, MicrocontrollerId, PlantBatchId, Temperature, Humidity, Brightness) VALUES (@dateTime, @microcontrollerId, @plantBatchId, @temperature, @humidity, @brightness)"
+        "INSERT INTO SensorReadings (DateTime, MicrocontrollerId, PlantBatchId, Temperature, Humidity, Brightness) VALUES (@dateTime, @microcontrollerId, @plantBatchId, @temperature, @humidity, @brightness);"
     );
   }
   await dbConnection.disconnect();
@@ -120,7 +120,7 @@ async function insertSensorValuesSuffix2(
               FROM (SELECT * FROM SensorReadings) AS temp
               WHERE MicrocontrollerId = @microcontrollerId
             )
-        `);
+        ;`);
   }else{
 
     await request
@@ -133,7 +133,7 @@ async function insertSensorValuesSuffix2(
         .input('TDS', sql.Float, TDS)
         .query(`
           INSERT INTO SensorReadings (DateTime, MicrocontrollerId, PlantBatchId, pH, CO2, EC, TDS)
-          VALUES (@dateTime, @microcontrollerId, @plantBatchId, @pH, @CO2, @EC, @TDS)
+          VALUES (@dateTime, @microcontrollerId, @plantBatchId, @pH, @CO2, @EC, @TDS);
         `);
   }
   await dbConnection.disconnect();
@@ -187,7 +187,7 @@ async function getAllSensorData() {
   LEFT JOIN 
       PlantSensorInfo psi ON pb.PlantId = psi.PlantId
   LEFT JOIN
-      PlantInfo pi ON pb.PlantId = pi.PlantId
+      PlantInfo pi ON pb.PlantId = pi.PlantId;
 `;
   const queryResult = await request.query(sqlQuery);
   await dbConnection.disconnect();
@@ -311,6 +311,7 @@ async function getActivePlantBatchSensorDataXDaysAgo(x) {
       sr.EC,
       sr.TDS,
       pb.PlantId,
+      pb.ExpectedYield,
       psi.Temperature_min,
       psi.Temperature_max,
       psi.Temperature_optimal,
@@ -476,7 +477,7 @@ async function insertNewMicrocontroller(microcontollerId){
     const result = await request
     .input('microcontrollerId', sql.VarChar, microcontollerId)
     .query(`INSERT INTO MicrocontrollerPlantBatchPair (MicrocontrollerId, PlantBatchId) 
-    VALUES (@microcontrollerId, null)`);
+    VALUES (@microcontrollerId, null);`);
     await dbConnection.disconnect();
     return 1;
   } catch (error){
@@ -528,11 +529,11 @@ async function verifyCurrentAndNewMicrocontrollerIdValid(
     const currentMicrocontrollerIdSQLQuery = `
   SELECT * FROM MicrocontrollerPlantBatchPair 
   WHERE 
-  MicrocontrollerId = @currentMicrocontrollerId AND PlantBatchId is NOT NULL`;
+  MicrocontrollerId = @currentMicrocontrollerId AND PlantBatchId is NOT NULL;`;
     const newMicrocontrollerIdSQLQuery = `
   SELECT * FROM MicrocontrollerPlantBatchPair 
   WHERE 
-  MicrocontrollerId = @newMicrocontrollerId AND PlantBatchId is NULL`;
+  MicrocontrollerId = @newMicrocontrollerId AND PlantBatchId is NULL;`;
 
   let currentMicrocontrollerIdList = await request.input("currentMicrocontrollerId", sql.VarChar, currentMicrocontrollerId)
   .query(currentMicrocontrollerIdSQLQuery);
@@ -564,8 +565,8 @@ async function updateCurrentMicrocontrollerForNewMicrocontroller(currentMicrocon
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   try{
-    let updateCurrentMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = @newMicrocontrollerId WHERE MicrocontrollerId = @currentMicrocontrollerId AND PlantBatchId is not NULL`;
-    let updateNewMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = @currentMicrocontrollerId WHERE MicrocontrollerId = @newMicrocontrollerId AND PlantBatchId is NULL`;
+    let updateCurrentMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = @newMicrocontrollerId WHERE MicrocontrollerId = @currentMicrocontrollerId AND PlantBatchId is not NULL;`;
+    let updateNewMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = @currentMicrocontrollerId WHERE MicrocontrollerId = @newMicrocontrollerId AND PlantBatchId is NULL;`;
     await request
     .input("currentMicrocontrollerId", sql.VarChar, currentMicrocontrollerId)
     .input("newMicrocontrollerId", sql.VarChar, newMicrocontrollerId)
@@ -588,6 +589,7 @@ async function getActivePlantBatchSensorDataTrial() {
       sr.PlantBatchId,
       pb.PlantId,
       pi.PlantName,
+      pb.ExpectedYield,
       sr.Temperature,
       sr.Humidity,
       sr.Brightness,

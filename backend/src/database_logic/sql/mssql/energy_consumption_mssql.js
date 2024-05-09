@@ -11,7 +11,7 @@ async function insertNewEnergyConsumingDevice(deviceName, quantity, energyConsum
     .input('deviceName', sql.VarChar, deviceName)
     .input('quantity', sql.Int, quantity)
     .input('energyConsumption', sql.Float, energyConsumption)
-    .query('INSERT INTO EnergyConsumingDevice (DeviceName, Quantity, EnergyConsumption) VALUES (@deviceName, @quantity, @energyConsumption)');
+    .query('INSERT INTO EnergyConsumingDevice (DeviceName, Quantity, EnergyConsumption) VALUES (@deviceName, @quantity, @energyConsumption);');
     await dbConnection.disconnect();
     return 1; // Return success
   } catch (error) {
@@ -28,7 +28,7 @@ async function verifyEnergyConsumingDeviceIdExist(deviceId) {
   try {
     const result = await request
     .input('deviceId', sql.Int, deviceId)
-    .query("SELECT * FROM EnergyConsumingDevice WHERE DeviceId = @deviceId");
+    .query("SELECT * FROM EnergyConsumingDevice WHERE DeviceId = @deviceId;");
     await dbConnection.disconnect();
     return result.recordset.length;
   } catch (error) {
@@ -49,7 +49,7 @@ async function updateEnergyConsumingDevice(deviceId, newEnergyDeviceName, newQua
     .input('newEnergyConsumption', sql.Float, newEnergyConsumption)
     .input('deviceId', sql.Int, deviceId)
     .query(
-      "UPDATE EnergyConsumingDevice SET DeviceName = @newEnergyDeviceName, Quantity = @newQuantity, EnergyConsumption = @newEnergyConsumption WHERE DeviceId = @deviceId"
+      "UPDATE EnergyConsumingDevice SET DeviceName = @newEnergyDeviceName, Quantity = @newQuantity, EnergyConsumption = @newEnergyConsumption WHERE DeviceId = @deviceId;"
     );
     await dbConnection.disconnect();
     return 1; // Return success
@@ -67,7 +67,7 @@ async function deleteEnergyConsumingDevice(deviceId) {
   try {
     await request
     .input('deviceId', sql.Int, deviceId)
-    .query("DELETE FROM EnergyConsumingDevice WHERE DeviceId = @deviceId");
+    .query("DELETE FROM EnergyConsumingDevice WHERE DeviceId = @deviceId;");
     await dbConnection.disconnect();
     return 1; // Return success
   } catch (error) {
@@ -82,7 +82,8 @@ async function getAllEnergyConsumingDevice() {
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
   try {
-    const result = await request.query("SELECT * FROM EnergyConsumingDevice");
+    const result = await request
+    .query("SELECT * FROM EnergyConsumingDevice;");
     await dbConnection.disconnect();
     return result.recordset;
   } catch (error) {
@@ -97,7 +98,11 @@ async function getTotalEnergyConsumptionValue() {
     const dbConnection = await createDbConnection();
     const request = await dbConnection.connect();
   try {
-    const result = await request.query(`SELECT SUM(COALESCE(Quantity, 0) * COALESCE(EnergyConsumption, 0)) AS EnergyUsage FROM EnergyConsumingDevice`);
+    const sqlQuery = `SELECT SUM(DATEDIFF(hour, startTime, GETUTCDATE() + '08:00:00') * EnergyConsumption) AS EnergyUsage
+    FROM EnergyConsumingDevice;`;
+    // const result = await request.query(`SELECT SUM(COALESCE(Quantity, 0) * COALESCE(EnergyConsumption, 0)) AS EnergyUsage FROM EnergyConsumingDevice;`);
+    // const result = await request.query(`SELECT SUM(COALESCE(Quantity, 0) * COALESCE(EnergyConsumption, 0)) AS EnergyUsage FROM EnergyConsumingDevice;`);
+    const result = await request.query(sqlQuery);
     await dbConnection.disconnect();
     return result.recordset[0];
   } catch (error) {

@@ -5,6 +5,9 @@ const router = express.Router();
 const {sendBadRequestResponse, sendInternalServerError} = require("../request_error_messages.js")
 const mysqlLogic = require("../../database_logic/sql/sql.js")
 const errorCode = require("./error_code.js");
+const {
+  retrySQLQueryFiveTimes
+} = require("../../misc_function.js");
 /**
  * @swagger
  * tags:
@@ -216,7 +219,9 @@ router.post('/updateInventoryUnit', async (req, res) => {
 router.get('/retrieveAllInventoryData', async(req, res) => {
     try {
       //need to double check this with mssql. currently works on mysql
-        const rows = await mysqlLogic.getAllInventoryData();
+        let rows;
+        rows = await retrySQLQueryFiveTimes(mysqlLogic.getAllInventoryData,[],'/retrieveAllInventoryData');
+        // const rows = await mysqlLogic.getAllInventoryData();
         res.status(200).send({'success': 1, 'result': rows});
         return;
     } catch (error) {

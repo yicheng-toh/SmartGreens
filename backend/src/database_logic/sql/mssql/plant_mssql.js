@@ -148,7 +148,7 @@ async function getAllPlantInfo() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   //This may be depedent on what the frontend wants...
-  queryResult = await request.query("SELECT * FROM PlantInfo");
+  queryResult = await request.query("SELECT * FROM PlantInfo;");
   await dbConnection.disconnect();
   return queryResult.recordset;
 }
@@ -157,7 +157,7 @@ async function getAllPlantSeedInventory() {
   const dbConnection = await createDbConnection();
   const request = await dbConnection.connect();
   queryResult = await request.query(
-    "SELECT PlantId, PlantName, CurrentSeedInventory FROM PlantInfo"
+    "SELECT PlantId, PlantName, CurrentSeedInventory FROM PlantInfo;"
   );
   await dbConnection.disconnect();
   return queryResult.recordset;
@@ -643,7 +643,7 @@ async function verifyPlantBatchIsGrowing(plantBatchId) {
   try {
     let result = await request
       .input("plantBatchId", sql.Int, plantBatchId)
-      .query("SELECT * FROM PlantBatch WHERE PlantBatchId = @plantBatchId");
+      .query("SELECT * FROM PlantBatch WHERE PlantBatchId = @plantBatchId;");
     if (DEBUG) console.log("verifyPlantBatchIsGrowing", result.recordset);
     if (DEBUG) console.log("verifyPlantBatchIsGrowing", result.recordset[0]);
     if (DEBUG) console.log("verifyPlantBatchIsGrowing", result.recordset[0].DateHarvested);
@@ -664,7 +664,7 @@ async function verifyPlantBatchIsGrowing(plantBatchId) {
   } catch (error) {
     console.error("Error verifying plant batch:", error);
     await dbConnection.disconnect();
-    return 0;
+    throw error;
   }
 }
 
@@ -685,7 +685,7 @@ async function updateGrowingPlantBatchDetails(
       .input("location", sql.VarChar, location)
       .input("plantId", sql.Int, plantId)
       .query(
-        "UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, PlantLocation = @location, PlantId = @plantId WHERE PlantBatchId = @plantBatchId"
+        "UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, PlantLocation = @location, PlantId = @plantId WHERE PlantBatchId = @plantBatchId;"
       );
     if (DEBUG) console.log("updateGrowingPlantBatchDetails", result.rowsAffected);
     await dbConnection.disconnect();
@@ -721,7 +721,7 @@ async function updateHarvestedPlantBatchDetails(
         `UPDATE PlantBatch SET DatePlanted = @datePlanted, QuantityPlanted = @quantityPlanted, 
         DateHarvested = @dateHarvested, WeightHarvested = @weightHarvested, PlantLocation = @location, 
         PlantId = @plantId 
-        WHERE PlantBatchId = @plantBatchId`
+        WHERE PlantBatchId = @plantBatchId;`
       );
     if (DEBUG) console.log("updateHarvestedPlantBatchDetails", result.rowsAffected);
     await dbConnection.disconnect();
@@ -739,7 +739,7 @@ async function deletePlantBatch(plantBatchId) {
   try {
     const deleteSensorReadingsQuery = `
       DELETE FROM SensorReadings
-      WHERE PlantBatchId = @plantBatchId
+      WHERE PlantBatchId = @plantBatchId;
     `;
     await request
       .input("plantBatchId", sql.Int, plantBatchId)
@@ -748,7 +748,7 @@ async function deletePlantBatch(plantBatchId) {
     // Delete entry from PlantBatch table
     const deletePlantBatchQuery = `
       DELETE FROM PlantBatch
-      WHERE PlantBatchId = @plantBatchId
+      WHERE PlantBatchId = @plantBatchId;
     `;
     await request.query(deletePlantBatchQuery);
     await dbConnection.disconnect();
@@ -773,7 +773,7 @@ async function updatePlantInfo(
     const sqlQuery = `
       UPDATE PlantInfo
       SET PlantName = @plantName, PlantPicture = @plantPicture, DaysToMature = @daysToMature, CurrentSeedInventory = @currentSeedInventory
-      WHERE PlantId = @plantId
+      WHERE PlantId = @plantId;
     `;
     await request
       .input("plantName", sql.NVarChar, plantName)
@@ -838,7 +838,7 @@ async function getAllPlantYieldRateByMonth(){
         END
       AND DateHarvested <= DATEADD(HOUR, 8, GETDATE()) -- for gmt + 8
       GROUP BY pb.plantId, pi.plantName, YEAR(DateHarvested), FORMAT(DateHarvested, 'MMMM')
-      ORDER BY pb.plantId, YEAR(DateHarvested), FORMAT(DateHarvested, 'MMMM')
+      ORDER BY pb.plantId, YEAR(DateHarvested), FORMAT(DateHarvested, 'MMMM');
     `;
     const sqlQuery2 = `SELECT 
     pb.plantId,
@@ -909,6 +909,39 @@ ORDER BY pb.plantId, YEAR(DATEADD(DAY, 1 - DATEPART(WEEKDAY, DateHarvested), Dat
   }
 }
 
+async function getAllActiveLatestImage(){
+  const dbConnection = await createDbConnection();
+  const request = await dbConnection.connect();
+  try{
+    const sqlQuery = `
+    SELECT 
+    PlantBatchId,
+    LatestImage,
+    CurrentPlantHealthStatus,
+    LastImageUpdateDateTime,	
+    ExpectedYield 
+    from PlantBatch WHERE DateHarvested is NULL;`;
+    let result;
+    try{
+      result = await request.query(sqlQuery);
+    } catch (error){
+      console.log(error);
+      result = await request.query(sqlQuery);
+    }
+    
+    await dbConnection.disconnect();
+    return result.recordset;
+
+
+  }catch (error){
+    await dbConnection.disconnect();
+    if (DEBUG) console.log("Error in function getAllActiveLatestImage", error);
+    throw error;
+
+  }
+
+}
+
 module.exports = {
   deletePlantBatch,
   getAllPlantHarvestData,
@@ -923,6 +956,7 @@ module.exports = {
   insertNewPlant,
   getAllPlantSeedInventory,
   getAllHarvestedPlantBatchInfo,
+  getAllActiveLatestImage,
   growPlant,
   harvestPlant,
   updatePlantSensorInfo,

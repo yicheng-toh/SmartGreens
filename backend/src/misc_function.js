@@ -143,11 +143,11 @@ function appendStatusToLatestSensorReadings(dataList) {
     }
 
     let status;
-    if (counter <= 0) {
+    if (counter <= 1) {
       status = "healthy";
-    } else if (counter === 1) {
+    } else if (counter === 2) {
       status = "attention";
-    } else if (counter >= 1) {
+    } else if (counter >= 2) {
       status = "critical";
     }
     data.status = status;
@@ -296,6 +296,24 @@ function groupWeeklyYieldByPlantName(data) {
   return result;
 }
 
+async function retrySQLQueryFiveTimes(fn, arguments, fnName = null){
+  let TRIES = 5;
+  let counter = 0;
+  while (counter < TRIES){
+    counter += 1;
+    try{
+      let result = await fn(...arguments);
+      return result
+    }catch(error){
+      console.log(fnName, error);
+      if(counter >= TRIES){
+        throw(error);
+      }
+      continue;
+    }
+  }
+}
+
 module.exports = {
   appendStatusToPlantBatchInfoAndYield,
   convertTime12HourTo24Hour,
@@ -306,4 +324,5 @@ module.exports = {
   groupSensorDataByPlantBatchId,
   appendStatusToLatestSensorReadings,
   groupPlantSensorInfoByPlantId,
+  retrySQLQueryFiveTimes
 };

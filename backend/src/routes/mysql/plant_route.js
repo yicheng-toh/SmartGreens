@@ -10,6 +10,7 @@ const mysqlLogic = require("../../database_logic/sql/sql.js");
 const {
   groupMonthlyYieldByPlantName,
   groupWeeklyYieldByPlantName,
+  retrySQLQueryFiveTimes
 } = require("../../misc_function.js");
 /**
  * @swagger
@@ -991,14 +992,15 @@ router.get("/plantYieldByMonth", async (req, res) => {
     let success = 0;
     // if (DEBUG) console.log(mysqlLogic.getAllPlantYieldRate);
     let rows;
-    try {
-      rows = await mysqlLogic.getAllPlantYieldRateByMonth();
-      if (DEBUG) console.log(rows);
-    } catch (error) {
-      rows = await mysqlLogic.getAllPlantYieldRateByMonth();
-      if (DEBUG) console.log("in error", rows);
-      console.log("/plantYieldByMonth:", error);
-    }
+    rows = await retrySQLQueryFiveTimes(mysqlLogic.getAllPlantYieldRateByMonth, [], "/plantYieldByMonth:");
+    // try {
+    //   rows = await mysqlLogic.getAllPlantYieldRateByMonth();
+    //   if (DEBUG) console.log(rows);
+    // } catch (error) {
+    //   rows = await mysqlLogic.getAllPlantYieldRateByMonth();
+    //   if (DEBUG) console.log("in error", rows);
+    //   console.log("/plantYieldByMonth:", error);
+    // }
     if (DEBUG) console.log(rows);
     let result = groupMonthlyYieldByPlantName(rows);
     success = 1;
@@ -1069,12 +1071,13 @@ router.get("/plantYieldByWeek", async (req, res) => {
     let success = 0;
     // if (DEBUG) console.log(mysqlLogic.getAllPlantYieldRate);
     let rows;
-    try {
-      rows = await mysqlLogic.getAllPlantYieldRateByWeek();
-    } catch (error) {
-      rows = await mysqlLogic.getAllPlantYieldRateByWeek();
-      console.log("/plantYieldByWeek:", error);
-    }
+    rows = await retrySQLQueryFiveTimes( mysqlLogic.getAllPlantYieldRateByWeek,[],"/plantYieldByWeek:")
+    // try {
+    //   rows = await mysqlLogic.getAllPlantYieldRateByWeek();
+    // } catch (error) {
+    //   rows = await mysqlLogic.getAllPlantYieldRateByWeek();
+    //   console.log("/plantYieldByWeek:", error);
+    // }
     if (DEBUG) console.log(rows);
     let result = groupWeeklyYieldByPlantName(rows);
     // let result = rows;

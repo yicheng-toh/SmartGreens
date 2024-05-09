@@ -5,7 +5,7 @@ const router = express.Router();
 const {sendBadRequestResponse, sendInternalServerError} = require("../request_error_messages.js")
 const mysqlLogic = require("../../database_logic/sql/sql.js")
 const errorCode = require("./error_code.js");
-const { groupSensorDataByPlantType, appendStatusToLatestSensorReadings, groupPlantSensorInfoByPlantId } = require("../../misc_function.js");
+const { groupSensorDataByPlantType, appendStatusToLatestSensorReadings, groupPlantSensorInfoByPlantId, retrySQLQueryFiveTimes } = require("../../misc_function.js");
 
 router.use(json());
 /**
@@ -666,12 +666,13 @@ try {
 router.get("/retrieveLatestActivePlantBatchSensorData", async (req, res) => {
 try {
     let rows;
-    try{
-      rows = await mysqlLogic.getLatestActivePlantBatchSensorData();
-    }catch (error){
-      rows = await mysqlLogic.getLatestActivePlantBatchSensorData();
-      console.log("/retrieveLatestActivePlantBatchSensorData:", error);
-    }
+    rows = await retrySQLQueryFiveTimes(mysqlLogic.getLatestActivePlantBatchSensorData,[],"/retrieveLatestActivePlantBatchSensorData:");
+    // try{
+    //   rows = await mysqlLogic.getLatestActivePlantBatchSensorData();
+    // }catch (error){
+    //   rows = await mysqlLogic.getLatestActivePlantBatchSensorData();
+    //   console.log("/retrieveLatestActivePlantBatchSensorData:", error);
+    // }
     if (DEBUG) console.log(rows);
     if (rows) {
     // if (DEBUG) console.log(rows);
@@ -890,7 +891,13 @@ router.get(
  */
 router.get("/retrieveActivePlantBatchSensorDataTrial", async (req, res) => {
   try {
-      let rows = await mysqlLogic.getActivePlantBatchSensorDataTrial();
+      let rows;
+      try{
+       rows = await mysqlLogic.getActivePlantBatchSensorDataTrial();
+      }catch(error){
+        console.log(error);
+        rows = await mysqlLogic.getActivePlantBatchSensorDataTrial();
+      }
       if (DEBUG) console.log(rows);
       if (rows) {
       if (DEBUG) console.log(rows);

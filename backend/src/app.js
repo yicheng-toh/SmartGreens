@@ -22,7 +22,7 @@ const SQLITE = "SQLite";
 const MYSQL = "MySQL";
 const SQLITE_MYSQL = "both";
 const MSSQL = process.env.MSSQL === "true" || false;
-const SWAGGER_VESION = "16-pre-5"
+const SWAGGER_VESION = "16.1.6"
 
 // const DEPLOYMENT = true; //False deployment refers to testing.
 // const DEPLOYMENT = false; //False deployment refers to testing.
@@ -115,6 +115,15 @@ app.get("/docker", async (req, res) => {
 app.get("/", async (req, res) => {
   try {
     res.status(200).json({ message: "homepage" });
+  } catch (error) {
+    sendInternalServerError(res);
+  }
+});
+
+app.post("/", async (req, res) => {
+  try {
+    console.log("Dummy post request received");
+    res.status(201).json({ message: "POST request successful" });
   } catch (error) {
     sendInternalServerError(res);
   }

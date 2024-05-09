@@ -8,7 +8,7 @@ const {
 } = require("../request_error_messages.js");
 const mysqlLogic = require("../../database_logic/sql/sql.js");
 const errorCode = require("./error_code.js");
-const { appendStatusToPlantBatchInfoAndYield, groupSensorDataByPlantBatchId, appendStatusToLatestSensorReadings } = require("../../misc_function.js");
+const { appendStatusToPlantBatchInfoAndYield, groupSensorDataByPlantBatchId, appendStatusToLatestSensorReadings, retrySQLQueryFiveTimes } = require("../../misc_function.js");
 
 router.use(json());
 /**
@@ -211,6 +211,7 @@ router.delete('/deletePlantBatch/:plantBatchId', async (req, res) => {
             return;
         }
         const isPlantBatchGrowing = await mysqlLogic.verifyPlantBatchIsGrowing(plantBatchId);
+        console.log("deleting plant batch. isPlantBatchGrowing: ", isPlantBatchGrowing);
         if (isPlantBatchGrowing) {
             //Harvest the plant before deleting
             dateHarvested = new Date();
@@ -356,20 +357,22 @@ router.get("/activePlantBatchInfoAndYield", async (req, res) => {
     try {
         let success = 0;
         let rows;
-        try{
-            rows = await mysqlLogic.getActivePlantBatchInfoAndYield();
-        } catch(error){
-            rows = await mysqlLogic.getActivePlantBatchInfoAndYield();
-            console.log("/activePlantBatchInfoAndYield: plantbatch data and yield:", error);
-        }
+        rows = await retrySQLQueryFiveTimes(mysqlLogic.getActivePlantBatchInfoAndYield,[],"/activePlantBatchInfoAndYield: plantbatch data and yield:");
+        // try{
+        //     rows = await mysqlLogic.getActivePlantBatchInfoAndYield();
+        // } catch(error){
+        //     rows = await mysqlLogic.getActivePlantBatchInfoAndYield();
+        //     console.log("/activePlantBatchInfoAndYield: plantbatch data and yield:", error);
+        // }
         if (DEBUG) console.log(rows);
         let latestActivePlantData;
-        try{
-            latestActivePlantData = await mysqlLogic.getLatestActivePlantBatchSensorData();
-        } catch(error){
-            latestActivePlantData = await mysqlLogic.getLatestActivePlantBatchSensorData();
-            console.log("/activePlantBatchInfoAndYield: sensor data for health:", error);
-        }
+        latestActivePlantData = await retrySQLQueryFiveTimes(mysqlLogic.getLatestActivePlantBatchSensorData,[],"/activePlantBatchInfoAndYield: sensor data for health:");
+        // try{
+        //     latestActivePlantData = await mysqlLogic.getLatestActivePlantBatchSensorData();
+        // } catch(error){
+        //     latestActivePlantData = await mysqlLogic.getLatestActivePlantBatchSensorData();
+        //     console.log("/activePlantBatchInfoAndYield: sensor data for health:", error);
+        // }
         if (DEBUG) console.log(latestActivePlantData);
         let activeLatestPlantDataWithStatus = null;
         if (latestActivePlantData) {
@@ -426,5 +429,48 @@ router.get("/allHarvestedPlantBatchInfo", async (req, res) => {
         sendInternalServerError(res, error);
     }
 });
+
+/**
+ * @swagger
+ * /plant/allActiveLatestImage:
+ *   get:
+ *     summary: Get encoded jpg string for all the latest image.
+ *     tags: [PlantBatch]
+ *     responses:
+ *       200:
+ *         description: Successful response. Returns plant batch info and yield data.
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: 1
+ *               result:
+ *                 - image: /9j/ljdsflsfsflksjflksjdlfklsdflksjdflksjdflkjlsfjlsdjflkdjflksdlfjlsdjflsdflk
+ */
+router.get("/allActiveLatestImage", async (req, res) => {
+    try {
+        let success = 0;
+        let rows;
+        rows = await retrySQLQueryFiveTimes(mysqlLogic.getAllActiveLatestImage,[],"/allActiveLatestImage") ;
+        // console.log(rows);
+        const convertedResults = rows.map(res => {
+            // Check if latestimage is not null
+            if (res.LatestImage !== null || res.LatestImage === undefined) {
+              // Convert buffer to base64 string
+              console.log(res.LatestImage);
+              const base64Data = Buffer.from(res.LatestImage, 'binary').toString('base64');
+              // Update the dictionary with base64 string
+              res.LatestImage = base64Data;
+            }
+            return res;
+          });
+        // console.log(convertedResults);
+        success = 1;
+        res.status(200).json({ success: success, result: convertedResults });
+    } catch (error) {
+        if (DEBUG) console.log("Error retrieving data:", error);
+        sendInternalServerError(res, error);
+    }
+});
+
 
 module.exports = router;

@@ -63,7 +63,7 @@ router.post("/predictFromPhoto/:microcontrollerId", async (req, res) => {
     let {microcontrollerId} = req.params;
     if (DEBUG) console.log("microcontroller id is", microcontrollerId);
     let {imgData} = req.body;
-
+    console.log("at the ai route");
     microcontrollerId = microcontrollerId.replace(/%20/g, ' ');
 
     //send the data over to python
@@ -114,6 +114,8 @@ router.post("/predictFromPhoto/:microcontrollerId", async (req, res) => {
     );
     if (DEBUG) console.log("plantBatchId", plantBatchId);
     // Call the function to send the POST request
+    console.log("plantBatchId", plantBatchId);
+    console.log("posting it to the python webserver");
     response = await postDataToServer();
     
     //store data in the plant batch, which are the LatestImage, expected yield
@@ -122,6 +124,14 @@ router.post("/predictFromPhoto/:microcontrollerId", async (req, res) => {
     if (DEBUG) console.log("ai output is:", aiOutput);
     let expectedCurrentYield = await aiOutput.expectedCurrentYield;
     let latestImage = await aiOutput.imgData;
+    let plantHealthStatus = await aiOutput.plantHealthStatus;
+    let lastUpdatedDateTime = new Date();
+    lastUpdatedDateTime.setHours(lastUpdatedDateTime.getHours() + 8);
+    lastUpdatedDateTime = lastUpdatedDateTime.toISOString();
+    if(latestImage === undefined){
+      let error = "undefined image sent from the AI server";
+      return sendInternalServerError(res, error);
+    }
     let bufferData;
     if (latestImage) {
         // Convert base64 to buffer
@@ -142,12 +152,17 @@ router.post("/predictFromPhoto/:microcontrollerId", async (req, res) => {
     if (DEBUG) console.log("Latest image is ", latestImage);
     if (DEBUG) console.log("Microcontrollr id is ", microcontrollerId);
     //write all the data into the database
-    success = mysqlLogic.insertLatestImagesAndExpectedCurrentYieldIntoPlantbatch(plantBatchId,expectedCurrentYield, bufferData);
+    try{
+    success = mysqlLogic.insertLatestImagesAndExpectedCurrentYieldIntoPlantbatch(plantBatchId,expectedCurrentYield, bufferData,plantHealthStatus,lastUpdatedDateTime);
+    } catch (error){
+      console.log("Error encountered", error);
+      sendInternalServerError(res, error);
+    }
     if (DEBUG) console.log("storage is successful");
     res.status(201).json({ success: success, message: "AI training complete and result stored." });
     return;
   }catch(error){
-    if (DEBUG) console.log("Error encountered", error);
+    console.log("Error encountered", error);
     sendInternalServerError(res, error);
     return;
   }});
