@@ -23,10 +23,10 @@ router.post("/insertData/:microcontrollerId", (req, res) => {
       .slice(0, 19)
       .replace("T", " ");
     dateTime = formattedDateTime.toString();
-    console.log("dateTime is" + dateTime);
+    if (DEBUG) console.log("dateTime is" + dateTime);
     const { temperature, humidity, brightness } = req.body;
     const { microcontrollerId } = req.params;
-    console.log("data has been retrieved");
+    if (DEBUG) console.log("data has been retrieved");
   } catch (error) {
     sendBadRequestResponse(res);
   }
@@ -44,7 +44,7 @@ router.post("/insertData/:microcontrollerId", (req, res) => {
     );
     res.status(201).send("Data inserted successfully" + dateTime);
   } catch (error) {
-    console.log(error);
+    if (DEBUG) console.log(error);
     sendInternalServerError(res);
   }
 });
@@ -59,7 +59,7 @@ router.get("/retrieveData/:microcontroller", async (req, res) => {
     );
     res.status(200).json(sensorData);
   } catch (error) {
-    console.log(error);
+    if (DEBUG) console.log(error);
     sendInternalServerError(res);
   }
 });
@@ -70,7 +70,7 @@ router.get("/retrieveData", async (req, res) => {
     const sensorData = await sqlite.getAllSensorData(db);
     res.status(200).json(sensorData);
   } catch (error) {
-    console.log(error);
+    if (DEBUG) console.log(error);
     sendInternalServerError(res);
   }
 });

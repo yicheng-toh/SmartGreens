@@ -1,14 +1,14 @@
-const {app} = require("./app.js");
-
+const { app } = require("./app.js");
+const { DEBUG } = require("./env.js");
 
 const port = 3000;
 
 //Run Server
-try{
+try {
   app.listen(port, "0.0.0.0", () => {
     console.log(`Server is listening at http://localhost:${port}`);
   });
-} catch (error){
+} catch (error) {
   console.log("Unable to start up the app");
   console.log(error);
 }

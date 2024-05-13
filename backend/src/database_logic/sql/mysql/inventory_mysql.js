@@ -1,5 +1,4 @@
-
-
+const{ DEBUG } = require("../../../env.js");
 const {dbConnection} = require("./mysql.js");
 
 //insertNewInventoryObject
@@ -12,22 +11,22 @@ async function insertNewInventoryObject(itemName, quantity, units, location){
 //verifyInventoryIdExist
 async function verifyInventoryIdExist(inventoryId){
     const inventoryIdList = await dbConnection.promise().query('SELECT * FROM Inventory WHERE InventoryId = ?', inventoryId);
-    // console.log(inventoryIdList);
+    // if (DEBUG) console.log(inventoryIdList);
     return inventoryIdList[0].length;
 }
 
 //updateInventoryQuantity TODO!!!paused here.
 async function updateInventoryQuantity(inventoryId, quantityChange){
     const currentQuantityQueryResult = await dbConnection.promise().query('SELECT * FROM Inventory WHERE InventoryID = ?', inventoryId);
-    // console.log(currentQuantityQueryResult);
+    // if (DEBUG) console.log(currentQuantityQueryResult);
     const currentQuantity = currentQuantityQueryResult[0][0].Quantity;
     const newQuantity = currentQuantity + quantityChange;
     if (newQuantity<0){
         throw new Error(`There are insufficient ${currentQuantityQueryResult[0][0].InventoryName}`);
         return;
     }
-    // console.log(currentQuantity);
-    // console.log("new quatity", newQuantity);
+    // if (DEBUG) console.log(currentQuantity);
+    // if (DEBUG) console.log("new quatity", newQuantity);
     await dbConnection.execute('UPDATE Inventory SET quantity = ? WHERE InventoryId = ?;', [newQuantity, inventoryId]);
     return 1;
 }
@@ -56,22 +55,22 @@ async function insertNewInventoryObject2(id, itemName, quantity, units=null, loc
 //verifyInventoryIdExist
 async function verifyInventoryIdExist2(inventoryId){
     const inventoryIdList = await dbConnection.promise().query('SELECT * FROM Inventory2 WHERE id = ?', inventoryId);
-    // console.log(inventoryIdList);
+    // if (DEBUG) console.log(inventoryIdList);
     return inventoryIdList[0].length;
 }
 
 //updateInventoryQuantity TODO!!!paused here.
 async function updateInventoryQuantity2(inventoryId, quantityChange){
     const currentQuantityQueryResult = await dbConnection.promise().query('SELECT * FROM Inventory2 WHERE id = ?', inventoryId);
-    // console.log(currentQuantityQueryResult);
+    // if (DEBUG) console.log(currentQuantityQueryResult);
     const currentQuantity = currentQuantityQueryResult[0][0].quantity;
     const newQuantity = currentQuantity + quantityChange;
     if (newQuantity<0){
         throw new Error(`There are insufficient ${currentQuantityQueryResult[0][0].item}`);
         return;
     }
-    // console.log(currentQuantity);
-    // console.log("new quatity", newQuantity);
+    // if (DEBUG) console.log(currentQuantity);
+    // if (DEBUG) console.log("new quatity", newQuantity);
     await dbConnection.execute('UPDATE Inventory2 SET quantity = ? WHERE item = ?;', [newQuantity, inventoryId]);
     return 1;
 }
@@ -89,8 +88,8 @@ async function deleteInventoryObject2(inventoryId){
 //getAllInventoryData
 async function getAllInventoryData2(){
     let result = await dbConnection.promise().query('SELECT * FROM Inventory2');
-    console.log(result);
-    console.log(result[0]);
+    if (DEBUG) console.log(result);
+    if (DEBUG) console.log(result[0]);
     return result[0];
 }
 

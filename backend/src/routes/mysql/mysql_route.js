@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../env.js");
 const { json } = require("express");
 const express = require("express");
 const mysqlLogic = require("../../database_logic/sql/sql.js")
@@ -8,7 +9,7 @@ const {sendBadRequestResponse, sendInternalServerError} = require("../request_er
 router.use(json());
 
 const PLANTBATCH = 1
-// console.log(`mysqllogic is ${JSON.stringify(mysqlLogic, null, 2)}`);
+// if (DEBUG) console.log(`mysqllogic is ${JSON.stringify(mysqlLogic, null, 2)}`);
 
 // Inserts data into sqlite database.
 // This is determined by the microcontroller id
@@ -29,7 +30,7 @@ router.post('/insertData/:microcontrollerId', async (req, res) => {
       await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
       res.status(201).send('Data inserted successfully');
     } catch (error) {
-      console.log('Error inserting data:', error);
+      if (DEBUG) console.log('Error inserting data:', error);
       sendInternalServerError(res);
     }
   } catch (error) {
@@ -45,7 +46,7 @@ router.get('/retrieveData', async(req, res) => {
     const [rows] = await mysqlLogic.getAllSensorData();
     res.json(rows);
   } catch (error) {
-    console.log('Error retrieving data:', error);
+    if (DEBUG) console.log('Error retrieving data:', error);
     sendInternalServerError(res);
   }
   });
@@ -57,7 +58,7 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
     const [rows] = await mysqlLogic.getSensorDataByMicrocontrollerId(microcontrollerId);    
     res.status(200).json(rows);
   } catch (error) {
-    console.log('Error retrieving data:', error);
+    if (DEBUG) console.log('Error retrieving data:', error);
     sendInternalServerError(res);
   }
   });
@@ -67,12 +68,12 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
 //      // Initialize the SQLite database connection
 //      const db = new sqlite3.Database('mydatabase.db', sqlite3.OPEN_READWRITE,(err) => {
 //         if (err) {
-//           console.log('Error connecting to the SQLite database:', err);
+//           if (DEBUG) console.log('Error connecting to the SQLite database:', err);
 //         } else {
-//           console.log('Connected to the SQLite database');
+//           if (DEBUG) console.log('Connected to the SQLite database');
 //         }
 //       });
-//     console.log("Initialising table");
+//     if (DEBUG) console.log("Initialising table");
 //     db.run(`
 //         CREATE TABLE IF NOT EXISTS SensorDetail (
 //         dateTime DATETIME,
@@ -96,8 +97,8 @@ router.post('/', async (req, res) => {
   const currentDateTime = new Date();
   const formattedDateTime = currentDateTime.toISOString().slice(0, 19).replace('T', ' ');
   const dateTime = formattedDateTime.toString();
-  console.log("");
-  console.log("Data has successfully been received.");
+  if (DEBUG) console.log("");
+  if (DEBUG) console.log("Data has successfully been received.");
 
   const { temperature, humidity, brightness } = req.body;
   const microcontrollerId = DEMO_MICROCONTROLLER_ID
@@ -108,7 +109,7 @@ router.post('/', async (req, res) => {
       await mysqlLogic.insertSensorValues(dateTime, microcontrollerId, plantBatch, temperature, humidity, brightness);
       res.status(201).send('Data inserted successfully');
     } catch (error) {
-      console.log('Error inserting data:', error);
+      if (DEBUG) console.log('Error inserting data:', error);
       sendInternalServerError(res);
     }
   } catch (error) {
@@ -125,7 +126,7 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
     const [rows] = await mysqlLogic.getSensorDataByMicrocontrollerId(microcontrollerId);
     res.status(200).json(rows);
   } catch (error) {
-    console.log('Error retrieving data:', error);
+    if (DEBUG) console.log('Error retrieving data:', error);
     sendInternalServerError(res);
   }
   });
@@ -147,5 +148,8 @@ router.get('/retrieveData/:microcontrollerId', async(req, res) => {
 
   const plantBatchRouter = require("./plant_batch_route.js");
   router.use("/plant", plantBatchRouter)
+
+  const aiRouter = require("./ai_route.js");
+  router.use("/ai", aiRouter);
 
 module.exports = router;

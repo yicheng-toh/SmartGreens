@@ -1,3 +1,5 @@
+const{ DEBUG } = require("../../../env.js");
+const { db } = require("../../../routes/sqlite3_route.js");
 const { dbConnection } = require("./mysql.js");
 
 //intead of microcontoller id plantbatch pair,
@@ -11,14 +13,14 @@ async function getPlantBatchIdGivenMicrocontrollerPrefix(
     WHERE MicrocontrollerId = ?`,
     [microcontrollerIdPrefix]
   );
-  //   console.log("rows is rows", rows);
+  //   if (DEBUG) console.log("rows is rows", rows);
   //   let queryResult = rows;
-  console.log("query resutl ist", queryResult);
-  console.log(queryResult[0]);
+  if (DEBUG) console.log("query resutl ist", queryResult);
+  if (DEBUG) console.log(queryResult[0]);
   if (queryResult[0].length) {
-    console.log(queryResult);
-    console.log(queryResult[0]);
-    return queryResult[0][0];
+    if (DEBUG) console.log(queryResult);
+    if (DEBUG) console.log(queryResult[0]);
+    return queryResult[0][0].PlantBatchId;
   }
   // return -1;
   //to change it back later
@@ -45,12 +47,12 @@ async function shouldUpdateExisingSensorReadings(
       micrcontrolleridPrefix,
       minutes,
     ]);
-  console.log("queryResult is", queryResult);
+  if (DEBUG) console.log("queryResult is", queryResult);
   if (queryResult == undefined) {
     return shouldUpdate;
   }
   let [rows] = queryResult[0];
-  console.log("rows is", rows);
+  if (DEBUG) console.log("rows is", rows);
   if (!rows) {
     return shouldUpdate;
   }
@@ -58,14 +60,14 @@ async function shouldUpdateExisingSensorReadings(
     if (rows.temperature == null && rows.pH != null) {
       shouldUpdate = true;
     }
-    console.log("rows.temperature is", rows.temperature);
-    console.log("rows.pH is ", rows.pH);
+    if (DEBUG) console.log("rows.temperature is", rows.temperature);
+    if (DEBUG) console.log("rows.pH is ", rows.pH);
   } else if (microcontrollerIdSuffix == 2) {
     if (rows.pH == null && rows.temperature != null) {
       shouldUpdate = true;
     }
-    console.log("rows.pH is ", rows.pH);
-    console.log("rows.temperature is", rows.temperature);
+    if (DEBUG) console.log("rows.pH is ", rows.pH);
+    if (DEBUG) console.log("rows.temperature is", rows.temperature);
   }
   return shouldUpdate;
 }
@@ -85,9 +87,9 @@ async function insertSensorValuesSuffix1(
     microcontrollerIdPrefix,
     microcontrollerIdSuffix
   );
-  console.log("should update is", shouldUpdate);
-  console.log("Insert data suffix1 shouldUpdate:", shouldUpdate);
-  console.log("mc id previx is", microcontrollerIdPrefix);
+  if (DEBUG) console.log("should update is", shouldUpdate);
+  if (DEBUG) console.log("Insert data suffix1 shouldUpdate:", shouldUpdate);
+  if (DEBUG) console.log("mc id previx is", microcontrollerIdPrefix);
   if (shouldUpdate) {
     await dbConnection.execute(
       `
@@ -141,12 +143,12 @@ async function insertSensorValuesSuffix2(
   EC,
   TDS
 ) {
-  console.log("Currently in insertSensorValuesSuffix2");
+  if (DEBUG) console.log("Currently in insertSensorValuesSuffix2");
   let shouldUpdate = await shouldUpdateExisingSensorReadings(
     microcontrollerIdPrefix,
     microcontrollerIdSuffix
   );
-  console.log("should update", shouldUpdate);
+  if (DEBUG) console.log("should update", shouldUpdate);
   if (shouldUpdate) {
     await dbConnection.execute(
       `
@@ -348,7 +350,6 @@ WHERE
   return queryResult[0];
 }
 
-
 async function getActivePlantBatchSensorDataXDaysAgo(x) {
   const sqlQuery = `
     SELECT 
@@ -402,7 +403,7 @@ async function getActivePlantBatchSensorDataXDaysAgo(x) {
   return queryResult[0];
 }
 
-async function getLatestActivePlantBatchSensorData(){
+async function getLatestActivePlantBatchSensorData() {
   const sqlQuery = `
   WITH LatestEntries AS (
     SELECT 
@@ -493,26 +494,150 @@ WHERE
   `;
   const queryResult = await dbConnection.promise().query(sqlQuery);
   return queryResult[0];
-
 }
 
-async function getAvailableExisitingMicrocontroller(){
+async function getAvailableExisitingMicrocontroller() {
   sqlQuery = `
   SELECT MicrocontrollerId 
   FROM MicrocontrollerPlantBatchPair 
   WHERE PlantBatchId IS NULL;
-  `
+  `;
   const queryResult = await dbConnection.promise().query(sqlQuery);
   return queryResult[0];
+}
+
+async function insertNewMicrocontroller(microcontollerId) {
+  try {
+    sqlQuery = `INSERT INTO MicrocontrollerPlantBatchPair (MicrocontrollerId) VALUES (?)`;
+    await dbConnection.execute(sqlQuery, [microcontollerId]);
+    return 1;
+  } catch (error) {
+    if (DEBUG) console.log("Error inserting microcontroller id:", error);
+    throw error;
+  }
+}
+
+async function verifyMicrocontrollerIdValidForDeletion(microcontrollerId) {
+  if (DEBUG) console.log("Currently executiong verifyMicrocontrollerIdValidForDeletion");
+  let sqlQuery = `SELECT * FROM MicrocontrollerPlantBatchPair WHERE PlantBatchId is NULL AND MicrocontrollerId = ?;`;
+  let microcontrollerIdList = await dbConnection
+    .promise()
+    .query(sqlQuery, [microcontrollerId]);
+  if (DEBUG) console.log("verifyMicrocontrollerIdValidForDeletion", microcontrollerIdList);
+  if (DEBUG) console.log(
+    "verifyMicrocontrollerIdValidForDeletion",
+    microcontrollerIdList[0]
+  );
+  return microcontrollerIdList[0].length;
+}
+
+async function deleteMicrocontroller(micrcontrollerId) {
+  try {
+    sqlQuery = `DELETE FROM MicrocontrollerPlantBatchPair WHERE MicrocontrollerId = ?;`;
+    await dbConnection.execute(sqlQuery, [micrcontrollerId]);
+    return 1;
+  } catch (error) {
+    if (DEBUG) console.log("Error encountered when deleting microcontroller", error);
+    throw error;
+  }
+}
+
+async function verifyCurrentAndNewMicrocontrollerIdValid(
+  currentMicrocontrollerId,
+  newMicrocontrollerId
+) {
+  try {
+    const currentMicrocontrollerIdSQLQuery = `
+  SELECT * FROM MicrocontrollerPlantBatchPair 
+  WHERE 
+  MicrocontrollerId = ? AND PlantBatchId is NOT NULL`;
+    const newMicrocontrollerIdSQLQuery = `
+  SELECT * FROM MicrocontrollerPlantBatchPair 
+  WHERE 
+  MicrocontrollerId = ? AND PlantBatchId is NULL`;
+
+    let currentMicrocontrollerIdList = await dbConnection
+      .promise()
+      .query(currentMicrocontrollerIdSQLQuery, [currentMicrocontrollerId]);
+    let newMicrocontrollerIdList = await dbConnection
+      .promise()
+      .query(newMicrocontrollerIdSQLQuery, [newMicrocontrollerId]);
+    if (DEBUG) console.log("Verifying current and new microcontroller id", currentMicrocontrollerIdList[0], newMicrocontrollerIdList[0]);
+    if (
+      currentMicrocontrollerIdList[0].length &&
+      newMicrocontrollerIdList[0].length
+    ) {
+      return 1;
+    }
+    return 0;
+  } catch (error) {
+    if (DEBUG) console.log(
+      "Error encoutered at verifying current and new microcontroller:",
+      error
+    );
+    throw error;
+  }
+}
+
+async function updateCurrentMicrocontrollerForNewMicrocontroller(currentMicrocontrollerId, newMicrocontrollerId){
+  try{
+    let updateCurrentMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = ? WHERE MicrocontrollerId = ? AND PlantBatchId is not NULL`;
+    let updateNewMicrocontrollerIdQuery = `UPDATE MicrocontrollerPlantBatchPair SET MicrocontrollerId = ? WHERE MicrocontrollerId = ? AND PlantBatchId is NULL`;
+    await dbConnection.execute(updateCurrentMicrocontrollerIdQuery,[newMicrocontrollerId, currentMicrocontrollerId]);
+    await dbConnection.execute(updateNewMicrocontrollerIdQuery,[currentMicrocontrollerId, newMicrocontrollerId]);
+    return 1;
+
+  }catch(error){
+    if (DEBUG) console.log("Encountered error in updating current for new microcontroller: ", error);
+    throw error;
+  }
+}
+
+async function getActivePlantBatchSensorDataTrial() {
+  const sensorDataSqlQuery = `
+  SELECT 
+    sr.Datetime,
+    sr.MicrocontrollerID,
+    sr.PlantBatchId,
+    pb.PlantId,
+    pi.PlantName,
+    sr.Temperature,
+    sr.Humidity,
+    sr.Brightness,
+    sr.pH,
+    sr.CO2,
+    sr.EC,
+    sr.TDS
+FROM 
+    SensorReadings sr
+LEFT JOIN 
+    PlantBatch pb ON sr.PlantBatchId = pb.PlantBatchId
+LEFT JOIN
+    PlantInfo pi ON pb.PlantId = pi.PlantId
+WHERE 
+    pb.DatePlanted IS NOT NULL AND pb.DateHarvested IS NULL;
+    `;
+  const plantSensorInfoSqlQuery = `SELECT * from PlantSensorInfo;`;
+  const sensorDataQueryResult = await dbConnection.promise().query(sensorDataSqlQuery);
+  const plantSensorInfoQueryResult = await dbConnection.promise().query(plantSensorInfoSqlQuery);
+  return {"sensorData": sensorDataQueryResult[0], "plantSensorInfo": plantSensorInfoQueryResult[0]};
 }
 
 module.exports = {
   getAllSensorData: getAllSensorData, //getAllSensorData2 does not work.
   getPlantBatchIdGivenMicrocontrollerPrefix,
-  insertSensorValuesSuffix1,
-  insertSensorValuesSuffix2,
   getActivePlantBatchSensorData,
   getActivePlantBatchSensorDataXDaysAgo,
   getLatestActivePlantBatchSensorData,
   getAvailableExisitingMicrocontroller,
+  deleteMicrocontroller,
+  insertSensorValuesSuffix1,
+  insertSensorValuesSuffix2,
+  insertNewMicrocontroller,
+  updateCurrentMicrocontrollerForNewMicrocontroller,
+  verifyMicrocontrollerIdValidForDeletion,
+  verifyCurrentAndNewMicrocontrollerIdValid,
+  //trial function here
+  getActivePlantBatchSensorDataTrial,
+
 };

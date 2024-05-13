@@ -1,6 +1,6 @@
 const mysql = require("mysql2");
 // const mssql = require("mssql");
-const {DEPLOYMENT, MYSQL, DOCKER, MSSQL} = require("../../../env.js");
+const {DEPLOYMENT, MYSQL, DOCKER, MSSQL, DEBUG} = require("../../../env.js");
 const fs = require('fs');
 // import modular sql function.
 
@@ -38,7 +38,7 @@ if (DOCKER){
 //     });
 //     request = dbConnection.request();
 // }else if (MSSQL){
-//   console.log("executing a very important mssql init data");
+//   if (DEBUG) console.log("executing a very important mssql init data");
 //   dbConnection = mysql.createConnection({
 //     host: MYSQL.HOST,
 //     user: MYSQL.USER,
@@ -59,10 +59,10 @@ if (DOCKER){
 
 //     dbConnection.connect((err) => {
 //       if (err) {
-//         console.log('Error connecting to local MySQL database:', err);
+//         if (DEBUG) console.log('Error connecting to local MySQL database:', err);
 //         return;
 //       }
-//       console.log('Connected to local MySQL database');
+//       if (DEBUG) console.log('Connected to local MySQL database');
 //     });
 
 } else {

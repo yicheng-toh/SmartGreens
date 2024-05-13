@@ -1,5 +1,5 @@
 const sqlite3 = require("sqlite3");
-const { DEPLOYMENT } = require("../../env.js");
+const { DEPLOYMENT, DEBUG } = require("../../env.js");
 // const { router } = require("../routes/sqlite3_route");
 // const { sendInternalServerError } = require("./request_error_messages");
 
@@ -18,9 +18,9 @@ function initialiseSqlite3() {
   // TODO : to ensure that all the errors are caught.
   const db = new sqlite3.Database(sqliteFile, sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
-      console.log("Error connecting to the SQLite database:", err);
+      if (DEBUG) console.log("Error connecting to the SQLite database:", err);
     } else {
-      console.log("Connected to the SQLite database");
+      if (DEBUG) console.log("Connected to the SQLite database");
     }
   });
 
@@ -30,7 +30,7 @@ function initialiseSqlite3() {
 function createTableIfNotExists(db) {
   // Initialize the SQLite database connection
   // TODO : to ensure that all the errors are caught.
-  console.log("Initialising table");
+  if (DEBUG) console.log("Initialising table");
   db.run(`
         CREATE TABLE IF NOT EXISTS SensorDetail (
         dateTime DATETIME,
@@ -67,7 +67,7 @@ const getSensorDataByMicrocontrollerId = (microcontrollerId, db) => {
       microcontrollerId,
       (err, rows) => {
         if (err) {
-          console.log("Error retrieving data:", err);
+          if (DEBUG) console.log("Error retrieving data:", err);
           reject(err);
         } else {
           resolve(rows);
@@ -81,7 +81,7 @@ const getAllSensorData = (db) => {
   return new Promise((resolve, reject) => {
     db.all("SELECT * FROM SensorDetail", (err, rows) => {
       if (err) {
-        console.log("Error retrieving data:", err);
+        if (DEBUG) console.log("Error retrieving data:", err);
         reject(err);
       } else {
         resolve(rows);

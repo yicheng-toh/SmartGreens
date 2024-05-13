@@ -9,7 +9,7 @@ const {DEPLOYMENT, MYSQL, DOCKER, MSSQL} = require("../../env.js");
 // }else if (!DEPLOYMENT){
 //   dbDetails = require("../../yc_data_test.js");
 // }
-// console.log(`mssql is ${MSSQL}`);
+// if (DEBUG) console.log(`mssql is ${MSSQL}`);
 let dbConnection,insertSensorValues,getSensorDataByMicrocontrollerId,getAllSensorData,initialiseMySQL, dropAllTableMySQL;
 if(MSSQL){
 // if(false){
@@ -21,7 +21,7 @@ if(MSSQL){
     // (dbConnection = require("./azure_mysql.js"));
     // ({insertSensorValues,getSensorDataByMicrocontrollerId,getAllSensorData,initialiseMySQL} = dbConnection);
     // // initialiseMySQL = dbConnection.initialiseMySQL;
-    // console.log(initialiseMySQL);
+    // if (DEBUG) console.log(initialiseMySQL);
     // module.exports = dbConnection;
     // ({dbConnection} = require("./mssql/mssql.js"));
     ({createDbConnection} = require("./mssql/mssql.js"));
@@ -32,6 +32,7 @@ if(MSSQL){
     const calendarLogic = require("./mssql/calendar_mssql.js");
     const inventoryLogic = require("./mssql/inventory_mssql.js");
     const energyConsumptionLogic = require("./mssql/energy_consumption_mssql.js");
+    const aiLogic = require("./mssql/ai_mssql.js");
     module.exports = {
       dbConnection,
       insertSensorValues,
@@ -45,6 +46,7 @@ if(MSSQL){
       ...calendarLogic,
       ...inventoryLogic,
       ...energyConsumptionLogic,
+      ...aiLogic,
     };
 }else{
   //import dbConnection from one file and then funtions from another file.
@@ -56,6 +58,7 @@ if(MSSQL){
     const calendarLogic = require("./mysql/calendar_mysql.js");
     const inventoryLogic = require("./mysql/inventory_mysql.js");
     const energyConsumptionLogic = require("./mysql/energy_consumption_mysql.js");
+    const aiLogic = require("./mysql/ai_mysql.js");
     module.exports = {
       dbConnection,
       insertSensorValues,
@@ -69,6 +72,8 @@ if(MSSQL){
       ...calendarLogic,
       ...inventoryLogic,
       ...energyConsumptionLogic,
+      ...aiLogic,
+      
     };
 }
 
