@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../../env.js");
 const {dbConnection} = require("./mysql.js");
 
 // Function to create the BASESENSOR table if it doesn't exist
@@ -38,9 +39,9 @@ const {dbConnection} = require("./mysql.js");
 //       await dbConnection.execute(createSensorDetailTable);
 //       // await dbConnection.execute(createMicrocontrollerLocationTable);
 //       await dbConnection.execute(createPlantBatchTable);
-//       // console.log("Tables created or already exists.");
+//       // if (DEBUG) console.log("Tables created or already exists.");
 //     } catch (error) {
-//       console.log("Error creating table:", error);
+//       if (DEBUG) console.log("Error creating table:", error);
 //     }
 //   }
   
@@ -74,7 +75,7 @@ const {dbConnection} = require("./mysql.js");
 //             plantID INT,
 //             plantLocation INT,
 //             quantityPlanted INT,
-//             quantityHarvested INT
+//             weightHarvested INT
 //             )
 //        `
 //       const createInventoryTable = `
@@ -146,9 +147,9 @@ const {dbConnection} = require("./mysql.js");
 //       await dbConnection.execute(createRemindersTable);
 //       // await dbConnection.execute(createMicrocontrollerLocationTable);
 //       // await dbConnection.execute(createPlantBatchTable);
-//       // console.log("Tables created or already exists.");
+//       // if (DEBUG) console.log("Tables created or already exists.");
 //     } catch (error) {
-//       console.log("Error creating table:", error);
+//       if (DEBUG) console.log("Error creating table:", error);
 //     }
 //   }
 
@@ -182,7 +183,7 @@ const {dbConnection} = require("./mysql.js");
             PlantId INT NOT NULL,
             PlantLocation VARCHAR(255),
             QuantityPlanted INT,
-            QuantityHarvested INT,
+            WeightHarvested INT,
             DatePlanted datetime NOT NULL,
             DateHarvested datetime
             )
@@ -213,7 +214,7 @@ const {dbConnection} = require("./mysql.js");
           SensorsRanges INT,
           DaysToMature INT,
           CurrentSeedInventory INT DEFAULT 0,
-          TotalQuantityHarvested INT DEFAULT 0,
+          TotalWeightHarvested INT DEFAULT 0,
           TotalHarvestSold INT DEFAULT 0,
           TotalHarvestDiscarded INT DEFAULT 0
       );
@@ -304,9 +305,9 @@ const {dbConnection} = require("./mysql.js");
       await dbConnection.execute(createEnergyConsumingDevicesTable);
       // await dbConnection.execute(createMicrocontrollerLocationTable);
       // await dbConnection.execute(createPlantBatchTable);
-      // console.log("Tables created or already exists.");
+      // if (DEBUG) console.log("Tables created or already exists.");
     } catch (error) {
-      console.log("Error creating table:", error);
+      if (DEBUG) console.log("Error creating table:", error);
     }
   }
   
@@ -323,8 +324,8 @@ const {dbConnection} = require("./mysql.js");
   
   // async function getAllSensorData(){
   //   queryResult = await dbConnection.promise().query('SELECT * FROM SensorDetail');
-  //   // console.log("hahahahha");
-  //   // console.log(queryResult);
+  //   // if (DEBUG) console.log("hahahahha");
+  //   // if (DEBUG) console.log(queryResult);
   //   return queryResult;
   // }
   // Reassign more meaningful function name

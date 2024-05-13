@@ -1,3 +1,4 @@
+const{ DEBUG } = require("../../../env.js");
 const sql = require("mssql");
 // const {config} = require("./config.js");
 const {config} = require("../../../env.js");
@@ -10,22 +11,22 @@ class Database {
 
   constructor(config) {
     this.config = config;
-    console.log(`Database: config: ${JSON.stringify(config)}`);
+    if (DEBUG) console.log(`Database: config: ${JSON.stringify(config)}`);
   }
 
   async connect() {
     try {
-      console.log(`Database connecting...${this.connected}`);
+      if (DEBUG) console.log(`Database connecting...${this.connected}`);
       if (this.connected === false) {
         this.poolconnection = await sql.connect(this.config);
         this.connected = true;
-        console.log('Database connection successful');
+        if (DEBUG) console.log('Database connection successful');
       } else {
-        console.log('Database already connected');
+        if (DEBUG) console.log('Database already connected');
       }
     } catch (error) {
-      console.log(error);
-      console.log(`Error connecting to database: ${JSON.stringify(error)}`);
+      if (DEBUG) console.log(error);
+      if (DEBUG) console.log(`Error connecting to database: ${JSON.stringify(error)}`);
     }
     return await this.poolconnection.request();
   }
@@ -33,9 +34,9 @@ class Database {
   async disconnect() {
     try {
       this.poolconnection.close();
-      console.log('Database connection closed');
+      if (DEBUG) console.log('Database connection closed');
     } catch (error) {
-      console.log(`Error closing database connection: ${error}`);
+      if (DEBUG) console.log(`Error closing database connection: ${error}`);
     }
   }
 

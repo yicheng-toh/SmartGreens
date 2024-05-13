@@ -1,12 +1,14 @@
+const{ DEBUG } = require("../../env.js");
 const { json } = require("express");
 const express = require("express");
 const router = express.Router();
 const {
-  sendBadRequestResponse,
-  sendInternalServerError,
+    sendBadRequestResponse,
+    sendInternalServerError,
 } = require("../request_error_messages.js");
 const mysqlLogic = require("../../database_logic/sql/sql.js");
 const errorCode = require("./error_code.js");
+const { appendStatusToPlantBatchInfoAndYield, groupSensorDataByPlantBatchId, appendStatusToLatestSensorReadings, retrySQLQueryFiveTimes } = require("../../misc_function.js");
 
 router.use(json());
 /**
@@ -32,16 +34,22 @@ router.use(json());
  *               plantBatchId:
  *                 example: 1
  *                 type: integer
+ *               plantId:
+ *                 example: 1
+ *                 type: integer
  *               datePlanted:
  *                 type: string
  *                 format: date-time
  *               quantityPlanted:
  *                 type: integer
- *               quantityHarvested:
+ *               weightHarvested:
  *                 type: integer
  *               dateHarvested:
  *                 type: string
  *                 format: date-time
+ *               location:
+ *                 type: string
+ *                 example: "shelf A"
  *     responses:
  *       '200':
  *         description: Success response
@@ -65,90 +73,104 @@ router.use(json());
  *                   type: string
  */
 router.post("/editPlantBatchDetails", async (req, res) => {
-  try {
-    let success = 0;
-    let {
-      plantBatchId,
-      datePlanted,
-      quantityPlanted,
-      quantityHarvested,
-      dateHarvested,
-    } = req.body;
-    if (plantBatchId === undefined || isNaN(parseInt(plantBatchId))) {
-      sendInternalServerError(res, "Plant Batch Id is invalid.");
-      return;
-    }
-    if (quantityPlanted === undefined || isNaN(parseInt(quantityPlanted))) {
-      sendInternalServerError(res, "Quantity Planted is invalid.");
-      return;
-    }
-    if (datePlanted === undefined) {
-      // const plantBatchId = -1;
-      datePlanted = new Date();
-      // console.log(currentUTCDateTime);
-      datePlanted.setHours(datePlanted.getHours() + 8); //GMT + 8
-      datePlanted = datePlanted.toISOString;
-    }
-    let formattedDateTimePlanted = datePlanted.slice(0, 19).replace("T", " ");
+    try {
+        let success = 0;
+        let {
+            plantBatchId,
+            plantId,
+            datePlanted,
+            quantityPlanted,
+            weightHarvested,
+            dateHarvested,
+            location
+        } = req.body;
+        if (plantBatchId === undefined || isNaN(parseInt(plantBatchId))) {
+            sendInternalServerError(res, "Plant Batch Id is invalid.");
+            return;
+        }
+        if (plantId === undefined || isNaN(parseInt(plantId))) {
+            sendInternalServerError(res, "Plant Id is invalid.");
+            return;
+        }
+        if (quantityPlanted === undefined || isNaN(parseInt(quantityPlanted))) {
+            sendInternalServerError(res, "Quantity Planted is invalid.");
+            return;
+        }
+        if (datePlanted === undefined) {
+            // const plantBatchId = -1;
+            datePlanted = new Date();
+            // if (DEBUG) console.log(currentUTCDateTime);
+            datePlanted.setHours(datePlanted.getHours() + 8); //GMT + 8
+            datePlanted = datePlanted.toISOString;
+        }
+        if (location === undefined || !location.trim().length) {
+            sendInternalServerError(res, "Invalid Location");
+            return;
+        }
+        let formattedDateTimePlanted = datePlanted.slice(0, 19).replace("T", " ");
 
-    let isPlantBatchGrowing =
-      await mysqlLogic.verifyPlantBatchIsGrowing(plantBatchId);
-      console.log("isPlantBatchGrowing", isPlantBatchGrowing);
-    if (isPlantBatchGrowing) {
-        console.log("plantbatch", plantBatchId, "is growing");
-      //edit the entries' date planted and quantity plamted
-      success = await mysqlLogic.updateGrowingPlantBatchDetails(
-        plantBatchId,
-        formattedDateTimePlanted,
-        quantityPlanted
-      );
-    } else {
-        console.log("plantbatch", plantBatchId, "is harvested");
-      //check the edit entries
-      if (
-        quantityHarvested === undefined ||
-        isNaN(parseInt(quantityHarvested))
-      ) {
-        sendInternalServerError(res, "Quantity Harvested is invalid.");
-        return;
-      }
-      if (dateHarvested === undefined) {
-        dateHarvested = new Date();
-        // console.log(currentUTCDateTime);
-        dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
-        dateHarvested = dateHarvested.toISOString;
-      }
+        let isPlantBatchGrowing =
+            await mysqlLogic.verifyPlantBatchIsGrowing(plantBatchId);
+        if (DEBUG) console.log("isPlantBatchGrowing", isPlantBatchGrowing);
+        if (isPlantBatchGrowing) {
+            if (DEBUG) console.log("plantbatch", plantBatchId, "is growing");
+            //edit the entries' date planted and quantity plamted
+            success = await mysqlLogic.updateGrowingPlantBatchDetails(
+                plantBatchId,
+                plantId,
+                formattedDateTimePlanted,
+                quantityPlanted,
+                location
+            );
+        } else {
+            if (DEBUG) console.log("plantbatch", plantBatchId, "is harvested");
+            //check the edit entries
+            if (
+                weightHarvested === undefined ||
+                isNaN(parseFloat(weightHarvested))
+            ) {
+                sendInternalServerError(res, "Weight Harvested is invalid.");
+                return;
+            }
+            if (dateHarvested === undefined) {
+                dateHarvested = new Date();
+                // if (DEBUG) console.log(currentUTCDateTime);
+                dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
+                dateHarvested = dateHarvested.toISOString;
+            }
 
-      let formattedDateTimeHarvested = dateHarvested
-        .slice(0, 19)
-        .replace("T", " ");
-      if (
-        new Date(formattedDateTimeHarvested) <
-        new Date(formattedDateTimePlanted)
-      ) {
-        sendInternalServerError(
-          res,
-          "Date harvested cannot be earlier than date planted"
-        );
-        return;
-      }
-      //get the date planted time.
-      let success = await mysqlLogic.updateHarvestedPlantBatchDetails(
-        plantBatchId,
-        formattedDateTimePlanted,
-        quantityPlanted,
-        formattedDateTimeHarvested,
-        quantityHarvested
-      );
+            let formattedDateTimeHarvested = dateHarvested
+                .slice(0, 19)
+                .replace("T", " ");
+            if (
+                new Date(formattedDateTimeHarvested) <
+                new Date(formattedDateTimePlanted)
+            ) {
+                sendInternalServerError(
+                    res,
+                    "Date harvested cannot be earlier than date planted"
+                );
+                return;
+            }
+            //get the date planted time.
+            success = await mysqlLogic.updateHarvestedPlantBatchDetails(
+                plantBatchId,
+                plantId,
+                formattedDateTimePlanted,
+                quantityPlanted,
+                formattedDateTimeHarvested,
+                weightHarvested,
+                location
+            );
+        }
+        success = 1;
+        res
+            .status(200)
+            .json({ success: success, message: "Data inserted successfully" });
+    } catch (error) {
+        if (DEBUG) console.log("Error retrieving data:", error);
+        sendInternalServerError(res, error);
     }
-    success = 1;
-    res
-      .status(200)
-      .json({ success: success, message: "Data inserted successfully" });
-  } catch (error) {
-    console.log("Error retrieving data:", error);
-    sendInternalServerError(res, error);
-  }
 });
 
 /**
@@ -179,40 +201,41 @@ router.post("/editPlantBatchDetails", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.delete('/deletePlantBatch/:plantBatchId',async (req, res) => {
+router.delete('/deletePlantBatch/:plantBatchId', async (req, res) => {
     // try{     
-        try {
-          let success = 0;
-          const {plantBatchId} = req.params;
-          if (isNaN(parseInt(plantBatchId))){
+    try {
+        let success = 0;
+        const { plantBatchId } = req.params;
+        if (isNaN(parseInt(plantBatchId))) {
             sendInternalServerError(res, "Invalid Plant Batch Id.");
             return;
-          }
-          const isPlantBatchGrowing = await mysqlLogic.verifyPlantBatchIsGrowing(plantBatchId);
-          if(isPlantBatchGrowing){
+        }
+        const isPlantBatchGrowing = await mysqlLogic.verifyPlantBatchIsGrowing(plantBatchId);
+        console.log("deleting plant batch. isPlantBatchGrowing: ", isPlantBatchGrowing);
+        if (isPlantBatchGrowing) {
             //Harvest the plant before deleting
             dateHarvested = new Date();
             dateHarvested.setHours(dateHarvested.getHours() + 8); //GMT + 8
             dateHarvested = dateHarvested.toISOString();
-            // console.log("dateHarvested is", dateHarvested);
+            // if (DEBUG) console.log("dateHarvested is", dateHarvested);
             let formattedDateTimeHarvested = dateHarvested
-            .slice(0, 19)
-            .replace("T", " ");
-            let quantityHarvested = 0;
-            success = await mysqlLogic.harvestPlant(plantBatchId, formattedDateTimeHarvested, quantityHarvested);
-          }
-         
-          success = await mysqlLogic.deletePlantBatch(plantBatchId);
-          res.status(201).json({'success': success});
-          return;
-  
-        } catch (error) {
-          console.log('Error inserting data:', error);
-          // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
-          sendInternalServerError(res, error);
-          return;
+                .slice(0, 19)
+                .replace("T", " ");
+            let weightHarvested = 0;
+            success = await mysqlLogic.harvestPlant(plantBatchId, formattedDateTimeHarvested, weightHarvested);
         }
-  });
+
+        success = await mysqlLogic.deletePlantBatch(plantBatchId);
+        res.status(201).json({ 'success': success });
+        return;
+
+    } catch (error) {
+        if (DEBUG) console.log('Error inserting data:', error);
+        // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
+        sendInternalServerError(res, error);
+        return;
+    }
+});
 
 /**
  * @swagger
@@ -250,7 +273,7 @@ router.delete('/deletePlantBatch/:plantBatchId',async (req, res) => {
  *                       QuantityPlanted:
  *                         type: integer
  *                         description: Quantity of plants planted in the batch.
- *                       QuantityHarvested:
+ *                       WeightHarvested:
  *                         type: integer
  *                         description: Quantity of plants harvested from the batch.
  *                       DatePlanted:
@@ -295,21 +318,21 @@ router.delete('/deletePlantBatch/:plantBatchId',async (req, res) => {
  *                   description: Error message indicating the reason for the internal server error.
  */
 router.get("/allPlantBatchInfo", async (req, res) => {
-  try {
-    let success = 0;
-    const rows = await mysqlLogic.getAllPlantBatchInfo();
-    console.log(rows);
-    success = 1;
-    res.status(200).json({ success: success, result: rows });
-  } catch (error) {
-    console.log("Error retrieving data:", error);
-    sendInternalServerError(res, error);
-  }
+    try {
+        let success = 0;
+        const rows = await mysqlLogic.getAllPlantBatchInfo();
+        if (DEBUG) console.log(rows);
+        success = 1;
+        res.status(200).json({ success: success, result: rows });
+    } catch (error) {
+        if (DEBUG) console.log("Error retrieving data:", error);
+        sendInternalServerError(res, error);
+    }
 });
 
 /**
  * @swagger
- * /plant/plantBatchInfoAndYield:
+ * /plant/activePlantBatchInfoAndYield:
  *   get:
  *     summary: Get information about plant batches and their yields.
  *     tags: [PlantBatch]
@@ -327,19 +350,127 @@ router.get("/allPlantBatchInfo", async (req, res) => {
  *                   DatePlanted: "2024-01-22T12:00:00"
  *                   ExpectedHarvestDate: "2024-02-22T12:00:00"
  *                   QuantityPlanted: 100
- *                   YieldRate: 0.75
+ *                   ExpectedYield: 0.75
+ *                   Status: "Healthy"
  */
-router.get("/plantBatchInfoAndYield", async (req, res) => {
-  try {
-    let success = 0;
-    const rows = await mysqlLogic.getAllPlantBatchInfoAndYield();
-    console.log(rows);
-    success = 1;
-    res.status(200).json({ success: success, result: rows });
-  } catch (error) {
-    console.log("Error retrieving data:", error);
-    sendInternalServerError(res, error);
-  }
+router.get("/activePlantBatchInfoAndYield", async (req, res) => {
+    try {
+        let success = 0;
+        let rows;
+        rows = await retrySQLQueryFiveTimes(mysqlLogic.getActivePlantBatchInfoAndYield,[],"/activePlantBatchInfoAndYield: plantbatch data and yield:");
+        // try{
+        //     rows = await mysqlLogic.getActivePlantBatchInfoAndYield();
+        // } catch(error){
+        //     rows = await mysqlLogic.getActivePlantBatchInfoAndYield();
+        //     console.log("/activePlantBatchInfoAndYield: plantbatch data and yield:", error);
+        // }
+        if (DEBUG) console.log(rows);
+        let latestActivePlantData;
+        latestActivePlantData = await retrySQLQueryFiveTimes(mysqlLogic.getLatestActivePlantBatchSensorData,[],"/activePlantBatchInfoAndYield: sensor data for health:");
+        // try{
+        //     latestActivePlantData = await mysqlLogic.getLatestActivePlantBatchSensorData();
+        // } catch(error){
+        //     latestActivePlantData = await mysqlLogic.getLatestActivePlantBatchSensorData();
+        //     console.log("/activePlantBatchInfoAndYield: sensor data for health:", error);
+        // }
+        if (DEBUG) console.log(latestActivePlantData);
+        let activeLatestPlantDataWithStatus = null;
+        if (latestActivePlantData) {
+            // if (DEBUG) console.log(rows);
+            let groupedLatestActivePlantData = groupSensorDataByPlantBatchId(latestActivePlantData);
+            // if (DEBUG) console.log(rows);
+            activeLatestPlantDataWithStatus = appendStatusToLatestSensorReadings(groupedLatestActivePlantData);
+        }
+
+        //concatenate the 2 data together
+        //function will take in existing plantbatch and the 
+        let plantBatchInfoYieldAndStatus = appendStatusToPlantBatchInfoAndYield(rows, activeLatestPlantDataWithStatus);
+        if (DEBUG) console.log("plantBatchInfoYieldAndStatus", plantBatchInfoYieldAndStatus);
+        success = 1;
+        res.status(200).json({ success: success, result: plantBatchInfoYieldAndStatus });
+    } catch (error) {
+        if (DEBUG) console.log("Error retrieving data:", error);
+        sendInternalServerError(res, error);
+    }
 });
+
+/**
+ * @swagger
+ * /plant/allHarvestedPlantBatchInfo:
+ *   get:
+ *     summary: Get information about harvested plant batches.
+ *     tags: [PlantBatch]
+ *     responses:
+ *       200:
+ *         description: Successful response. Returns plant batch info and yield data.
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: 1
+ *               result:
+ *                 - PlantBatchId: 1
+ *                   PlantId: 123
+ *                   PlantName: "Choy Sum"
+ *                   PlantLocation: "There"
+ *                   QuantityPlanted: 1
+ *                   WeightHarvested: 1
+ *                   DatePlanted: "2024-01-22T12:00:00"
+ *                   DateHarvested: "2024-02-22T12:00:00"
+ */
+router.get("/allHarvestedPlantBatchInfo", async (req, res) => {
+    try {
+        let success = 0;
+        const rows = await mysqlLogic.getAllHarvestedPlantBatchInfo();
+        
+        success = 1;
+        res.status(200).json({ success: success, result: rows });
+    } catch (error) {
+        if (DEBUG) console.log("Error retrieving data:", error);
+        sendInternalServerError(res, error);
+    }
+});
+
+/**
+ * @swagger
+ * /plant/allActiveLatestImage:
+ *   get:
+ *     summary: Get encoded jpg string for all the latest image.
+ *     tags: [PlantBatch]
+ *     responses:
+ *       200:
+ *         description: Successful response. Returns plant batch info and yield data.
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: 1
+ *               result:
+ *                 - image: /9j/ljdsflsfsflksjflksjdlfklsdflksjdflksjdflkjlsfjlsdjflkdjflksdlfjlsdjflsdflk
+ */
+router.get("/allActiveLatestImage", async (req, res) => {
+    try {
+        let success = 0;
+        let rows;
+        rows = await retrySQLQueryFiveTimes(mysqlLogic.getAllActiveLatestImage,[],"/allActiveLatestImage") ;
+        // console.log(rows);
+        const convertedResults = rows.map(res => {
+            // Check if latestimage is not null
+            if (res.LatestImage !== null || res.LatestImage === undefined) {
+              // Convert buffer to base64 string
+              console.log(res.LatestImage);
+              const base64Data = Buffer.from(res.LatestImage, 'binary').toString('base64');
+              // Update the dictionary with base64 string
+              res.LatestImage = base64Data;
+            }
+            return res;
+          });
+        // console.log(convertedResults);
+        success = 1;
+        res.status(200).json({ success: success, result: convertedResults });
+    } catch (error) {
+        if (DEBUG) console.log("Error retrieving data:", error);
+        sendInternalServerError(res, error);
+    }
+});
+
 
 module.exports = router;

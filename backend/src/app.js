@@ -13,12 +13,16 @@ const {
   DOCKER,
   DOCUMENTATION,
   DOCKER_AZURE,
+  DEBUG
 } = require("./env.js");
+
+
 
 const SQLITE = "SQLite";
 const MYSQL = "MySQL";
 const SQLITE_MYSQL = "both";
 const MSSQL = process.env.MSSQL === "true" || false;
+const SWAGGER_VESION = "16.1.6"
 
 // const DEPLOYMENT = true; //False deployment refers to testing.
 // const DEPLOYMENT = false; //False deployment refers to testing.
@@ -30,10 +34,10 @@ let SQLITE_ROUTER_ROUTE;
 let MYSQL_ROUTER_ROUTE;
 
 if (!NOT_LOGGING) {
-  console.log("Deployment: ", DEPLOYMENT);
-  console.log("Database: ", DATABASE);
-  console.log(`docker is ${DOCKER}`);
-  console.log(`Documentation is ${DOCUMENTATION}`);
+  if (DEBUG) console.log("Deployment: ", DEPLOYMENT);
+  if (DEBUG) console.log("Database: ", DATABASE);
+  if (DEBUG) console.log(`docker is ${DOCKER}`);
+  if (DEBUG) console.log(`Documentation is ${DOCUMENTATION}`);
 }
 
 if (!DEPLOYMENT) {
@@ -63,7 +67,7 @@ if (!DEPLOYMENT) {
     SQLITE_ROUTER_ROUTE = "/sqlite3";
     MYSQL_ROUTER_ROUTE = "/mysql";
   } else {
-    console.log("Database not defined properly");
+    if (DEBUG) console.log("Database not defined properly");
   }
 }
 
@@ -87,12 +91,12 @@ app.get("/hello", async (req, res) => {
     // const result = await dbConnection
     //   .promise()
     //   .query(`SELECT * FROM BASESENSOR;`);
-    // console.log("/");
-    // console.log(result);
+    // if (DEBUG) console.log("/");
+    // if (DEBUG) console.log(result);
 
     // // Assuming globallst contains the data you want to send as JSON
     // const jsonString = JSON.stringify(globallst);
-    // console.log("JSON String:", jsonString);
+    // if (DEBUG) console.log("JSON String:", jsonString);
     // res.status(200).json(result[0]);
     res.status(200).send("The express server is working");
   } catch (error) {
@@ -116,20 +120,29 @@ app.get("/", async (req, res) => {
   }
 });
 
+app.post("/", async (req, res) => {
+  try {
+    console.log("Dummy post request received");
+    res.status(201).json({ message: "POST request successful" });
+  } catch (error) {
+    sendInternalServerError(res);
+  }
+});
+
 //Commented out due to clashing command in mysql routes.
 /*
 app.post("/", (req, res) => {
-  console.log("Hello World");
+  if (DEBUG) console.log("Hello World");
   // Retrieve the data sent in the POST request
   const requestData = req.body;
-  console.log("Received data:", requestData);
+  if (DEBUG) console.log("Received data:", requestData);
   globallst.push(requestData);
   try{
     dbConnection.promise().query(`INSERT INTO BASESENSOR VALUES('${requestData.temperature}','${requestData.humidity}')`);
 
   }catch(error){
-    console.log("post / error");
-    console.log(error);
+    if (DEBUG) console.log("post / error");
+    if (DEBUG) console.log(error);
   }
   // res.status(200).send("Data has been received." + JSON.stringify(requestData));
   res.status(200).send("Data has been received." );
@@ -162,15 +175,15 @@ if (mode == SQLITE || mode == SQLITE_MYSQL) {
     app.use(SQLITE_ROUTER_ROUTE, SQlite3Route);
     initialiseSqlite3(db);
   } catch (error) {
-    console.log("error initialising sqlite database");
-    console.log(error);
+    if (DEBUG) console.log("error initialising sqlite database");
+    if (DEBUG) console.log(error);
   }
 }
 
 //MySQL routes
 if (mode == MYSQL || mode == SQLITE_MYSQL) {
   if (!NOT_LOGGING) {
-    console.log("MSSQL is", MSSQL);
+    if (DEBUG) console.log("MSSQL is", MSSQL);
   }
 
   try {
@@ -183,8 +196,8 @@ if (mode == MYSQL || mode == SQLITE_MYSQL) {
       initialiseMySQL();
     }
   } catch (error) {
-    console.log("Currently encountering error initalising MYSQL database");
-    console.log(error);
+    if (DEBUG) console.log("Currently encountering error initalising MYSQL database");
+    if (DEBUG) console.log(error);
   }
 }
 
@@ -195,9 +208,9 @@ if (DOCUMENTATION) {
   const swaggerDefinition = {
     openapi: "3.0.0",
     info: {
-      title: "Express Swagger Example",
-      version: "1.0.0",
-      description: "A simple Express Swagger example",
+      title: "Greens.AI Backend Documentation",
+      version: SWAGGER_VESION,
+      description: "Documentation for all routes present for interaction with the frontend.",
     },
     basePath: "/",
   };
@@ -226,9 +239,9 @@ module.exports = { app };
 //Run Server
 // try{
 //   app.listen(port, () => {
-//     console.log(`Server is listening at http://localhost:${port}`);
+//     if (DEBUG) console.log(`Server is listening at http://localhost:${port}`);
 //   });
 // } catch (error){
-//   console.log("Unable to start up the app");
-//   console.log(error);
+//   if (DEBUG) console.log("Unable to start up the app");
+//   if (DEBUG) console.log(error);
 // }

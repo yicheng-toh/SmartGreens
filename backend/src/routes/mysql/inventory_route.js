@@ -1,9 +1,13 @@
+const{ DEBUG } = require("../../env.js");
 const { json } = require("express");
 const express = require("express");
 const router = express.Router();
 const {sendBadRequestResponse, sendInternalServerError} = require("../request_error_messages.js")
 const mysqlLogic = require("../../database_logic/sql/sql.js")
 const errorCode = require("./error_code.js");
+const {
+  retrySQLQueryFiveTimes
+} = require("../../misc_function.js");
 /**
  * @swagger
  * tags:
@@ -67,12 +71,12 @@ router.post('/insertNewInventory', async (req, res) => {
           if(units === undefined){
             units = null;
           }
-          console.log(item,quantity, units, location);
+          if (DEBUG) console.log(item,quantity, units, location);
           success = await mysqlLogic.insertNewInventoryObject(item, quantity, units, location);
           res.status(201).json({"success": success, message:'Data inserted successfully'});
           return;
         } catch (error) {
-          console.log('Error inserting data:', error);
+          if (DEBUG) console.log('Error inserting data:', error);
           // sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
           sendInternalServerError(res, error);
           return;
@@ -129,16 +133,16 @@ router.post('/updateInventoryQuantity', async (req, res) => {
           //   sendInternalServerError(res, errorCode.UPDATE_INVENTORY_QUANTITY_INVALID_QUANTITY_CHANGE);
           //   return;
           }
-          console.log("inventory id exist");
+          if (DEBUG) console.log("inventory id exist");
           success = await mysqlLogic.updateInventoryQuantity(id, quantityChange);
           res.status(201).json({"success": success, message:'Data inserted successfully'});
         } catch (error) {
-          console.log('Error inserting data:', error);
+          if (DEBUG) console.log('Error inserting data:', error);
           sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
           return;
         }
     } catch (error) {
-        console.log(error);
+        if (DEBUG) console.log(error);
         sendBadRequestResponse(res, error);
         return;
     }
@@ -192,7 +196,7 @@ router.post('/updateInventoryUnit', async (req, res) => {
         return;
 
       } catch (error) {
-        console.log('Error inserting data:', error);
+        if (DEBUG) console.log('Error inserting data:', error);
         // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
         sendInternalServerError(res, error);
         return;
@@ -215,11 +219,13 @@ router.post('/updateInventoryUnit', async (req, res) => {
 router.get('/retrieveAllInventoryData', async(req, res) => {
     try {
       //need to double check this with mssql. currently works on mysql
-        const rows = await mysqlLogic.getAllInventoryData();
+        let rows;
+        rows = await retrySQLQueryFiveTimes(mysqlLogic.getAllInventoryData,[],'/retrieveAllInventoryData');
+        // const rows = await mysqlLogic.getAllInventoryData();
         res.status(200).send({'success': 1, 'result': rows});
         return;
     } catch (error) {
-        console.log('Error retrieving data:', error);
+        if (DEBUG) console.log('Error retrieving data:', error);
         // sendInternalServerError(res, errorCode.DATABASE_OPERATION_ERROR);
         sendInternalServerError(res, error);
         return;
@@ -258,7 +264,7 @@ router.delete('/deleteInventory/:currentInventoryId',async (req, res) => {
         }
         const isInventoryIdExist = await mysqlLogic.verifyInventoryIdExist(currentInventoryId);
         if(!isInventoryIdExist){
-          console.log("isInventoryIdExist",isInventoryIdExist);
+          if (DEBUG) console.log("isInventoryIdExist",isInventoryIdExist);
           sendInternalServerError(res, "Inventory Id does not exist.");
           return;
         }
@@ -269,7 +275,7 @@ router.delete('/deleteInventory/:currentInventoryId',async (req, res) => {
         return;
 
       } catch (error) {
-        console.log('Error inserting data:', error);
+        if (DEBUG) console.log('Error inserting data:', error);
         // sendInternalServerError(res, error.DATABASE_OPERATION_ERROR);
         sendInternalServerError(res, error);
         return;

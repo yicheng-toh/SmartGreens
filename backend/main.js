@@ -21,21 +21,21 @@
 //   const result = await dbConnection
 //     .promise()
 //     .query(`SELECT * FROM BASESENSOR;`);
-//   console.log("/");
-//   console.log(result);
+//   if (DEBUG) console.log("/");
+//   if (DEBUG) console.log(result);
 
 //   // Assuming globallst contains the data you want to send as JSON
 //   const jsonString = JSON.stringify(globallst);
-//   console.log("JSON String:", jsonString);
+//   if (DEBUG) console.log("JSON String:", jsonString);
 //   res.status(200).json(result[0]);
 // });
 
 // app.post("/", (req, res) => {
 //   res.status(200).send("hello world post");
-//   // console.log("Hello World");
+//   // if (DEBUG) console.log("Hello World");
 //   // // Retrieve the data sent in the POST request
 //   // const requestData = req.body;
-//   // console.log("Received data:", requestData);
+//   // if (DEBUG) console.log("Received data:", requestData);
 //   // globallst.push(requestData);
 //   // try {
 //   //   dbConnection
@@ -44,8 +44,8 @@
 //   //       `INSERT INTO BASESENSOR VALUES('${requestData.temperature}','${requestData.humidity}')`
 //   //     );
 //   // } catch (e) {
-//   //   console.log("post / error");
-//   //   console.log(e);
+//   //   if (DEBUG) console.log("post / error");
+//   //   if (DEBUG) console.log(e);
 //   // }
 //   // // res.status(200).send("Data has been received." + JSON.stringify(requestData));
 //   // res.status(200).send("Data has been received.");
@@ -64,7 +64,7 @@
 // // app.use("/mysql", MySQLRoute);
 // // const {dbConnection, createTableIfNotExists} = require("./routes/mysql_route.js");
 
-// console.log(mode);
+// if (DEBUG) console.log(mode);
 // if (mode == "sqlite3") {
 //   // intialiseSqlite3();
 //   db = intialiseSqlite3();
@@ -74,11 +74,11 @@
 //   createTableIfNotExists();
 //   // initialiseMySQL();
 //   module.exports = dbConnection;
-//   console.log("connected to sql server");
+//   if (DEBUG) console.log("connected to sql server");
 // }
 
 // const ipAddress = "0.0.0.0";
 // //run the server
 // app.listen(port, ipAddress, () => {
-//   console.log(`Server is listening at http://localhost:${port}`);
+//   if (DEBUG) console.log(`Server is listening at http://localhost:${port}`);
 // });

@@ -1,20 +1,16 @@
 # Use an official Node.js runtime as a base image
-# FROM node:18.18-slim
 FROM node:18.18.0-alpine
 
 # Set the working directory in the container
 WORKDIR /usr/src/
-# WORKDIR /
 
 # Copy package.json and package-lock.json to the working directory
-# COPY package*.json .
 COPY package*.json /usr/src/
 
 # Install app dependencies
 RUN npm install
 
 # Bundle your app source
-# COPY . .
 COPY ./src /usr/src/
 
 # Expose port 3000

@@ -5,6 +5,8 @@ const DOCKER = process.env.Docker === 'true';
 const NOT_LOGGING = process.env.NOT_LOGGING === 'true';
 const DOCUMENTATION = process.env.DOCUMENTATION === 'true';
 const DOCKER_AZURE = process.env.DOCKER_AZURE === 'true';
+const DEBUG = process.env.DEBUG === 'true';
+const AI_WEB_SERVER = process.env.AI_WEB_SERVER
  
 const MSSQL = process.env.MSSQL === "true" || false;
 let config;
@@ -57,11 +59,12 @@ if (MSSQL){
         // 'HOST' : process.env.AZURE_SQL_SERVER,
         port : parseInt(process.env.AZURE_SQL_PORT),
         // 'CERTIFICATE' : process.env.AZURE_SQL_CERTIFICATE,
+        requestTimeout: 30000,
         options: {
             encrypt: true
         },
         pool: {
-            max: 10, // Maximum number of connections in the pool
+            max: 30, // Maximum number of connections in the pool
             min: 0, // Minimum number of connections in the pool
             idleTimeoutMillis: 30000, // How long a connection can be idle before being released (in milliseconds)
           },
@@ -80,6 +83,7 @@ if (MSSQL){
 
 
 module.exports = {
+    AI_WEB_SERVER,
     DEPLOYMENT,
     DATABASE,
     DOCKER,
@@ -88,5 +92,6 @@ module.exports = {
     config,
     NOT_LOGGING,
     DOCUMENTATION,
-    DOCKER_AZURE
+    DOCKER_AZURE,
+    DEBUG,
 }

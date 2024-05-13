@@ -18,10 +18,11 @@
     "mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js",
     "docker_azure": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=true MSSQL=true node main.js",
     "local_mssql": "cross-env DEPLOYMENT=true DATABASE=MySQL Docker=false MSSQL=true node src/main.js",
-    "documentation": "cross-env DEPLOYMENT=true DOCUMENTATION=true DATABASE=MySQL node src/main.js",
-    "documentation_mssql": "cross-env DEPLOYMENT=true DOCUMENTATION=true DATABASE=MySQL MSSQL=true node src/main.js",
+    "documentation": "cross-env DEBUG=true DEPLOYMENT=true DOCUMENTATION=true DATABASE=MySQL node src/main.js",
+    "documentation_noDebug": "cross-env DEPLOYMENT=true DOCUMENTATION=true DATABASE=MySQL node src/main.js",
+    "documentation_mssql": "cross-env DEBUG=true DEPLOYMENT=true DOCUMENTATION=true DATABASE=MySQL MSSQL=true node src/main.js",
     "documentation_test": "cross-env DEPLOYMENT=false DOCUMENTATION=true DATABASE=MySQL node src/main.js",
-    "docker_azure_documentation": "cross-env DOCKER_AZURE=true DEPLOYMENT=true DOCUMENTATION=true DATABASE=MySQL MSSQL=true node main.js"
+    "docker_azure_documentation": "cross-env DOCKER_AZURE=true DEPLOYMENT=true DOCUMENTATION=true DATABASE=MySQL DEBUG=true MSSQL=true node main.js"
   },
   "keywords": [],
   "author": "",

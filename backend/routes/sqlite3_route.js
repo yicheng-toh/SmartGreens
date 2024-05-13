@@ -14,7 +14,7 @@ router.post("/insertData/:microcontrollerId", (req, res) => {
     .slice(0, 19)
     .replace("T", " ");
   const dateTime = formattedDateTime.toString();
-  console.log("dateTime is" + dateTime);
+  if (DEBUG) console.log("dateTime is" + dateTime);
   const { temperature, humidity, brightness } = req.body;
   const { microcontrollerId } = req.params;
 
@@ -32,9 +32,9 @@ router.post("/insertData/:microcontrollerId", (req, res) => {
     ],
     (err) => {
       if (err) {
-        console.log("Error inserting data:", err);
-        console.log("Error inserting data:", err);
-        console.log(err);
+        if (DEBUG) console.log("Error inserting data:", err);
+        if (DEBUG) console.log("Error inserting data:", err);
+        if (DEBUG) console.log(err);
         res.status(500).send("Internal Server Error");
       } else {
         res.status(201).send("Data inserted successfully at " + dateTime);
@@ -55,7 +55,7 @@ router.get("/retrieveData/:plantBatch", (req, res) => {
     plantBatch,
     (err, rows) => {
       if (err) {
-        console.log("Error retrieving data:", err);
+        if (DEBUG) console.log("Error retrieving data:", err);
         res.status(500).send("Internal Server Error");
       } else {
         res.json(rows);
@@ -68,7 +68,7 @@ router.get("/retrieveData/:plantBatch", (req, res) => {
 router.get("/retrieveData", (req, res) => {
   db.all("SELECT * FROM SensorDetail", (err, rows) => {
     if (err) {
-      console.log("Error retrieving data:", err);
+      if (DEBUG) console.log("Error retrieving data:", err);
       res.status(500).send("Internal Server Error");
     } else {
       res.json(rows);
@@ -83,13 +83,13 @@ function intialiseSqlite3() {
     sqlite3.OPEN_READWRITE,
     (err) => {
       if (err) {
-        console.log("Error connecting to the SQLite database:", err);
+        if (DEBUG) console.log("Error connecting to the SQLite database:", err);
       } else {
-        console.log("Connected to the SQLite database");
+        if (DEBUG) console.log("Connected to the SQLite database");
       }
     }
   );
-  console.log("Initialising table");
+  if (DEBUG) console.log("Initialising table");
   db.run(`
         CREATE TABLE IF NOT EXISTS SensorDetail (
         dateTime DATETIME,
