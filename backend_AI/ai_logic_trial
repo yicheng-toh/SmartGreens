@@ -1,0 +1,149 @@
+from joblib import load
+from ultralytics import YOLO
+import tensorflow as tf
+import cv2 
+import numpy as np
+
+initial_weight = 277
+
+#Load a pretrained YOLOv8n model
+yolo_model = YOLO('27MarModel.pt')
+
+def plant_health__leaf_number(img):
+    #Run inference on the source
+    results = yolo_model(source=img, show=False, conf=0.5, save=True) #generator of results
+
+    num_leaves = 0
+    for result in results:
+        num_leaves = tf.math.count_nonzero(result.boxes.cls)
+    
+    num_leaves = float(num_leaves)
+    print(num_leaves)
+    num_leaves = num_leaves / (num_leaves + 1)
+    
+    return num_leaves
+
+def percentage_green__leafsize(img):
+    #######################################################
+    # Percentage green
+    #######################################################
+    
+    # Using the image
+    image = cv2.imread(img)
+    # Resizing the image
+    image = cv2.resize(image, (200, 200)) 
+
+    res = image.copy()
+    
+    # Convert Image to Image HSV 
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) 
+
+    # Defining lower and upper bound HSV values
+    lower = np.array([35, 65, 120]) 
+    upper = np.array([50, 250, 250]) 
+
+    # Defining mask for detecting color 
+    mask = cv2.inRange(hsv, lower, upper)
+
+    # Get percentage of green in image
+    percentage_green = np.count_nonzero(mask)/40000
+    print(percentage_green)
+
+    
+    ###################################################
+    # For debugging
+    ###################################################
+    
+#     # Get CSV file for analysis
+#     np.savetxt("tst.csv",
+#             mask,
+#             delimiter =", ",
+#             fmt ='% s')
+    
+#     # Get image output and what is identified as green
+#     res = cv2.bitwise_and(image,image,mask = mask)
+#     cv2.imwrite(img[:-3] + "_mask.jpg", res)
+
+
+    #######################################################
+    # Leaf Size
+    #######################################################
+    
+    # convert to gray 
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # threshold the gray
+    th = 100 
+    th, threshed = cv2.threshold(gray, th, 255,  cv2.THRESH_BINARY)
+    
+    # Get identified green as grey image
+    img_search = cv2.bitwise_and(mask, threshed)
+    
+    # Canny Edge Detection
+    edges = cv2.Canny(image=img_search, threshold1=80, threshold2=300) 
+
+    
+    ###################################################
+    # For debugging
+    ###################################################
+#     cv2.imwrite("edge_{}.png".format(1), edges)
+
+    cnts = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[-2]
+
+    counts = 0
+    total_area = 0
+
+    for cnt in cnts:
+        arclen = cv2.arcLength(cnt, True)
+        area = cv2.contourArea(cnt)
+        if area > 0:
+            total_area += area
+            cv2.drawContours(res, [cnt], -1, (0,255,0), 3, cv2.LINE_AA)
+            print("Length: {:.3f}\nArea: {:.3f}".format(arclen, area))
+
+#             cv2.imwrite("edge_check_{}.png".format(counts), res)
+            counts +=1
+
+    leaf_size = total_area/counts
+    print(leaf_size)
+    leaf_size = leaf_size/ (leaf_size + 1)
+    
+    return percentage_green, leaf_size
+
+
+path = "C:\\Users\\Qi Ren\\Desktop\\FYP\\test\\"
+img = "20240320_282_800_600_2.jpg"
+new_X = [0]
+
+# Process the image to get desired features
+
+percentagegreen_new, leafsize_new = percentage_green__leafsize(path+img)
+new_X.append(percentagegreen_new)
+new_X.append(leafsize_new)
+new_X.append(plant_health__leaf_number(path+img))
+
+new_X = np.array(new_X).reshape(1, -1)
+
+svr_model_filename = 'svr_yield.joblib'
+dtr_model_filename = 'dtr_yield.joblib'
+xgb_model_filename = 'xgb_yield.joblib'
+svr_model = load(svr_model_filename)
+dtr_model = load(dtr_model_filename)
+xgb_model = load(xgb_model_filename)
+
+svr_estimated_yield = svr_model.predict(new_X)
+print("SVR Prediction: ", svr_estimated_yield)
+dtr_estimated_yield = dtr_model.predict(new_X)
+print("DTR Prediction: ", dtr_estimated_yield)
+xgb_estimated_yield = xgb_model.predict(new_X)
+print("XGB Prediction: ", xgb_estimated_yield)
+
+
+svr_weighted_pred = 0.27135809556219675
+dtr_weighted_pred = 0.3261035063794821
+xgb_weighted_pred = 0.4025383980583211
+
+ensemble_yield = svr_estimated_yield*svr_weighted_pred + dtr_estimated_yield*dtr_weighted_pred + xgb_estimated_yield*xgb_weighted_pred
+print("")
+print("Ensemble pred: ", ensemble_yield)
+print("Actual yield: ", int(img[9:img.index("_", 9)])- initial_weight)

@@ -14565,7 +14565,13 @@ backend/node_modules/z-schema/src/Utils.js
 backend/node_modules/z-schema/src/ZSchema.js
 backend/node_modules/z-schema/src/schemas/hyper-schema.json
 backend/node_modules/z-schema/src/schemas/schema.json
+backend/node_modules/*
 backend/coverage/lcov-report/backend/src/routes/mysql/misc_route.js.html
 backend/azure_env integration.js
 example1.jpg
 backend/image.jpg
+backend_AI/__pycache__/*
+backend_AI/src/__pycache__/*
+backend_AI/src/.env
+backend_AI/venv/*
+backend_AI/trial/*
