@@ -1,0 +1,11 @@
+version: '3'
+services:
+  python-ai-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      TELE_API_KEY: my-key
+      ID1: my-id
+    ports:
+      - "5000:5000"
